@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" class="app-loading">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Youtube Music</title>
+
+        <!-- Favicon - Vite serve từ public/ -->
+        <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon/favicon-16x16.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon/favicon-32x32.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="96x96"
+            href="/favicon/favicon-96x96.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="57x57"
+            href="/favicon/apple-icon-57x57.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="60x60"
+            href="/favicon/apple-icon-60x60.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="72x72"
+            href="/favicon/apple-icon-72x72.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="76x76"
+            href="/favicon/apple-icon-76x76.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="114x114"
+            href="/favicon/apple-icon-114x114.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="120x120"
+            href="/favicon/apple-icon-120x120.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="144x144"
+            href="/favicon/apple-icon-144x144.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="152x152"
+            href="/favicon/apple-icon-152x152.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/favicon/apple-icon-180x180.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="192x192"
+            href="/favicon/android-icon-192x192.png" />
+        <link rel="manifest" href="/favicon/manifest.json" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta
+            name="msapplication-TileImage"
+            content="/favicon/ms-icon-144x144.png" />
+        <meta name="theme-color" content="#ffffff" />
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+            rel="stylesheet" />
+
+        <!-- Icons -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.css"
+            integrity="sha512-x9WwyMYBnlXMNQ6kQ/Lyzu1NqIhLQKL5Oq6xByfXuRj7s9CskyCbLv/1IjqzJmXwFXWr0ov6jBV7Qbc0hh9nHg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer" />
+
+        <script type="module" src="/src/main.js"></script>
+    </head>
+    <body>
+        <!-- Header placeholder -->
+        <header class="header" id="header">
+            <%- include('public/partials/header-logged-out.html') %>
+        </header>
+
+        <!-- Sidebar placeholder -->
+        <aside class="sidebar" id="sidebar">
+            <%- include('public/partials/sidebar.html') %>
+        </aside>
+
+        <!-- Main content (router render) -->
+        <main class="main-layout" id="main"></main>
+
+        <!-- Player placeholder -->
+        <footer class="player" id="player">
+            <%- include('public/partials/player.html') %>
+        </footer>
+
+        <!-- Toast container -->
+        <div id="toast-container" class="toast-container"></div>
+    </body>
+</html>

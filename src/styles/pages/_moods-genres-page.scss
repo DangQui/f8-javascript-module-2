@@ -1,0 +1,43 @@
+/**
+ * pages/_moods-genres-page.scss — Moods and Genres page styles
+ *
+ * Port từ base.js `ur()` dòng 4449 + `ir()` dòng 4246.
+ * KHÔNG dùng Tailwind utility classes (Hard Rule #3).
+ *
+ * Cấu trúc HTML (render từ src/pages/moods-and-genres/moods-and-genres.render.js):
+ *   <div class="moods-genres-page">
+ *       <h1 class="moods-genres-page__heading">Tâm trạng và thể loại</h1>
+ *       <section class="home__container">…</section>
+ *   </div>
+ *
+ * Phase 16.5 update: dùng `.discover-mood-genre__col` từ `_discover.scss`
+ * để responsive width khớp discover 1:1.
+ */
+
+.moods-genres-page {
+    padding: 16px;
+    color: var(--text-color);
+
+    &__heading {
+        // Port từ base.js `ur()` dòng 4455: `font-bold text-[45px] mb-10`
+        font-size: 4.5rem;
+        font-weight: 700;
+        line-height: 1.5;
+        margin-bottom: 40px;
+    }
+
+    &__empty {
+        color: var(--picks-meta-color);
+        padding: 16px;
+    }
+
+    &__colors {
+        display: flex;
+        gap: 16px;
+    }
+
+    &__no-data {
+        color: var(--text-color);
+        padding: 16px;
+    }
+}

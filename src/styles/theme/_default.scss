@@ -1,0 +1,83 @@
+@use "../abstracts/mixin" as mix;
+
+html {
+    --text-color: #fff;
+    --icon-color: #d1d5dc;
+    --body-bg: linear-gradient(160deg, #050a12, #0a1a2f, #112e42, #1b2f4a);
+
+    // Color
+    --sea-blue-color: #7fdbff;
+    --red-color: #ff4136;
+    --back-color: #111111;
+    --purple-color: #b10dc9;
+    --pink-color: #ff9aa2;
+    --pale-pink-color: #ffb7b2;
+    --yellowish-green-color: #e2f0cb;
+    --blue-color: #00bfff;
+
+    // Header
+    --header-bg: #030303e6;
+
+    // Form
+    --form-search-bg: #292929cc;
+    --form-input-placeholder: #9ca3af;
+    --form-input-bg: #ffffffb3;
+    --form-input-color: #1e2939;
+
+    // Button
+    --btn-color-primary: #000;
+    --btn--bg-primary: #fff;
+
+    // Control Button
+    --control-btn-bg: #ffffff1a;
+
+    // Sidebar
+    --sidebar-bg: var(--header-bg);
+    --sidebar-blur: blur(24px);
+    --sidebar-item-bg-active: #fff3;
+    --sidebar-item-bg-hover: #ffffff1a;
+    --sidebar-bg-line: #ffffff33;
+
+    // Sidebar slide
+    --sidebar-slide-bg: #000000f2;
+    --sidebar-slide-desc: #909090;
+
+    // Category
+    --cate-btn-bg: #ffffff08;
+
+    // Quick Picks
+    --picks-meta-color: #99a1af;
+
+    // Cart Item
+    --cart-brand-color: var(--picks-meta-color);
+
+    // Player
+    // --player-bg:
+
+    // Discover Item
+    --discover-item-bg: var(--control-btn-bg);
+    --discover-item-bg-hover: var(--sidebar-bg-line);
+
+    // Auth
+    --auth-inner-bg: var(--sidebar-item-bg-hover);
+    --auth-inner-border: var(--sidebar-item-bg-active);
+    --auth-inner-shadow: #0000001a;
+    --auth-btn-bg: #000000cc;
+    --auth-text-color: #6a7282;
+    --auth-text-color-hover: #ff6467;
+
+    // Info Detail
+    --info-detail-desc-color: #ffffffb3;
+    --info-detail-meta-color: #ffffffcc;
+
+    // Track Item
+    --track-list-artist-color: #ffffff99;
+
+    // Avatar
+    --avatar-bg: #ffffff33;
+    --avatar-bg-hover: #ffffff4d;
+
+    // Loading
+    --loading-color: #ffffff1f;
+    --loading-accent: #7fdbff;
+}

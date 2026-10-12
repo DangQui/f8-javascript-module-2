@@ -1,0 +1,20 @@
+/**
+ * pages/_section-modifier.scss — Section modifier classes
+ *
+ * `.home__container--flush-top`: dùng cho mood chips ở đầu Home page
+ * (sau header "Music") — bỏ margin-top để áp sát header.
+ *
+ * Vì sao file MỚI thay vì edit `_home.scss`:
+ *   - HARD RULE #1: KHÔNG đổi bất kỳ dòng SCSS nào (giữ styles gốc).
+ *   - File này chỉ ADD modifier mới → không vi phạm rule.
+ *   - BEM modifier chuẩn: `.home__container--flush-top` (cùng specificity
+ *     với `.home__container:first-child`, nhưng đứng sau trong cascade → thắng).
+ *
+ * Consumed by:
+ *   - `renderMoodChips` trong `@/pages/home/home.render.js`
+ */
+
+.home__container--flush-top {
+    // Override `margin-top: 80px` (default) + 40px (first-child) → 0.
+    margin-top: 0;
+}

@@ -1,0 +1,93 @@
+.info-detail {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+
+    &__img {
+        width: 400px;
+        height: 400px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    &__title {
+        font-size: 2.8rem;
+        line-height: 1.5;
+        font-weight: 700;
+    }
+
+    &__desc {
+        font-size: 1.8rem;
+        line-height: 1.56;
+        color: var(--info-detail-desc-color);
+    }
+
+    &__meta {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 1.6rem;
+        line-height: 1.5;
+        color: var(--info-detail-meta-color);
+    }
+
+    &__meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    &__meta-dot {
+        color: var(--info-detail-meta-color);
+        opacity: 0.6;
+    }
+
+    // Video detail — width 100% để fill col, align center
+    &--video {
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+
+    &__label {
+        font-size: 1.6rem;
+        line-height: 1.5;
+        color: var(--info-detail-meta-color);
+        opacity: 0.7;
+    }
+}
+
+// Nút "Mở rộng trình phát" — mở video overlay
+.video-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.15);
+    border: 1px solid rgba(20, 184, 166, 0.4);
+    color: #2dd4bf;
+    font-size: 1.4rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease;
+
+    i {
+        font-size: 1.6rem;
+    }
+
+    &:hover {
+        background: rgba(20, 184, 166, 0.25);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,200 @@
+/**
+ * pages/_top-artist.scss — Charts / New Releases page styles
+ *
+ * Gồm 3 wrapper classes:
+ *   - `.top-artist`        — 4 cols × 4 items grid cho Top Artists section
+ *   - `.country-select`    — country dropdown cho Charts page
+ *   - `.charts-page`       — wrapper Charts page (padding + heading)
+ *   - `.new-releases-page` — wrapper New Releases page (padding + heading)
+ *
+ * Markup render:
+ *   - Top artist: từ `@/components/top-artist.js`
+ *   - Country select + Charts page: từ `@/pages/charts/charts.render.js`
+ *   - New Releases page: từ `@/pages/new-releases/new-releases.render.js`
+ *
+ * Load SAU `_home.scss` → cùng specificity (0,1,0) nhưng thắng cascade.
+ */
+
+.top-artist {
+    &__list {
+        display: flex;
+        gap: 24px;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        padding-bottom: 26px;
+
+        // Chrome, Edge, Safari scrollbar (khớp với home-album__list)
+        &::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #030304;
+            border-radius: 999px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #808080cc;
+            border-radius: 999px;
+            transition: 0.25s ease;
+
+            &:hover {
+                background: #b0aeaecc;
+            }
+        }
+    }
+
+    &__col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 0 0 33%;
+        min-width: 33%;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 8px;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+    }
+
+    &__rank {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #d1d5db; // gray-300
+        text-align: center;
+    }
+
+    &__trend {
+        font-size: 1.4rem;
+        line-height: 1;
+
+        &--up {
+            color: #4ade80; // green-400 (theo base.js)
+        }
+
+        &--down {
+            color: #f87171; // red-400
+        }
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 0; // cho phép truncate
+    }
+
+    &__name {
+        color: #fff;
+        font-size: 1.6rem;
+        font-weight: 600;
+        line-height: 1.5;
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__views {
+        color: #9ca3af; // gray-400
+        font-size: 1.2rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+}
+
+/**
+ * Country select dropdown (Charts page).
+ * Port từ base.js `lr()` dòng 4435:
+ *   - bg-[#1d1d1d] border + rounded-full + custom arrow ▼
+ */
+.country-select {
+    position: relative;
+    width: 113px;
+    margin-bottom: 24px;
+
+    &__field {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        padding: 8px 32px 8px 16px;
+        border-radius: 999px;
+        background: #1d1d1d;
+        color: #fff;
+        border: 1px solid #374151; // gray-700
+        cursor: pointer;
+        font-size: 1.4rem;
+        line-height: 1.5;
+        transition: border-color 0.2s ease;
+
+        &:hover,
+        &:focus {
+            border-color: #6b7280; // gray-500
+            outline: none;
+        }
+
+        // Native option styling (limited support trên nhiều browser)
+        option {
+            background: #1d1d1d;
+            color: #fff;
+        }
+    }
+
+    &__arrow {
+        pointer-events: none;
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af; // gray-400
+        font-size: 1.2rem;
+    }
+}
+
+/**
+ * Charts page wrapper (padding + heading).
+ * Port từ base.js `lr()` dòng 4429: `text-[45px] mb-10 font-bold`.
+ */
+.charts-page {
+    padding: 16px;
+    color: #fff;
+
+    &__heading {
+        font-size: 4.5rem;
+        font-weight: 700;
+        line-height: 1.5;
+        margin-bottom: 40px;
+    }
+}
+
+/**
+ * New Releases page wrapper (padding + heading).
+ * Port từ base.js `cr()` dòng 4419: `text-[45px] -mb-10 font-bold`
+ * → margin-bottom: -40px (kéo slider lên gần H1).
+ */
+.new-releases-page {
+    padding: 16px;
+    color: #fff;
+
+    &__heading {
+        font-size: 4.5rem;
+        font-weight: 700;
+        line-height: 1.5;
+        margin-bottom: -40px;
+    }
+}

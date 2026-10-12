@@ -1,0 +1,338 @@
+/**
+ * layout/_player.scss — Bottom audio player bar styles
+ *
+ * QUAN TRỌNG — Cấu trúc lồng file (matched với template gốc):
+ *
+ *   <footer class="player" id="player">      ← placeholder trong index.html
+ *     <div class="player__inner">            ← template inject vào ĐÂY
+ *       <div class="player__progress">...</div>
+ *       <div class="player__main">...</div>
+ *     </div>
+ *   </footer>
+ *
+ * Lưu ý CSS: KHÔNG dùng nested `.player { &__progress { ... } }` selector
+ * vì rule `.player` sẽ match CẢ wrapper (placeholder) lẫn inner div.
+ * → Phải dùng selector flat `.player__xxx` để tránh xung đột với wrapper.
+ * → Wrapper `.player` chỉ nhận animation/hide/show từ _loading.scss.
+ *
+ * Consumed by:
+ *   - `@/layout/player.js` (renderPlayer)
+ *   - `@/components/audio-player.js` (play/pause/seek UI)
+ */
+// VISIBILITY:
+//   - Mặc định: player bị ẨN (translateY(100%) + visibility hidden).
+//   - Khi playSong() được gọi → thêm class `.is-visible` → slide-up từ dưới.
+//   - Khi hidePlayer() → remove `.is-visible` → slide-down xuống dưới.
+// → Xem state/playerState.js để biết API toggle.
+//
+// CSS trick dùng `visibility: hidden` kết hợp `pointer-events: none`
+// để ngăn click vào player trong khi nó ẩn dưới viewport.
+//
+
+.player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: #212121;
+
+    // Trạng thái ẩn: trượt xuống dưới + không nhận click
+    transform: translateY(100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.4s ease, visibility 0s linear 0.4s;
+
+    // Trạng thái hiện: trượt lên đúng vị trí + nhận click
+    &.is-visible {
+        transform: translateY(0);
+        visibility: visible;
+        pointer-events: auto;
+        transition: transform 0.4s ease, visibility 0s linear 0s;
+    }
+
+    // Ẩn khi overlay video mở full (tránh 2 player chồng lên nhau)
+    &.is-hidden-by-overlay {
+        transform: translateY(100%);
+        visibility: hidden;
+        pointer-events: none;
+        transition: transform 0.3s ease, visibility 0s linear 0.3s;
+    }
+}
+
+.player__inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.player__progress {
+    position: absolute;
+    top: -5%;
+    left: 0;
+    width: 100%;
+    background-color: #364153;
+}
+
+.player__progress-bar {
+    position: absolute;
+    top: 0%;
+    left: 0;
+    transform: translateY(calc(calc(1 / 2 * 100%) * -1));
+    accent-color: #fb2c36;
+    cursor: pointer;
+    width: 100%;
+    height: 4px;
+}
+
+.player__main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+}
+
+.player__controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.player__control--play {
+    font-size: 3rem;
+}
+
+.player__time,
+.player__artist {
+    font-size: 1.4rem;
+    line-height: 1.43;
+    color: #d1d5dc;
+}
+
+.player__mid {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.player__track,
+.player__actions,
+.player__settings {
+    display: flex;
+    align-items: center;
+}
+
+.player__track {
+    gap: 24px;
+    cursor: pointer; // Click để expand mini-player → overlay full
+}
+
+.player__title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.player__cover {
+    width: 40px;
+    height: 40px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.player__actions {
+    gap: 8px;
+}
+
+.player__action {
+    &:hover {
+        background-color: #364153;
+    }
+
+    &:last-child {
+        margin-left: 16px;
+    }
+}
+
+.player__settings {
+    position: relative;
+    gap: 12px;
+}
+// Shuffle / Repeat / Volume: khi active hoặc muted → đổi màu icon (giống overlay)
+.player__action--shuffle,
+.player__action--repeat,
+.player__action--volume {
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.player__action--shuffle.is-active,
+.player__action--repeat.is-active {
+    color: #2dd4bf; // accent-teal-light (giống overlay)
+}
+
+.player__action--volume.is-muted {
+    color: #fff; // đỏ nhạt khi muted
+}
+
+
+.player__volume-slider-wrap {
+    position: absolute;
+    left: -118px;
+    opacity: 0;
+    visibility: hidden;
+    transform: scaleX(0);
+    transform-origin: right center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 4px 10px; // padding ngang tăng 8→10 để slider "chạm" vào button volume
+    border-radius: 8px;
+    background-color: #4c4c4c;
+    box-shadow: 0 10px 15px -3px #0000001a;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 0;
+    // Margin-left âm để kéo slider sang phải, đè vào button volume một chút
+    // → khi di chuột từ button sang slider, không bị mất hover ở khoảng gap
+    margin-left: -8px;
+    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+}
+
+.player__volume-slider {
+    // Box-sizing reset để width: 100px = đúng 100px
+    box-sizing: border-box;
+    // Force align-self center (slider native có baseline lệch trong flex)
+    align-self: center;
+    width: 100px;
+    height: 6px;
+    appearance: none;
+    -webkit-appearance: none;
+    // Filled portion dùng gradient tương tự progress bar
+    background: linear-gradient(
+            to right,
+            #fff 0%,
+            #fff var(--vol-fill, 100%),
+            rgba(255, 255, 255, 0.25) var(--vol-fill, 100%),
+            rgba(255, 255, 255, 0.25) 100%
+    );
+    border-radius: 999px;
+    cursor: pointer;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    display: block;
+    flex-shrink: 0; // Không bị flex compress khi player resize
+    transition: width 0.2s ease;
+
+    // WebKit thumb — chiếm 12×12px, canh giữa track 4px
+    // margin-top âm để đẩy thumb xuống center (Chrome default +2px)
+    &::-webkit-slider-thumb {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+        border: 0;
+        margin-top: -4px; // (12-4)/2 = 4px để center thumb trong track 4px
+    }
+
+    // Firefox thumb
+    &::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+        border: 0;
+    }
+
+    // Track pseudo: transparent để kế thừa gradient từ element
+    // Width = 100% (full width slider) để fill đúng từ 0 → var
+    &::-webkit-slider-runnable-track {
+        background: transparent;
+        border: 0;
+        border-radius: 999px;
+        height: 4px;
+        width: 100%;
+    }
+
+    &::-moz-range-track {
+        background: transparent;
+        border: 0;
+        border-radius: 999px;
+        height: 4px;
+        width: 100%;
+    }
+}
+
+.player__settings:has(.player__action--volume:hover) .player__volume-slider-wrap,
+.player__settings:has(.player__volume-slider-wrap:hover) .player__volume-slider-wrap {
+    opacity: 1;
+    visibility: visible;
+    transform: scaleX(1);
+}
+.player__menu-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.player__menu {
+    position: absolute;
+    bottom: calc(100% + 12px); // nổ lên trên player bar
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    background: #2b2b2b;
+    border-radius: 8px;
+    padding: 8px;
+    min-width: 220px;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.player__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: transparent;
+    border: 0;
+    color: #ffffff;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 6px;
+    text-align: left;
+    transition: background 0.15s ease;
+    width: 100%;
+    white-space: nowrap;
+
+    i {
+        width: 18px;
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.08);
+
+        i {
+            color: #2dd4bf;
+        }
+    }
+}
+
+.player__menu-arrow {
+    margin-left: auto !important;
+    font-size: 11px !important;
+    opacity: 0.6;
+}

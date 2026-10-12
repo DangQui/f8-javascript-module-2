@@ -1,0 +1,274 @@
+@use "sass:math";
+@use "sass:map";
+//
+// Project gốc sử dụng breakpoint mobile-first:
+//
+// sm  = 640px
+// md  = 768px
+// lg  = 1024px
+// xl  = 1280px
+// 2xl = 1536px
+//
+// Không sử dụng:
+// - 576px
+// - 992px
+// - 1200px
+// - 1400px
+// - 3840px
+//
+
+$grid-breakpoints: (
+    sm: 640px,
+    md: 768px,
+    lg: 1024px,
+    xl: 1280px,
+    2xl: 1536px,
+);
+//
+// Container của project gốc:
+//
+// < 640px      -> 100%
+// >= 640px     -> 640px
+// >= 768px     -> 768px
+// >= 1024px    -> 1024px
+// >= 1280px    -> 1280px
+// >= 1536px    -> 1536px
+//
+// Đây là Tailwind-style container,
+// không phải Bootstrap container.
+//
+
+$container-max-widths: (
+    sm: 640px,
+    md: 768px,
+    lg: 1024px,
+    xl: 1280px,
+    2xl: 1536px,
+);
+$grid-columns: 12;
+
+$grid-gutter-width: 30px;
+
+$gutters: (
+    0: 0,
+    1: 0.25,
+    2: 0.5,
+    3: 1,
+    4: 1.5,
+    5: 3,
+);
+// Navbar:
+// h-18 = 18 × 4px = 72px
+$navbar-height: 72px;
+
+// Desktop sidebar:
+// w-22 = 22 × 4px = 88px
+$desktop-sidebar-width: 88px;
+
+// Desktop sidebar:
+// top-16 = 16 × 4px = 64px
+$desktop-sidebar-top: 64px;
+
+// Mobile sidebar:
+// w-56 = 56 × 4px = 224px
+$mobile-sidebar-width: 224px;
+
+// Main desktop layout:
+//
+// margin-left: calc(150px + 5%)
+// margin-right: 40px
+//
+$main-left-offset: 150px;
+$main-right-margin: 40px;
+//
+// Dùng placeholder để không tạo CSS selector riêng.
+//
+
+%gutter-padding {
+    padding-left: calc(var(--grid-gutter-x) * 0.5);
+    padding-right: calc(var(--grid-gutter-x) * 0.5);
+}
+//
+// container-fluid chỉ chịu trách nhiệm:
+//
+// - width: 100%
+// - gutter
+//
+// Không đưa main-layout vào đây.
+//
+// Trước đây file của bạn có:
+//
+// margin-left: calc(150px + 5%);
+// margin-right: 40px;
+// margin-top: 120px;
+//
+// Những thuộc tính này thuộc MAIN LAYOUT,
+// không thuộc container-fluid.
+//
+
+.container-fluid {
+    --grid-gutter-x: #{$grid-gutter-width};
+    --grid-gutter-y: 0;
+    width: 100%;
+    @extend %gutter-padding;
+}
+.container {
+    @extend .container-fluid;
+    width: 100%;
+}
+//
+// Đây là layout thực tế của project gốc.
+//
+// Mobile / Tablet:
+//     margin-left: 0
+//     margin-right: 0
+//
+// Desktop >= 1024px:
+//     margin-left: calc(150px + 5%)
+//     margin-right: 40px
+//
+// Đồng thời:
+//
+//     margin-top: 120px
+//     padding-bottom: 112px
+//
+
+.main-layout {
+    // Stacking context để đảm bảo header/sidebar/player (fixed + z-index cao)
+    // LUÔN che main content khi scroll/overlap. Không có position + z-index,
+    // một số child có `position: relative` có thể tạo stacking context
+    // ngầm và trồi lên trên fixed elements.
+    position: relative;
+    z-index: 1;
+
+    margin-top: 120px;
+    padding-bottom: 112px;
+
+    @media (min-width: 1024px) {
+        margin-left: calc(150px + 5%);
+        margin-right: 40px;
+    }
+}
+//
+// Có thể dùng:
+//
+// @include main-layout;
+//
+// nếu component/page muốn sử dụng cùng layout với project gốc.
+//
+
+@mixin main-layout {
+    position: relative;
+    z-index: 1;
+
+    margin-top: 120px;
+    padding-bottom: 112px;
+
+    @media (min-width: 1024px) {
+        margin-left: calc(150px + 5%);
+        margin-right: 40px;
+    }
+}
+.row {
+    display: flex;
+    flex-wrap: wrap;
+
+    margin-top: calc(var(--grid-gutter-y) * -1);
+    margin-left: calc(var(--grid-gutter-x) * 0.5 * -1);
+    margin-right: calc(var(--grid-gutter-x) * 0.5 * -1);
+
+    &[class*="row-cols-"] > *,
+    [class*="col-"] {
+        flex: 0 0 auto;
+
+        @extend %gutter-padding;
+    }
+
+    > * {
+        margin-top: var(--grid-gutter-y);
+    }
+}
+.col {
+    flex: 1 0;
+
+    @extend %gutter-padding;
+}
+//
+// Project gốc dùng mobile-first:
+//
+// @media (min-width: ...)
+//
+// Vì vậy breakpoint mới phải dùng min-width.
+//
+
+@mixin make-media-query($dimension) {
+    @media (min-width: $dimension) {
+        @content;
+    }
+}
+@mixin make-row-columns($infix: null) {
+    @for $i from 1 through math.div($grid-columns, 2) {
+        .row-cols#{$infix}-#{$i} > * {
+            width: math.div(100%, $i);
+        }
+    }
+}
+@mixin make-columns($infix: null) {
+    @for $i from 1 through $grid-columns {
+        .col#{$infix}-#{$i} {
+            width: math.div(100%, $grid-columns) * $i;
+        }
+    }
+}
+@mixin make-offsets($infix: null) {
+    @for $i from 0 to $grid-columns {
+        .offset#{$infix}-#{$i} {
+            margin-left: if($i > 0, math.div(100%, $grid-columns) * $i, 0);
+        }
+    }
+}
+@mixin make-gutters($infix: null) {
+    @each $i, $ratio in $gutters {
+        .g#{$infix}-#{$i},
+        .gx#{$infix}-#{$i} {
+            --grid-gutter-x: #{$grid-gutter-width * $ratio};
+        }
+
+        .g#{$infix}-#{$i},
+        .gy#{$infix}-#{$i} {
+            --grid-gutter-y: #{$grid-gutter-width * $ratio};
+        }
+    }
+}
+@include make-row-columns();
+
+@include make-columns();
+
+@include make-offsets();
+
+@include make-gutters();
+//
+// Mobile-first.
+//
+// sm  -> 640px
+// md  -> 768px
+// lg  -> 1024px
+// xl  -> 1280px
+// 2xl -> 1536px
+//
+
+@each $breakpoint, $dimension in $grid-breakpoints {
+    $max-width: map.get($container-max-widths, $breakpoint);
+
+    $infix: "-#{$breakpoint}";
+
+    @include make-media-query($dimension) {
+        .container {
+            max-width: $max-width;
+        }
+        @include make-row-columns($infix);
+        @include make-columns($infix);
+        @include make-offsets($infix);
+        @include make-gutters($infix);
+    }
+}

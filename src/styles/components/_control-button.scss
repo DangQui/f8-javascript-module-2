@@ -1,0 +1,31 @@
+.crt {
+    display: flex;
+    gap: 16px;
+    margin-left: auto;
+
+    &__btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        opacity: 0.3;
+        background-color: var(--control-btn-bg);
+        cursor: pointer;
+        transition: opacity 0.2s ease, transform 0.15s ease;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        // Disabled khi ở đầu/cuối slider
+        &:disabled,
+        &[aria-disabled="true"] {
+            opacity: 0.15;
+            cursor: not-allowed;
+            pointer-events: none;
+
+            &:hover {
+                opacity: 0.15;
+            }
+        }
+    }
+}

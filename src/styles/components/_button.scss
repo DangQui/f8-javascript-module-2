@@ -1,0 +1,51 @@
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border-radius: 12px;
+
+    &:hover {
+        cursor: pointer;
+        background-color: var(--sidebar-item-bg-hover);
+    }
+
+    &.active {
+        background-color: var(--sidebar-item-bg-active);
+        color: #fff;
+    }
+
+    &.active {
+        user-select: none;
+        pointer-events: none;
+    }
+
+    &--primary {
+        color: var(--btn-color-primary);
+        background: var(--btn--bg-primary);
+    }
+
+    &--small {
+        padding: 8px 16px;
+    }
+
+    &--text {
+        background: transparent;
+
+        &:hover {
+            background: transparent;
+        }
+    }
+
+    &--rounded {
+        border-radius: 999px;
+    }
+
+    &--rounded-lg {
+        border-radius: 8px;
+    }
+
+    &--around {
+        border-radius: 50%;
+    }
+}

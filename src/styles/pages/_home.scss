@@ -1,0 +1,172 @@
+.home {
+    display: flex;
+    flex-direction: column;
+    // overflow: hidden;
+
+    &__container {
+        padding: 0 8px;
+        margin-top: 80px;
+        padding-bottom: 56px;
+
+        &:first-child {
+            margin-top: 40px;
+        }
+    }
+
+    &__row {
+        display: flex;
+        align-items: flex-end;
+        margin-bottom: 16px;
+    }
+
+    &__cate {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+    }
+
+    &__title {
+        font-size: 4.5rem;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    &-album {
+        padding-bottom: 0;
+
+        &__list {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 26px;
+
+            // Cursor kéo khi hover (JS thêm class .is-draggable)
+            &.is-draggable {
+                cursor: grab;
+
+                &.is-dragging {
+                    cursor: grabbing;
+                    user-select: none;
+                    scroll-behavior: auto;
+                }
+            }
+
+            // Chrome, Edge, Safari
+            &::-webkit-scrollbar {
+                height: 6px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: #030304;
+                border-radius: 999px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #808080cc;
+                border-radius: 999px;
+                transition: 0.25s ease;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                cursor: pointer;
+                background: #b0aeaecc;
+            }
+        }
+    }
+}
+
+// Quick Picks khi được dùng làm slider ngang (column-based).
+// Style flex column gốc trong `_quick-picks-item.scss` đã set list là
+// `flex-direction: column` để items xếp dọc như banner.
+// Khi bật slider (`data-slider`), ta muốn:
+// - Mỗi cột là 1 slide ngang → list flex row
+// - Bên trong mỗi cột (`.row.row-cols-1` hoặc `.col` chứa column nội bộ)
+//   vẫn giữ column dọc theo đúng style gốc của component.
+// → Chỉ override `flex-direction` của LIST, không đụng nội dung card.
+.home__container .quick-picks__list[data-slider] {
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+
+    // Scrollbar giống các list khác
+    &::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #030304;
+        border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #808080cc;
+        border-radius: 999px;
+        transition: 0.25s ease;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        cursor: pointer;
+        background: #b0aeaecc;
+    }
+
+    // Inner list flex row với gap
+    .hscroll-inner {
+        display: flex;
+        gap: 24px;
+        width: 100%; 
+        padding-bottom: 20px;
+    }
+
+    .quick-picks-col {
+        flex: 0 0 auto; 
+        width: calc((100% - 48px) / 3);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+.cate-btn {
+    background-color: var(--cate-btn-bg);
+    font-size: 1.4rem;
+    line-height: 1.43;
+    padding: 8px 12px;
+    border-radius: 8px;
+
+    // ======================================================
+    // Inactive state — port base.js tr() dòng 4144:
+    //   `bg-white/10 text-white hover:bg-white/20`
+    // bg-white/10 = #ffffff1a (rgba 255,255,255,.1)
+    // hover:bg-white/20 = #ffffff33 (rgba 255,255,255,.2)
+    // ======================================================
+    &--inactive {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    // ======================================================
+    // Active state — port base.js tr() dòng 4143:
+    //   `bg-white text-black font-semibold`
+    // bg-white = #ffffff, text-black = #000
+    // Phase 18.5 yêu cầu: style giống hover (sáng, nổi bật) để
+    // user biết đang ở mood-page nào. Dùng hover style
+    // (.cate-btn--inactive:hover) làm tham chiếu.
+    // ======================================================
+    &--active {
+        color: #ffffff;
+        font-weight: 600;
+        background-color: rgba(255, 255, 255, 0.2);
+
+        // Khoá t??ng t??c (user dang ? mood-page này r?i):
+        //   - user-select: none    → không cho select text chip
+        //   - pointer-events: none → không cho click lại (vì nav cùng page)
+        user-select: none;
+        pointer-events: none;
+    }
+}

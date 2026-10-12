@@ -1,0 +1,96 @@
+.track-list {
+    height: 500px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    padding-right: 20px;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.8);
+        border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #030304;
+        border-radius: 999px;
+    }
+
+    &__item {
+        height: 72px;
+        padding: 12px 16px;
+        border-radius: 8px; // Fix: user muốn border-radius 8px (đang là 0)
+        gap: 16px;
+        justify-content: flex-start;
+        align-items: center;
+
+        &:hover {
+            .track-list__play {
+                display: block;
+            }
+        }
+    }
+
+    // Phase 14.7: Highlight track đang phát
+    // - audio-player.js:_highlightActiveSong() add class này cho
+    //   [data-track-id="<id>"] khi playSong
+    // - Background tint nhẹ để phân biệt với item thường
+    // - Border-radius: 8px (giống item thường) để đồng bộ
+    &__item--active {
+        background: rgba(255, 255, 255, 0.08);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+    }
+
+    &__media {
+        position: relative;
+    }
+
+    &__play {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    &__img {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    &__number {
+        display: inline-flex;
+        justify-content: center;
+        width: 24px;
+    }
+
+    &__title {
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    &__artist,
+    &__duration {
+        font-size: 1.4rem;
+        line-height: 1.43;
+        color: var(--track-list-artist-color);
+    }
+
+    &__info {
+        flex: 1;
+    }
+
+    &__empty {
+        padding: 24px;
+        text-align: center;
+        color: var(--track-list-artist-color);
+        font-size: 1.4rem;
+    }
+}

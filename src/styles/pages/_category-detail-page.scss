@@ -1,0 +1,27 @@
+/**
+ * pages/_category-detail-page.scss — Category Detail page styles
+ *
+ * Port 1:1 từ base.js function `fr()` dòng 4480-4486:
+ *   - H1 `font-bold text-[45px] mb-10` → `&__heading`
+ *   - Wrapper `p-4 text-white`        → `.category-detail-page`
+ *
+ * Consumed by:
+ *   - `@/pages/category-detail/category-detail.render.js`
+ */
+
+.category-detail-page {
+    &__heading {
+        // port base.js `font-bold text-[45px] mb-10` dòng 4482
+        font-size: 4.5rem; // 45px
+        font-weight: 700;
+        color: var(--text-color, #fff);
+        margin-bottom: 4rem; // 40px = mb-10 (Tailwind scale)
+    }
+
+    &__empty {
+        // Empty state khi category không có subcategory
+        color: var(--text-color-muted, rgba(255, 255, 255, 0.6));
+        padding: 2.4rem 1.6rem;
+        font-size: 1.4rem;
+    }
+}

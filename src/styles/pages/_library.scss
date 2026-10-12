@@ -1,0 +1,370 @@
+/**
+ * pages/_library.scss — Library page styles
+ *
+ * Phase L-1 scope:
+ *   - Header (title + tabs ngang)
+ *   - Tabs active state
+ *   - View toggle (grid/list) + Sort dropdown UI (chưa wire logic)
+ *   - Empty state
+ *   - Library grid (dùng cart-item có sẵn)
+ *
+ * Phase L-2/L-3 sẽ bổ sung:
+ *   - Section title + slider arrows (dùng crt__btn có sẵn)
+ *   - Liked Songs hero card
+ *   - List view (compact rows)
+ *   - Responsive mobile breakpoints
+ *
+ * Hard Rule #1: KHÔNG đổi dòng SCSS nào đã có — chỉ thêm file mới.
+ * Hard Rule #3: KHÔNG dùng Tailwind utility classes.
+ *
+ * Consumed by:
+ *   - `@/pages/library/library.render.js`
+ */
+.library-page {
+    padding: 24px 16px;
+    color: var(--text-color);
+    min-height: 60vh;
+    &__heading {
+        font-size: 4.5rem; // 45px (port base.js `ur()`)
+        font-weight: 700;
+        line-height: 1.2;
+        margin: 0 0 24px;
+        color: var(--text-color);
+    }
+}
+
+.library-header {
+    margin-bottom: 24px;
+
+    &__tools {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+}
+// SEARCH INPUT — port nguyên cấu trúc + styles từ header search
+// (`form form__search` + `form__input-search` + `form__close`)
+// Style gốc ở `src/styles/components/_form.scss` → đã đồng bộ UX
+// với search trên header, không cần override.
+.library-search-form {
+    // Thu hẹp width cho context library (header form mặc định 470px)
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+}
+.library-view-toggle {
+    display: inline-flex;
+    background: var(--search-bg, #1d1d1d);
+    border-radius: 999px;
+    padding: 4px;
+    gap: 2px;
+
+    &__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 32px;
+        background: transparent;
+        border: none;
+        border-radius: 999px;
+        color: var(--text-color-secondary, #9ca3af);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1.4rem;
+
+        &:hover {
+            color: var(--text-color);
+        }
+
+        &--active {
+            background: var(--text-color, #ffffff);
+            color: var(--bg-color, #030304);
+        }
+    }
+}
+.library-sort {
+    position: relative;
+
+    &__trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 40px;
+        padding: 0 14px;
+        background: var(--search-bg, #1d1d1d);
+        border: 1px solid transparent;
+        border-radius: 999px;
+        color: var(--text-color);
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+
+        &:hover {
+            border-color: var(--text-color-secondary, #9ca3af);
+        }
+
+        i {
+            font-size: 1.2rem;
+        }
+    }
+
+    &__menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        min-width: 180px;
+        background: var(--bg-color-elevated, #1d1d1d);
+        border-radius: 8px;
+        padding: 6px 0;
+        z-index: 100;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        display: none;
+
+        &--open {
+            display: block;
+        }
+    }
+
+    &__option {
+        display: block;
+        width: 100%;
+        padding: 10px 16px;
+        background: transparent;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.4rem;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        &--active {
+            color: var(--primary-color, #1db954);
+
+            &::before {
+                content: "✓ ";
+                margin-right: 4px;
+            }
+        }
+    }
+}
+.library-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; // Firefox
+
+    &::-webkit-scrollbar {
+        display: none; // Chrome/Safari
+    }
+
+    &__tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 36px;
+        padding: 0 16px;
+        background: var(--search-bg, #1d1d1d);
+        border: 1px solid transparent;
+        border-radius: 999px;
+        color: var(--text-color);
+        font-size: 1.4rem;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        i {
+            font-size: 1.2rem;
+        }
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        &--active {
+            background: var(--text-color, #ffffff);
+            color: var(--bg-color, #030304);
+            border-color: var(--text-color, #ffffff);
+        }
+    }
+}
+.library-section {
+    margin-bottom: 40px;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        gap: 12px;
+    }
+
+    &__title {
+        font-size: 2.4rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-color);
+    }
+
+    &__count {
+        font-size: 1.4rem;
+        color: var(--text-color-secondary, #9ca3af);
+        font-weight: 400;
+    }
+}
+.library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+
+    // Override .cart-item width để fit grid
+    .cart-item {
+        width: 100%;
+    }
+
+    .cart-item__media {
+        height: 100%;
+        aspect-ratio: 1 / 1; // square thumbnails
+    }
+}
+.library-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.library-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+    gap: 12px;
+
+    &__icon {
+        font-size: 5rem;
+        color: var(--text-color-secondary, #9ca3af);
+        margin-bottom: 8px;
+    }
+
+    &__title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    &__message {
+        font-size: 1.4rem;
+        color: var(--text-color-secondary, #9ca3af);
+        max-width: 400px;
+        margin: 0 0 16px;
+        line-height: 1.5;
+    }
+
+    &__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        background: var(--text-color, #ffffff);
+        color: var(--bg-color, #030304);
+        border: none;
+        border-radius: 999px;
+        font-size: 1.4rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform 0.15s ease, opacity 0.2s ease;
+
+        &:hover {
+            transform: scale(1.04);
+            opacity: 0.9;
+        }
+    }
+}
+.library-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+    gap: 12px;
+
+    &__icon {
+        font-size: 4rem;
+        color: #ef4444;
+        margin-bottom: 8px;
+    }
+
+    &__message {
+        font-size: 1.4rem;
+        color: var(--text-color-secondary, #9ca3af);
+        max-width: 400px;
+        margin: 0 0 16px;
+    }
+
+    &__retry {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: transparent;
+        color: var(--text-color);
+        border: 1px solid var(--text-color);
+        border-radius: 999px;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: var(--text-color);
+            color: var(--bg-color);
+        }
+    }
+}
+@media (max-width: 768px) {
+    .library-page__heading {
+        font-size: 3.2rem;
+    }
+
+    .library-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 16px;
+    }
+
+    .library-header__tools {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .library-search-form {
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .library-page__heading {
+        font-size: 2.8rem;
+    }
+
+    .library-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .library-tabs__tab {
+        height: 32px;
+        padding: 0 12px;
+        font-size: 1.3rem;
+    }
+}

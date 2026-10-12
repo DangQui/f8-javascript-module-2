@@ -1,0 +1,97 @@
+/**
+ * pages/_recent.scss — Recent listens list (4 cols × 4 items)
+ *
+ * Layout & style giống .quick-picks__list nhưng dùng ảnh vuông (như album)
+ * thay vì thumbnail ngang. Item có meta "2 giờ trước" / "Hôm qua" thay
+ * cho "200 lượt nghe".
+ *
+ * Consumed by:
+ *   - `@/components/listen-history.js` (data source)
+ */
+
+.recent {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    height: 68px;
+    padding: 8px 12px;
+    flex-shrink: 0;
+    width: 340px;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    &__list {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-behavior: smooth;
+        padding-bottom: 26px;
+        -webkit-overflow-scrolling: touch;
+
+        &.is-draggable {
+            cursor: grab;
+
+            &.is-dragging {
+                cursor: grabbing;
+                user-select: none;
+                scroll-behavior: auto;
+            }
+        }
+
+        &::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #030304;
+            border-radius: 999px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #808080cc;
+            border-radius: 999px;
+            transition: 0.25s ease;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            cursor: pointer;
+            background: #b0aeaecc;
+        }
+    }
+
+    &__media {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    &__name {
+        font-size: 1.6rem;
+        line-height: 1.5;
+        font-weight: 500;
+    }
+
+    &__meta {
+        color: var(--picks-meta-color);
+        line-height: 1.5;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        i {
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+    }
+
+    &__time {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+}

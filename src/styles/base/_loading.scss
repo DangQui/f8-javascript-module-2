@@ -1,0 +1,142 @@
+/**
+ * base/_loading.scss — Page load spinner + fade-in animation
+ *
+ * Khi trang đang load → class "app-loading" trên <html> hiển thị
+ * spinner quay giữa màn hình. Khi load xong (scripts.js ready) →
+ * class "app-loaded" ẩn spinner + fade-in các section.
+ *
+ * Cách dùng:
+ *   <html class="app-loading"> ... </html>
+ *   → scripts.js tự thêm "app-loaded" khi xong (xem main.js).
+ *
+ * Section có class .header, .sidebar, main sẽ được fade-in theo thứ tự stagger.
+ *
+ * LƯU Ý: .player KHÔNG có trong list này vì:
+ *   - Player có visibility state riêng (ẩn / slide-up).
+ *   - Player mặc định ẨN khi page load, fade-in chỉ áp dụng
+ *     cho header / sidebar / main.
+ *   - Khi playSong() gọi showPlayer() → slide-up từ dưới.
+ *   - Xem state/playerState.js + styles/layout/_player.scss.
+ *
+ * Consumed by:
+ *   - `@/main.js` (toggle app-loading / app-loaded)
+ */
+
+@use "../abstracts/mixin" as mix;
+// Spinner xoay tròn
+@keyframes appSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Pulse / heartbeat cho logo hoặc text loading
+@keyframes appPulse {
+    0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+// Fade-in từng section
+@keyframes appFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+// Fade-out overlay loading
+@keyframes appLoadingOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+.app-loading {
+    &::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        background: var(--body-bg);
+        pointer-events: none;
+    }
+
+    &::after {
+        content: "";
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        z-index: 9999;
+        width: 48px;
+        height: 48px;
+        margin-top: -24px;
+        margin-left: -24px;
+        border: 3px solid var(--loading-color, #ffffff1f);
+        border-top-color: var(--loading-accent, #7fdbff);
+        border-radius: 50%;
+        animation: appSpin 0.8s linear infinite;
+        pointer-events: none;
+    }
+
+    // Ẩn content + bỏ mọi transition pending
+    .header,
+    .sidebar,
+    main {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+.app-loaded {
+    &::before {
+        animation: appLoadingOut 0.3s ease-out forwards;
+    }
+
+    &::after {
+        animation: appLoadingOut 0.2s ease-out forwards;
+    }
+
+    .header,
+    .sidebar,
+    main {
+        animation: appFadeIn 0.5s ease-out both;
+        visibility: visible;
+    }
+
+    // Stagger: header → sidebar → main (player fade-in riêng khi show)
+    .header {
+        animation-delay: 0s;
+    }
+    .sidebar {
+        animation-delay: 0.08s;
+    }
+    main {
+        animation-delay: 0.16s;
+    }
+}
+
+// Khi app đã load, đảm bảo dropdown trong header
+// KHÔNG bị animation ngoài ý muốn làm hiện
+.app-loaded .dropdown {
+    // dropdown vẫn ẩn nếu có .d-none (do JS control)
+    // chỉ áp dụng opacity khi .show
+    opacity: 1;
+}
+
+// TRONG QUÁ TRÌNH LOADING — bắt buộc dropdown ẩn
+// ngay cả khi bị cache cũ không có .d-none
+.app-loading .dropdown,
+.app-loading .sidebar-slide {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}

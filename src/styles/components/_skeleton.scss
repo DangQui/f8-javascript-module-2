@@ -1,0 +1,122 @@
+/**
+ * components/_skeleton.scss — Skeleton loading placeholders
+ *
+ * Dùng pulse animation (gradient sliding) thay vì spinner để user
+ * thấy được structure ngay khi page đang load.
+ *
+ * Reference design pattern: Facebook, YouTube Music, LinkedIn skeletons.
+ * base.js gốc KHÔNG có skeleton (chỉ full overlay) — em design riêng.
+ *
+ * Pattern: 1 background gradient duy nhất dùng cho cả box/line/circle.
+ * Pulse animation: `background-position` slide từ -200% → 200% (1.4s).
+ *
+ * Class:
+ *   .skeleton              — base (gradient + animation)
+ *   .skeleton--box         — default (block, height = inline style)
+ *   .skeleton--line        — height 16px (text placeholder)
+ *   .skeleton--circle      — border-radius 50% (avatar)
+ *
+ * Consumed by:
+ *   - `@/components/skeleton.js` (SKELETON_* exports)
+ */
+//   .skeleton-row          — flex row (cards in section)
+//   .skeleton-card         — match .cart-item structure
+//   .skeleton-track        — match .track-list__item structure
+//   .skeleton-quickpick    — match .quick-picks structure
+//   .skeleton-col          — match .quick-picks-col structure
+//
+@keyframes skeleton-pulse {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+.skeleton {
+    display: block;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.04) 0%,
+        rgba(255, 255, 255, 0.10) 50%,
+        rgba(255, 255, 255, 0.04) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+
+    &--box {
+        // Default block — width/height set inline
+    }
+
+    &--line {
+        height: 16px;
+        border-radius: 4px;
+    }
+
+    &--circle {
+        border-radius: 50%;
+    }
+}
+.skeleton-row {
+    display: flex;
+    gap: 16px;
+    overflow: hidden;
+    padding: 8px 0;
+}
+.skeleton-card {
+    pointer-events: none;
+
+    .cart-item__content {
+        padding-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+.skeleton-track {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    pointer-events: none;
+
+    .track-list__info,
+    .video-list__info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+.skeleton-quickpick {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    pointer-events: none;
+
+    .quick-picks__content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+.skeleton-col {
+    flex-shrink: 0;
+    width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+@media (max-width: 768px) {
+    .skeleton-col {
+        width: 280px;
+    }
+
+    .skeleton-row {
+        gap: 12px;
+    }
+}

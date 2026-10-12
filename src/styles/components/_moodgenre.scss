@@ -1,0 +1,56 @@
+.mood-genre-item {
+    display: flex;
+    width: 244px;
+    height: 48px;
+
+    &__right {
+        width: 8px;
+        height: 100%;
+        background: var(--mood-color);
+        border-top-left-radius: 999px;
+        border-bottom-left-radius: 999px;
+    }
+
+    &__title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        padding: 0 8px;
+        background: #292929;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        line-height: 1.43;
+    }
+
+    // Color
+    &[data-color="sea-blue"] {
+        --mood-color: var(--sea-blue-color);
+    }
+
+    &[data-color="red"] {
+        --mood-color: var(--red-color);
+    }
+
+    &[data-color="purple"] {
+        --mood-color: var(--purple-color);
+    }
+
+    &[data-color="pink"] {
+        --mood-color: var(--pink-color);
+    }
+
+    &[data-color="pale-pink"] {
+        --mood-color: var(--pale-pink-color);
+    }
+
+    &[data-color="yellowish-green"] {
+        --mood-color: var(--yellowish-green-color);
+    }
+
+    &[data-color="blue"] {
+        --mood-color: var(--blue-color);
+    }
+}

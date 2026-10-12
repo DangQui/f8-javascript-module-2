@@ -1,0 +1,124 @@
+$error-color: #ed4337;
+
+.form {
+    display: flex;
+    min-height: 44px;
+
+    &__search {
+        align-items: center;
+        width: 470px;
+        border-radius: 4px;
+        background: var(--form-search-bg);
+        font-size: 16px;
+        position: relative;
+
+        &--submit {
+            padding: 10px 12px 10px 16px;
+            height: 100%;
+        }
+    }
+
+    &__input-search {
+        flex: 1;
+        padding-right: 28px;
+        font-size: 1.6rem;
+
+        &::placeholder {
+            color: var(--form-input-placeholder);
+        }
+    }
+
+    // Nút close (X) hiện khi input có giá trị
+    &__close {
+        display: none;
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        color: var(--icon-color);
+        cursor: pointer;
+        padding: 4px 8px;
+        background: transparent;
+        transition: opacity 0.15s ease;
+        z-index: 2;
+
+        &:hover {
+            color: #fff;
+            opacity: 0.85;
+        }
+    }
+
+   
+
+    // Hiện nút close khi input có text
+    &__input:not(:placeholder-shown) ~ &__close,
+    &__input-search:not(:placeholder-shown) ~ &__close {
+        display: inline-block;
+    }
+
+    &__group {
+        margin-top: 24px;
+    }
+
+    &__text-input {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__label {
+        font-size: 1.4rem;
+        line-height: 1.43;
+        margin-bottom: 4px;
+    }
+
+    &__input {
+        padding: 8px 16px;
+        font-size: 1.6rem;
+        line-height: 1.5;
+        background: var(--form-input-bg);
+        border-radius: 4px;
+        color: var(--form-input-color);
+        position: relative;
+
+        &:focus {
+            background: var(--btn--bg-primary);
+            color: var(--form-input-color);
+        }
+
+        &:focus-visible {
+            outline-offset: -2px;
+            outline: -webkit-focus-ring-color auto 1px;
+        }
+
+        // Giữ nguyên nền khi Chrome autofill (input login/register có nền đặc)
+        &:-webkit-autofill,
+        &:-webkit-autofill:hover,
+        &:-webkit-autofill:focus,
+        &:-webkit-autofill:active {
+            -webkit-text-fill-color: var(--form-input-color);
+            caret-color: var(--form-input-color);
+            transition: background-color 1s 999999s;
+        }
+    }
+
+    &__error {
+        display: none;
+        text-align: left;
+        font-size: 1.4rem;
+        font-weight: 500;
+        margin-top: 8px;
+        color: $error-color;
+    }
+
+    &__group:has(:invalid):has(&__input:not(:placeholder-shown)) {
+        .form__text-input {
+            border-color: $error-color;
+        }
+
+        .form__error,
+        .form__input-icon-error {
+            display: block;
+        }
+    }
+}

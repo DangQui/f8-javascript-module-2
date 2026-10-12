@@ -1,0 +1,96 @@
+/**
+ * components/_dropdown.scss — Dropdown menu styles
+ *
+ * Dùng cho menu thả xuống (avatar user, v.v.).
+ * Style đồng bộ với auth__inner (dùng token có sẵn).
+ *
+ * Consumed by:
+ *   - `@/libs/dropdown.js` (initDropdowns, open/close)
+ */
+
+@use "../abstracts/mixin" as mix;
+
+
+.dropdown-wrapper {
+    position: relative;
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 240px;
+    background: var(--auth-inner-bg);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--auth-inner-border);
+    border-radius: 8px;
+    box-shadow: 0 20px 25px -5px var(--auth-inner-shadow);
+    padding: 8px 0;
+    z-index: 1000;
+
+    &.show {
+        animation: dropdownFadeIn 0.18s ease-out;
+    }
+
+    &__header {
+        padding: 12px 16px;
+    }
+
+    &__name {
+        font-size: 1.4rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: #fff;
+    }
+
+    &__email {
+        font-size: 1.2rem;
+        line-height: 1.4;
+        margin-top: 2px;
+        color: var(--text-color);
+        opacity: 0.7;
+        word-break: break-all;
+    }
+
+    &__divider {
+        border: none;
+        height: 1px;
+        background: var(--sidebar-bg-line);
+        margin: 0;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 10px 16px;
+        color: #fff;
+        font-size: 1.4rem;
+        font-weight: 500;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background: var(--sidebar-item-bg-hover, #ffffff14);
+        }
+
+        i {
+            font-size: 1.6rem;
+            opacity: 0.85;
+        }
+    }
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

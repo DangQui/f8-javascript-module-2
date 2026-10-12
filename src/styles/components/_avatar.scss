@@ -1,0 +1,115 @@
+/**
+ * components/_avatar.scss — Avatar circle + profile header styles
+ *
+ * `.avatar`         — circle với initial, dùng cho dropdown user
+ * `.avatar--lg`     — variant 80px, dùng cho profile header card
+ * `.profile-header` — wrapper centered cho avatar + name + email + joinedAt
+ *
+ * Consumed by:
+ *   - `@/layout/header.js` (user avatar dropdown)
+ *   - `@/pages/profile/profile.render.js` (profile header card)
+ */
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: var(--avatar-bg);
+
+    &:hover {
+        background: var(--avatar-bg-hover);
+    }
+
+    // Large variant — dùng cho profile header card
+    //
+    &--lg {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+        line-height: 80px;
+        text-align: center;
+        border-radius: 50%;
+    }
+}
+//
+// Layout: avatar centered, name + email + joinedAt xếp dọc.
+// Hiển thị ở đầu trang /auth/profile, trên form update.
+//
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 28px;
+    text-align: center;
+    gap: 6px;
+
+    &__avatar {
+        margin-bottom: 8px;
+    }
+
+    &__name {
+        font-size: 2rem;
+        line-height: 1.4;
+        font-weight: 600;
+        color: var(--auth-text-color, #fff);
+    }
+
+    &__email {
+        font-size: 1.4rem;
+        line-height: 1.43;
+        color: var(--auth-text-color, #ccc);
+        opacity: 0.85;
+    }
+
+    &__joined {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        font-size: 1.2rem;
+        line-height: 1.4;
+        color: var(--auth-text-color, #aaa);
+        opacity: 0.7;
+
+        i {
+            font-size: 1.2rem;
+        }
+    }
+}
+//
+// Gắn vào `.auth__inner` để có variant cho profile page
+// (cao hơn để chứa header card + form).
+//
+.auth__inner--profile {
+    width: 440px;
+    padding: 32px 40px;
+}
+
+.auth__heading--sm {
+    font-size: 1.6rem;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.auth__text-sep {
+    opacity: 0.5;
+    margin: 0 4px;
+}
+
+// Nút "Đăng xuất" inline (variant transparent cho auth__text)
+button.auth__link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: var(--btn--bg-primary, #ff4d4f);
+    text-decoration: underline;
+    font-weight: 600;
+
+    &:hover {
+        color: var(--auth-text-color-hover, #fff);
+    }
+}

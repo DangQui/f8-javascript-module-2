@@ -1,0 +1,38 @@
+/**
+ * pages/_mood-page.scss — Mood Detail page styles
+ *
+ * Port từ base.js `dr()` dòng 4463 + wrapper `p-4 text-white` dòng 4489.
+ * Convert Tailwind utility classes thành SCSS class riêng (Hard Rule #3).
+ *
+ * Consumed by:
+ *   - `@/pages/mood-detail/mood-detail.render.js`
+ */
+
+.mood-page {
+    padding: 16px;
+    color: var(--text-color);
+
+    &__chip-tabs {
+        // Wrap trong `.home__body` (ở `section.js`) nhưng `.home__body` không
+        // có flex mặc định → phải set flex ở đây.
+        display: flex;
+        gap: 24px;
+        overflow-x: auto;
+
+        &::-webkit-scrollbar {
+            height: 0;
+        }
+    }
+
+    &__heading {
+        // Port từ base.js `dr()` dòng 4471: `font-bold text-[45px] mb-4 text-white`
+        font-size: 4.5rem;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    &__subtitle {
+        // Port từ base.js `dr()` dòng 4472: `<p>${i.subtitle}</p>`
+        color: rgba(255, 255, 255, 0.8);
+    }
+}

@@ -1,0 +1,46 @@
+/**
+ * base/_utils.scss — Display utilities (Tailwind-like)
+ *
+ * Đồng bộ breakpoint với _grid.scss và _mixin.scss:
+ *   sm  = 640px
+ *   md  = 768px
+ *   lg  = 1024px
+ *   xl  = 1280px
+ *   2xl = 1536px
+ *
+ * Class generated:
+ *   Base:    .d-block  .d-flex  .d-grid  .d-none
+ *   Mobile-first:
+ *     .d-sm-block  .d-md-flex  .d-lg-grid  .d-xl-none  .d-2xl-flex
+ *
+ * Consumed by:
+ *   - Mọi component cần ẩn/hiện theo breakpoint
+ */
+
+@use "sass:map";
+
+$breakpoints: (
+    sm: 640px,
+    md: 768px,
+    lg: 1024px,
+    xl: 1280px,
+    2xl: 1536px,
+);
+$display-values: (block, flex, grid, none);
+
+@mixin make-display($breakpoint: null) {
+    $infix: if($breakpoint, "-#{$breakpoint}", "");
+
+    @each $display in $display-values {
+        .d#{$infix}-#{$display} {
+            display: $display !important;
+        }
+    }
+}
+@include make-display();
+
+@each $breakpoint, $dimension in $breakpoints {
+    @media (min-width: $dimension) {
+        @include make-display($breakpoint);
+    }
+}

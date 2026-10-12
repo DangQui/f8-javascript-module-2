@@ -1,0 +1,71 @@
+.auth {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: url("../../assets/images/sign-in/bg-primary.jpg") no-repeat
+        center/cover;
+
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 400px;
+        background: var(--auth-inner-bg);
+        box-shadow: 0 20px 25px -5px var(--auth-inner-shadow);
+        backdrop-filter: blur(24px);
+        border: 1px solid var(--auth-inner-border);
+        border-radius: 12px;
+        padding: 40px;
+
+        transform: translate(-50%, -50%);
+
+        &.hide {
+            display: none;
+        }
+    }
+
+    &__heading {
+        font-size: 2rem;
+        line-height: 1.4;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    &__btn-group {
+        width: 100%;
+        background: var(--auth-btn-bg);
+
+        &:hover {
+            background: #ff6467;
+        }
+    }
+
+    &__text {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 40px;
+        color: var(--auth-text-color);
+        font-size: 1.4rem;
+        line-height: 1.43;
+    }
+
+    &__link {
+        color: var(--btn--bg-primary);
+        text-decoration: underline;
+        font-weight: 600;
+
+        &:hover {
+            color: var(--auth-text-color-hover);
+        }
+    }
+}

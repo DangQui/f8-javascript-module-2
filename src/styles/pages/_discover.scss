@@ -1,0 +1,35 @@
+.discover {
+    &-container {
+        padding: 16px 16px 140px;
+    }
+
+    &-item {
+        justify-content: flex-start;
+        padding: 16px 24px;
+        background-color: var(--discover-item-bg);
+        gap: 12px;
+        transition: 0.25s ease;
+
+        &:hover {
+            background: var(--discover-item-bg-hover);
+        }
+
+        &__title {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1.4;
+        }
+    }
+
+    &-mood-genre {
+        display: flex;
+        gap: 24px;
+        overflow-x: auto;
+
+        &__col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+    }
+}

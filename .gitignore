@@ -1,0 +1,72 @@
+# ======================================================
+# .GITIGNORE — Music YouTube project
+# ======================================================
+
+# ======================================================
+# ENV FILES 
+# ======================================================
+# Default values (.env) + template (.env.example) → commit
+# Local secrets (.env.local) → gitignored
+.env
+.env.*
+!.env.example
+
+# ======================================================
+# NODE / NPM
+# ======================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ======================================================
+# VITE BUILD OUTPUT
+# ======================================================
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# ======================================================
+# LEGACY PARTIALS (moved to public/partials/ — vite-plugin-html)
+# ======================================================
+# Vite serve static. Folder gốc giữ ignore để khỏi confuse.
+partials/
+
+# ======================================================
+# IDE / EDITORS
+# ======================================================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# ======================================================
+# OS FILES
+# ======================================================
+Desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ======================================================
+# LOGS
+# ======================================================
+logs/
+*.log
+
+# ======================================================
+# TESTING / COVERAGE
+# ======================================================
+coverage/
+.nyc_output/

@@ -1,0 +1,187 @@
+/**
+ * pages/_not-found.scss — 404 page styles
+ *
+ * Style riêng cho trang 404. Khác với `.page-placeholder`:
+ *   - Icon lớn với gradient (visual impact)
+ *   - Echo lại path user đã gõ
+ *   - 2 CTA buttons "Về trang chủ" + "Xem thư viện"
+ *
+ * Tone nhẹ nhàng, không dùng `.auth` modal.
+ *
+ * Consumed by:
+ *   - `@/pages/not-found/not-found.render.js`
+ */
+
+.not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 48px 24px;
+    text-align: center;
+    gap: 16px;
+
+    &__icon {
+        // Số "404" gradient lớn — điểm nhấn chính
+        font-size: 12rem;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(
+            135deg,
+            var(--btn--bg-primary, #ff4d4f) 0%,
+            #ff7a45 50%,
+            #ffa940 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        margin-bottom: 8px;
+        user-select: none;
+    }
+
+    &__title {
+        font-size: 2.8rem;
+        line-height: 1.4;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-color, #ffffff);
+    }
+
+    &__desc {
+        font-size: 1.6rem;
+        line-height: 1.56;
+        color: var(--text-color-secondary, #9ca3af);
+        max-width: 520px;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    &__path {
+        display: inline-block;
+        padding: 2px 8px;
+        margin: 0 4px;
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 1.4rem;
+        background: var(--auth-inner-bg, rgba(255, 255, 255, 0.08));
+        border: 1px solid var(--auth-inner-border, rgba(255, 255, 255, 0.12));
+        border-radius: 4px;
+        color: var(--text-color, #ffffff);
+        word-break: break-all;
+        max-width: 100%;
+        vertical-align: middle;
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    &__btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 1.5rem;
+        font-weight: 500;
+        border-radius: 999px;
+        text-decoration: none;
+        transition:
+            background 0.2s ease,
+            transform 0.15s ease,
+            border-color 0.2s ease;
+
+        i {
+            font-size: 1.5rem;
+        }
+
+        &:hover {
+            transform: translateY(-1px);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        // Primary variant — gradient nổi bật
+        &--primary {
+            background: linear-gradient(
+                135deg,
+                var(--btn--bg-primary, #ff4d4f) 0%,
+                #ff7a45 100%
+            );
+            border: 1px solid transparent;
+            color: #ffffff;
+
+            &:hover {
+                background: linear-gradient(
+                    135deg,
+                    #ff7875 0%,
+                    #ff9c6e 100%
+                );
+            }
+        }
+
+        // Secondary variant — outline
+        &:not(&--primary) {
+            background: transparent;
+            border: 1px solid
+                var(--auth-inner-border, rgba(255, 255, 255, 0.2));
+            color: var(--text-color, #ffffff);
+
+            &:hover {
+                background: var(--sidebar-item-bg-hover, rgba(255, 255, 255, 0.08));
+                border-color: rgba(255, 255, 255, 0.4);
+            }
+        }
+    }
+
+    &__hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 12px;
+        font-size: 1.3rem;
+        line-height: 1.5;
+        color: var(--text-color-secondary, #9ca3af);
+        opacity: 0.75;
+        max-width: 480px;
+
+        i {
+            font-size: 1.3rem;
+        }
+    }
+
+    // Mobile — icon nhỏ lại
+    @media (max-width: 480px) {
+        padding: 32px 16px;
+
+        &__icon {
+            font-size: 8rem;
+        }
+
+        &__title {
+            font-size: 2.2rem;
+        }
+
+        &__desc {
+            font-size: 1.4rem;
+        }
+
+        &__actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        &__btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}

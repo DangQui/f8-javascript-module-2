@@ -1,32 +1,3 @@
-// ======================================================
-// HOME PAGE — Init + render (Phase 7)
-// ======================================================
-//
-// Flow:
-//   1. Show loading overlay
-//   2. Fetch parallel: moods, quickPicks, albumsForYou, todaysHits,
-//      playlistsByCountry + personalized (optional, cần auth)
-//   3. Render HTML từ `home.render.js`
-//   4. Inject vào #main, re-init sliders (lib scan DOM sau mỗi page)
-//   5. Hide loading overlay
-//
-// Sections (theo base.js `rr()` function):
-//   - Greeting            ← user (logged-in only)
-//   - Mood chips          ← moods
-//   - Nghe gần đây        ← playlistsByCountry(VN)   (4 items/col × 4 cols = 16)
-//   - Quick Picks         ← quickPicks
-//   - Album gợi ý cho bạn ← albumsForYou
-//   - Today's Hits        ← todaysHits
-//   - Nhạc Việt           ← playlistsByCountry(VN)
-//
-// Lưu ý:
-//   - Mỗi section render fail → fallback `[]` để page vẫn render được.
-//   - Personalized endpoint cần auth → nếu 401 thì bỏ qua (không block).
-//   - Sau khi render, PHẢI gọi `initSliders()` vì slider lib scan DOM
-//     một lần ở app init, không tự detect DOM mới.
-//
-
-// vì spinner sẽ che skeleton). `loading` vẫn available ở `_shared.js` cho page khác.
 import { renderPage } from "@/pages/_shared.js";
 import { renderHome } from "@/pages/home/home.render.js";
 import { SKELETON_HOME } from "@/components/skeleton.js";
@@ -37,8 +8,6 @@ import { initSliders } from "@/libs/slider.js";
 
 import { DEFAULT_COUNTRY } from "@/utils/constants.js";
 import { toast } from "@/libs/toast.js";
-// Phase 14.9: Đọc lịch sử nghe từ localStorage để hiển thị "Nghe gần đây"
-// (workaround backend /home/personalized chưa track user-specific).
 import {
     getListenHistory,
     historyItemToRenderItem,
@@ -68,16 +37,7 @@ async function safeFetch(fn, fallback, label) {
 // ======================================================
 // PAD ITEMS — duplicate items để fill 16 slots
 // ======================================================
-//
-// Quick Picks + Nghe gần đây cần 16 items (4 cols × 4 items/col) để
-// slider ngang giống design gốc. Hiện tại API chỉ trả 4 items/call.
-//
-// Phase 7 (placeholder): duplicate data để demo UI đúng spec.
-// Phase 8+: backend nên trả ≥ 16 items → bỏ helper này.
-//
-// @param {Array} items
-// @param {number} target - số items mong muốn (default 16)
-// @returns {Array}
+
 function padItems(items, target = 16) {
     if (!Array.isArray(items) || items.length === 0) return [];
     if (items.length >= target) return items;
@@ -107,7 +67,6 @@ function padItems(items, target = 16) {
  * @param {{ params: object, query: object, url: string }} route
  */
 export async function homePage(route = {}) {
-
     // Nếu dùng cả 2 → spinner overlay che skeleton, user không thấy structure.
     // loading.show() chỉ dành cho page KHÔNG có skeleton (form tĩnh, not-found, library placeholder).
 
@@ -138,17 +97,21 @@ export async function homePage(route = {}) {
         ] = await Promise.all([
             safeFetch(() => homeService.getMoods(), [], "getMoods"),
             safeFetch(() => homeService.getQuickPicks(), [], "getQuickPicks"),
-            safeFetch(() => homeService.getAlbumsForYou(), [], "getAlbumsForYou"),
+            safeFetch(
+                () => homeService.getAlbumsForYou(),
+                [],
+                "getAlbumsForYou",
+            ),
             safeFetch(() => homeService.getTodaysHits(), [], "getTodaysHits"),
             safeFetch(
                 () => homeService.getPlaylistsByCountry(DEFAULT_COUNTRY),
                 [],
-                "getPlaylistsByCountry"
+                "getPlaylistsByCountry",
             ),
             safeFetch(
                 () => homeService.getPersonalized(),
                 [],
-                "getPersonalized"
+                "getPersonalized",
             ),
         ]);
 
@@ -157,7 +120,7 @@ export async function homePage(route = {}) {
         const quickPicksPadded = padItems(quickPicks, 16);
         const playlistsPadded = padItems(playlistsByCountry, 16);
 
-        // 4. Phase 14.9: Quyết định data cho "Nghe gần đây"
+        // 4.
         //    - Nếu CHƯA login → return [] ngay (không có khái niệm "lịch sử cá nhân")
         //    - Nếu localStorage có lịch sử nghe → ưu tiên dùng
         //    - Ngược lại → dùng recentHistory từ backend (chỉ khi login,
@@ -201,7 +164,6 @@ export async function homePage(route = {}) {
             </section>
         `);
     }
-
 }
 
 export default homePage;

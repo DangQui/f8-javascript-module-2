@@ -1,32 +1,3 @@
-/**
- * slider.js — Prev/next + drag-to-scroll cho mọi list có [data-slider]
- *
- * Dùng CSS scroll-snap + JS click handler + drag support. Scroll snap
- * đảm bảo card luôn căn đúng khi scroll. Drag scroll để kéo thả
- * bằng chuột/touch.
- *
- * Exports:
- *   - initSliders() → bind handlers cho mọi [data-slider] trong DOM
- *
- * Consumed by:
- *   - `@/layout/init.js` gọi 1 lần sau khi layout render xong
- *
- * HTML pattern:
- *   <section class="home__container">
- *       <button class="crt__prev">‹</button>
- *       <div class="album__list" data-slider>
- *           <div class="album__item">...</div>  <!-- hoặc data-slider-item -->
- *       </div>
- *       <button class="crt__next">›</button>
- *   </section>
- *
- * Lưu ý:
- *   - `getRealCard()` tìm card-width bằng cách measure DOM (vì SCSS grid có
- *     thể dùng fr units không predict được).
- *   - `markSnapItems()` auto-detect children nào là "card" (loại bỏ text
- *     node, empty element, spacer).
- */
-
 export function initSliders() {
     document.querySelectorAll("[data-slider]").forEach((list) => {
         setupSlider(list);
@@ -45,7 +16,7 @@ function getRealCard(list) {
 
     // Lọc bỏ text node, empty element, spacer
     const directChildren = [...list.children].filter(
-        (el) => el.nodeType === 1 && el.getBoundingClientRect().width > 0
+        (el) => el.nodeType === 1 && el.getBoundingClientRect().width > 0,
     );
     if (directChildren.length === 0) return null;
 
@@ -141,9 +112,13 @@ function setupSlider(list) {
         if (step > 0) list.scrollBy({ left: -step, behavior: "smooth" });
     });
 
-    list.addEventListener("scroll", () => {
-        updateButtons();
-    }, { passive: true });
+    list.addEventListener(
+        "scroll",
+        () => {
+            updateButtons();
+        },
+        { passive: true },
+    );
 
     // Re-check khi resize (card width có thể thay đổi)
     window.addEventListener("resize", () => {
@@ -173,7 +148,7 @@ function markSnapItems(list) {
     }
 
     const directChildren = [...list.children].filter(
-        (el) => el.nodeType === 1 && el.getBoundingClientRect().width > 0
+        (el) => el.nodeType === 1 && el.getBoundingClientRect().width > 0,
     );
     if (directChildren.length === 0) return;
 
@@ -190,7 +165,6 @@ function markSnapItems(list) {
 
 /**
  * Drag-to-scroll support (mouse + touch).
- * `moved > 5px` trước khi preventDefault để tránh break link clicks.
  */
 function setupDragScroll(list, onUpdate) {
     let isDown = false;

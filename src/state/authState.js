@@ -1,32 +1,3 @@
-/**
- * state/authState.js — Centralized auth state + UI sync
- *
- * Layer: state (pure state + subscribe API, no DOM).
- *
- * Exports:
- *   - notify(data)               → broadcast auth state change (cho service dùng)
- *   - getAuth()                  → { isLoggedIn, user }
- *   - isLoggedIn()               → boolean
- *   - requireAuth(path?, msg?)   → page-level guard: navigate login nếu chưa login
- *   - login(payload)             → MOCK login (giữ backward compat)
- *   - register(payload)          → MOCK register (alias of login)
- *   - logout()                   → clear session
- *   - onAuthChange(callback)     → subscribe, returns unsubscribe
- *   - applyAuthVisibility()      → sync DOM với auth state
- *   - initAuthUI()               → apply + subscribe (cho layout init)
- *
- * Consumed by:
- *   - `@/services/authService.js` (real login/register/logout) → gọi notify()
- *   - `@/layout/header.js` đọc isLoggedIn() để chọn partial
- *   - `@/layout/init.js` gọi initAuthUI() để wire UI sync
- *   - Mọi page cần guard (library, profile, change-password) → requireAuth()
- *
- * Tách rời:
- *   - state: chỉ quan tâm "đã login / chưa, user là ai"
- *   - storage (`tokenStorage.js`): lưu/đọc localStorage
- *   - service (`authService.js`): gọi API login/register thật
- */
-
 import {
     getAccessToken,
     getUser,
@@ -45,11 +16,13 @@ const listeners = new Set();
  * @param {{isLoggedIn: boolean, user: object|null}} data
  */
 export function notify(data) {
-    window.dispatchEvent(
-        new CustomEvent("auth-changed", { detail: data })
-    );
+    window.dispatchEvent(new CustomEvent("auth-changed", { detail: data }));
     listeners.forEach((cb) => {
-        try { cb(data); } catch (err) { console.error("auth listener error:", err); }
+        try {
+            cb(data);
+        } catch (err) {
+            console.error("auth listener error:", err);
+        }
     });
 }
 
@@ -57,14 +30,12 @@ export function notify(data) {
 // CORE HELPERS
 // ======================================================
 
-/** Lấy chữ cái đầu của name (uppercase) làm avatar fallback. */
 function getInitialFromName(name) {
     if (!name) return "?";
     const trimmed = String(name).trim();
     return trimmed.charAt(0).toUpperCase() || "?";
 }
 
-/** Derive display name từ email nếu user không truyền name. */
 function deriveNameFromEmail(email) {
     if (!email || typeof email !== "string") return "User";
     const local = email.split("@")[0];
@@ -98,15 +69,6 @@ export function isLoggedIn() {
 }
 
 /**
- * Page-level auth guard. Trả về `true` nếu đã login, ngược lại navigate
- * sang login + show toast guard.
- *
- * Port từ base.js:5748/5826/5831 — pattern: check auth trước khi render.
- * Dùng isLoggedIn() (sync) thay vì API getProfile (async) vì:
- *   - isLoggedIn() đồng bộ, không cần network
- *   - API getProfile cũng được gọi bên trong page handler
- *   - 401 interceptor (api.js) tự force logout khi token hết hạn
- *
  * @param {string} [loginPath="/auth/login"] - Path navigate khi chưa login
  * @param {string} [message] - Custom toast message (mặc định: LOGIN_REQUIRED)
  * @returns {boolean} true nếu đã login
@@ -128,9 +90,6 @@ export function requireAuth(loginPath = "/auth/login", message = null) {
 }
 
 /**
- * MOCK login — giữ backward compat cho code cũ.
- * Phase 10+ chuyển sang authService.loginRequest() (real API).
- *
  * @param {{ email: string, name?: string, password?: string }} payload
  */
 export function login({ email, name } = {}) {
@@ -138,7 +97,8 @@ export function login({ email, name } = {}) {
         throw new Error("Email không đúng định dạng!");
     }
 
-    const userName = (name && String(name).trim()) || deriveNameFromEmail(email);
+    const userName =
+        (name && String(name).trim()) || deriveNameFromEmail(email);
     const user = {
         email: email.trim(),
         name: userName,
@@ -179,12 +139,6 @@ export function onAuthChange(callback) {
 // UI HELPER — applyAuthVisibility
 // ======================================================
 
-/**
- * Sync DOM với auth state.
- *   1. data-show-when="logged-in/out" → show/hide element
- *   2. data-user-{name,initial,email} → fill user info
- *   3. Update home links (data-home-link → "/")
- */
 export function applyAuthVisibility() {
     const { isLoggedIn: loggedIn } = snapshot();
 
@@ -199,7 +153,7 @@ export function applyAuthVisibility() {
         else if (showWhen === "logged-out") shouldShow = !loggedIn;
         else {
             console.warn(
-                `data-show-when="${showWhen}" không hợp lệ. Chỉ chấp nhận "logged-in" hoặc "logged-out".`
+                `data-show-when="${showWhen}" không hợp lệ. Chỉ chấp nhận "logged-in" hoặc "logged-out".`,
             );
             return;
         }

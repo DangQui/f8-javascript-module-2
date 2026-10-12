@@ -1,25 +1,3 @@
-// ======================================================
-// ALBUM DETAIL PAGE — Init + render
-// ======================================================
-//
-// Flow:
-//   1. Show loading overlay
-//   2. Fetch detailsService.getAlbum(slug)
-//   3. Render HTML từ `album-detail.render.js`
-//   4. Inject vào #main
-//   5. Hide loading overlay
-//
-// Data shape (port từ base.js `_r()` dòng 4593):
-//   {
-//     id, title, slug, thumbnails[], albumType, releaseDate,
-//     popularity, songCount, duration, tracks[]
-//   }
-//
-// Lưu ý:
-//   - Click track → navigate /songs/details/:id.
-//   - Thumbnail ở root rỗng → render dùng fallback từ tracks[0].
-//
-
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import { renderAlbumDetail } from "@/pages/album-detail/album-detail.render.js";
 import { SKELETON_ALBUM_DETAIL } from "@/components/skeleton.js";
@@ -44,8 +22,8 @@ export async function albumDetailPage(route = {}) {
         renderPage(
             renderPlaceholder(
                 "Chi tiết album",
-                "Thiếu slug album. Vui lòng truy cập lại từ danh sách."
-            )
+                "Thiếu slug album. Vui lòng truy cập lại từ danh sách.",
+            ),
         );
         return;
     }
@@ -59,9 +37,6 @@ export async function albumDetailPage(route = {}) {
         // 1. Fetch album details
         const album = await detailsService.getAlbum(slug);
 
-        // 1b. Phase 15: Ghi nhận "user vừa xem detail album này" (best-effort).
-        //     Port từ base.js `Er('album', id)` dòng 5657. Fire-and-forget
-        //     để không block page render.
         recordPlay("album", album.id);
 
         // 2. Render HTML
@@ -90,12 +65,6 @@ export async function albumDetailPage(route = {}) {
             if (queueTracks.length > 0) {
                 audioPlayer.setQueue(queueTracks);
 
-                // Phase 15.3: Auto-play track đầu của album (port base.js:5793).
-                // Logic:
-                //   - Nếu CHƯA đang phát bài nào (audio.paused === false ở phủ định)
-                //     → auto-play track đầu (giống base.js).
-                //   - Nếu đang phát bài khác → KHÔNG override (giữ UX cho user).
-                //   - Nếu đang phát đúng track đầu → skip (không restart).
                 const firstTrack = queueTracks[0];
                 const isCurrent = audioPlayer.currentSong?.id === firstTrack.id;
                 const isAudioPaused =
@@ -117,7 +86,6 @@ export async function albumDetailPage(route = {}) {
             </section>
         `);
     }
-
 }
 
 // ======================================================

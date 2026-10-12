@@ -1,19 +1,9 @@
-// ======================================================
-// CHANGE PASSWORD PAGE — Form đổi mật khẩu + API call
-// ======================================================
-//
-// Phase 10.1: dùng MESSAGES + form-helpers + mapApiError.
-// Stub "MAINTENANCE" code handle ở catch.
-//
-
 import { renderPage, loading } from "@/pages/_shared.js";
 import { renderChangePasswordPage } from "@/pages/change-password/change-password.render.js";
 
 import { requireAuth, onAuthChange } from "@/state/authState.js";
 import { changePassword } from "@/services/authService.js";
-import {
-    getPasswordError,
-} from "@/utils/validators.js";
+import { getPasswordError } from "@/utils/validators.js";
 import { MESSAGES } from "@/utils/messages.js";
 import { showFormError, clearFormErrors } from "@/utils/form-helpers.js";
 import { $ } from "@/utils/dom-helpers.js";
@@ -76,20 +66,36 @@ async function handleChangePasswordSubmit(e) {
 
     // Validation
     if (!oldPassword) {
-        return showFormError(form, "oldPassword", MESSAGES.VALIDATION.OLD_PASSWORD_REQUIRED);
+        return showFormError(
+            form,
+            "oldPassword",
+            MESSAGES.VALIDATION.OLD_PASSWORD_REQUIRED,
+        );
     }
     const passwordErr = getPasswordError(password);
     if (passwordErr) return showFormError(form, "password", passwordErr);
 
     if (password && password === oldPassword) {
-        return showFormError(form, "password", MESSAGES.VALIDATION.NEW_PASSWORD_SAME_AS_OLD);
+        return showFormError(
+            form,
+            "password",
+            MESSAGES.VALIDATION.NEW_PASSWORD_SAME_AS_OLD,
+        );
     }
 
     if (!confirmPassword) {
-        return showFormError(form, "confirmPassword", MESSAGES.VALIDATION.CONFIRM_PASSWORD_REQUIRED);
+        return showFormError(
+            form,
+            "confirmPassword",
+            MESSAGES.VALIDATION.CONFIRM_PASSWORD_REQUIRED,
+        );
     }
     if (password !== confirmPassword) {
-        return showFormError(form, "confirmPassword", MESSAGES.VALIDATION.CONFIRM_PASSWORD_MISMATCH);
+        return showFormError(
+            form,
+            "confirmPassword",
+            MESSAGES.VALIDATION.CONFIRM_PASSWORD_MISMATCH,
+        );
     }
 
     // Submit

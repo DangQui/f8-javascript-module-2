@@ -3,36 +3,12 @@
 // ======================================================
 //
 
-// class Mr dòng 5843-6036). base.js gốc dùng Tailwind utility
-// class — em port sang SCSS module theo hard rule #3 (NO Tailwind).
-//
-// KHÔNG đổi bất kỳ SCSS nào đã có — chỉ THÊM class mới:
-//   - .search-dropdown       : dropdown desktop dưới form search
-//   - .search-dropdown__item : 1 row trong dropdown
-//   - .mobile-search-modal   : full-screen overlay mobile
-//   - .top-bar__act--search-mobile : trigger mở modal trên mobile
-//
-// Class `d-none` đã có sẵn trong base/_utils.scss (display:none utility).
-// Class `d-md-none` được define ở đây (Tailwind-like breakpoint).
-//
-
-// ===================
-// Desktop Dropdown
-// ===================
-
-// Container absolute bên dưới form search
-//   - Width: bằng `.form__search` (form search) — form đã `position: relative`
-//     nhưng dropdown là sibling nên ta cần set width explicit.
-//   - Position: absolute → `left: 0` so với form search (đã relative).
-//     Tuy nhiên dropdown lại là sibling của form, nên ta cần wrapper relative.
-//     Phase 13 fix: đặt dropdown `left: 0` relative tới top-bar__right (đã
-//     position: relative ở _header.scss).
 .search-dropdown {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    width: 470px; // Match `.form__search` width (xem _form.scss:9)
+    width: 470px;
     z-index: 1000;
     margin-top: 6px;
     background: var(--header-bg, #121212);
@@ -168,7 +144,9 @@
     opacity: 0;
     pointer-events: none;
     transform: translateY(-8px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
 
     &.is-open {
         opacity: 1;
@@ -274,7 +252,6 @@
         margin-bottom: 40px;
     }
 
-    // Placeholder (3 states: empty keyword / no results / error)
     &__placeholder {
         display: flex;
         flex-direction: column;

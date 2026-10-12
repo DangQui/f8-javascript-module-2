@@ -1,23 +1,3 @@
-// ======================================================
-// CATEGORY DETAIL PAGE — Render functions
-// ======================================================
-//
-// Port từ `code chức năng gốc/base.js`:
-//   - fr(e)        dòng 4480-4486 → render category detail
-//
-// Flow render:
-//   1. H1 category.name (45px bold) — port `fr()` dòng 4482
-//   2. Mỗi subcategory → 1 slider `Y(name, playlists)` — port dòng 4483
-//
-// Lưu ý:
-//   - Code gốc `fr()` dùng Tailwind utility (`p-4 text-white`, `font-bold`,
-//     `text-[45px]`, `mb-10`). Phase 17 convert sang SCSS class riêng
-//     `.category-detail-page` + `&__heading` theo Hard Rule #3 (Phase 16.5).
-//   - Mỗi subcategory là 1 section slider dùng `renderSliderSection()` từ
-//     section.js, basePath mặc định `/playlists/details` (port `Y()` base.js
-//     dòng 4203 có default `n = "/playlists/details"`).
-//
-
 import { escapeHtml } from "@/utils/format.js";
 import { renderSliderSection } from "@/components/section.js";
 
@@ -56,7 +36,7 @@ export function renderCategoryDetail(category) {
                 items: Array.isArray(sub?.playlists) ? sub.playlists : [],
                 listClass: "album__list home-album__list",
                 basePath: "/playlists/details",
-            })
+            }),
         )
         .join("");
 

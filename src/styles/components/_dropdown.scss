@@ -1,15 +1,4 @@
-/**
- * components/_dropdown.scss — Dropdown menu styles
- *
- * Dùng cho menu thả xuống (avatar user, v.v.).
- * Style đồng bộ với auth__inner (dùng token có sẵn).
- *
- * Consumed by:
- *   - `@/libs/dropdown.js` (initDropdowns, open/close)
- */
-
 @use "../abstracts/mixin" as mix;
-
 
 .dropdown-wrapper {
     position: relative;

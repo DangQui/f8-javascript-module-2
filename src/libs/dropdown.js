@@ -1,24 +1,3 @@
-/**
- * dropdown.js — Dropdown menu (avatar user menu, ...)
- *
- * Bind click handler cho `[data-dropdown]` elements. Hỗ trợ nhiều dropdown
- * độc lập trên cùng trang.
- *
- * HTML pattern:
- *   <div class="dropdown-wrapper" data-dropdown>
- *       <button data-dropdown-toggle>Avatar</button>
- *       <div class="dropdown d-none" data-dropdown-menu>
- *           <button data-dropdown-close>Đăng xuất</button>
- *       </div>
- *   </div>
- *
- * Exports:
- *   - initDropdowns() → bind handlers cho mọi [data-dropdown] trong DOM
- *
- * Consumed by:
- *   - `@/layout/init.js` gọi 1 lần sau khi layout render xong
- */
-
 export function initDropdowns() {
     document.querySelectorAll("[data-dropdown]").forEach((wrapper) => {
         setupDropdown(wrapper);

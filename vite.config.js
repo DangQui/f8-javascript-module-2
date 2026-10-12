@@ -9,11 +9,6 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
     plugins: [
-        // vite-plugin-html: cho phép dùng EJS <%- include('partials/...') %>
-        // trong index.html để inject header/sidebar/player partials.
-        // - pages[0].injectOptions.ejsOptions: truyền `views` + `filename` để
-        //   EJS resolve `<%- include('partials/header.html') %>` từ root project.
-        // - async: true — match với mặc định của vite-plugin-html.
         createHtmlPlugin({
             pages: [
                 {
@@ -31,7 +26,6 @@ export default defineConfig({
         }),
     ],
 
-    // Alias giúp gọi từ src/ dễ dàng (giống f8-module)
     resolve: {
         alias: {
             "@": resolve(__dirname, "./src"),
@@ -46,13 +40,10 @@ export default defineConfig({
         },
     },
 
-    // Cấu hình Sass modern API + tắt deprecation warnings
-    // (warnings hiện tại là do code dùng if() syntax cũ - không phải lỗi)
     css: {
         preprocessorOptions: {
             scss: {
                 api: "modern-compiler",
-                // Tắt warnings để build output sạch (legacy syntax không fix ngay)
                 silenceDeprecations: [
                     "if-function",
                     "import",
@@ -65,13 +56,11 @@ export default defineConfig({
         },
     },
 
-    // Dev server
     server: {
         port: 5173,
         open: true,
     },
 
-    // Build
     build: {
         outDir: "dist",
         emptyOutDir: true,

@@ -1,36 +1,3 @@
-// ======================================================
-// AUTH SERVICE — Login / register / profile (API thật)
-// ======================================================
-//
-// Phase 10.1: Wire API backend + throw AppError có `code` machine-readable.
-//
-// API SHAPE (verified Phase 10.1):
-//   POST /auth/login        body: {email, password}
-//                           200: { access_token, refresh_token, user: {id, name, email, created_at, updated_at} }
-//                           400: { success: false, message: "Invalid credentials" }
-//
-//   POST /auth/register     body: {email, name, password, confirmPassword}
-//                           200: { access_token, refresh_token, user }
-//                           400: { success: false, message: "Email already in use" }
-//                                hoặc { success: false, message: "Validation failed", errors: {confirmPassword: "Passwords do not match"} }
-//
-//   GET  /auth/me           200: { id, name, email, created_at, updated_at }
-//                           401: empty body
-//
-//   PATCH /auth/me          body: {name, ...}
-//                           200: { success: true, message: "Update profile successfuly" }
-//
-//   POST /auth/logout       ❌ NOT EXIST → chỉ clear local
-//   POST /auth/change-password ❌ NOT FOUND → stub
-//
-// USER SHAPE MAPPING (UI expects):
-//   { id, email, name, initial, joinedAt }
-//
-// ERROR HANDLING:
-//   - Tất cả axios errors được map qua `mapApiError()` → throw AppError có `code`
-//   - Page handlers chỉ cần switch theo `err.code` thay vì parse message thủ công.
-//
-
 import { api } from "@/libs/api.js";
 import { mapApiError } from "@/libs/api-error.js";
 import {
@@ -63,7 +30,10 @@ function mapUserFromApi(apiUser = {}) {
         email: apiUser.email,
         name: apiUser.name,
         initial: getInitialFromName(apiUser.name),
-        joinedAt: apiUser.created_at || apiUser.updated_at || new Date().toISOString(),
+        joinedAt:
+            apiUser.created_at ||
+            apiUser.updated_at ||
+            new Date().toISOString(),
     };
 }
 
@@ -110,7 +80,12 @@ export async function loginRequest({ email, password }) {
  * @returns {Promise<{ isLoggedIn: boolean, user: object }>}
  * @throws {AppError} code: EMAIL_TAKEN | PASSWORD_MISMATCH | VALIDATION | ...
  */
-export async function registerRequest({ email, name, password, confirmPassword }) {
+export async function registerRequest({
+    email,
+    name,
+    password,
+    confirmPassword,
+}) {
     try {
         // Backend yêu cầu confirmPassword trong body (verified Phase 10.1)
         const data = await api.post("/auth/register", {
@@ -124,29 +99,26 @@ export async function registerRequest({ email, name, password, confirmPassword }
         const user = persistSession(data);
         return { isLoggedIn: true, user };
     } catch (err) {
-        throw mapApiError(err, { defaultMessage: MESSAGES.AUTH.REGISTER_FAILED });
+        throw mapApiError(err, {
+            defaultMessage: MESSAGES.AUTH.REGISTER_FAILED,
+        });
     }
 }
 
 /**
  * Đăng xuất.
  *
- * Theo docs F8 (https://youtube-music.f8team.dev/):
- *   DELETE /auth/logout
- *   Header: Authorization: Bearer <token>
- *   → 200 { success: true, message: "Logout successfuly" }
- *
- * - KHÔNG gửi body (docs không yêu cầu).
- * - Bearer header tự động gắn qua request interceptor (`api.js`).
- * - Best-effort: nếu API fail vẫn clear local + emit auth-changed
- *   để UI về trạng thái logged-out (user không bị "kẹt" trong app).
+
  */
 export async function logoutRequest() {
     try {
         await api.delete("/auth/logout");
     } catch (err) {
         // Best-effort — log warning nhưng vẫn clear local để UX không kẹt
-        console.warn("[authService.logout] API failed (best-effort):", err?.message || err);
+        console.warn(
+            "[authService.logout] API failed (best-effort):",
+            err?.message || err,
+        );
     }
     clearStorage();
     notify({ isLoggedIn: false, user: null });
@@ -165,7 +137,9 @@ export async function getProfile() {
         notify({ isLoggedIn: true, user });
         return user;
     } catch (err) {
-        throw mapApiError(err, { defaultMessage: MESSAGES.AUTH.PROFILE_UPDATE_FAILED });
+        throw mapApiError(err, {
+            defaultMessage: MESSAGES.AUTH.PROFILE_UPDATE_FAILED,
+        });
     }
 }
 
@@ -182,30 +156,24 @@ export async function updateProfile(updates) {
         const user = await getProfile();
         return { success: true, user };
     } catch (err) {
-        throw mapApiError(err, { defaultMessage: MESSAGES.AUTH.PROFILE_UPDATE_FAILED });
+        throw mapApiError(err, {
+            defaultMessage: MESSAGES.AUTH.PROFILE_UPDATE_FAILED,
+        });
     }
 }
 
 /**
  * Đổi mật khẩu.
- *
- * Theo docs F8 (https://youtube-music.f8team.dev/):
- *   PATCH /auth/change-password
- *   Header: Authorization: Bearer <token>
- *   Body: { oldPassword, password, confirmPassword }
- *   → 200 { success: true, message: "Change password successfuly" }
- *   → 400 { success: false, message: "Old password is incorrect" }
- *
- * LƯU Ý:
- *   - Backend dùng key `password` cho new password (không phải `newPassword`).
- *   - Bearer header tự động gắn qua request interceptor (`api.js`).
- *   - 401 → interceptor tự refresh-token. Nếu refresh fail → force logout.
- *
+ 
  * @param {{ oldPassword: string, password: string, confirmPassword: string }} payload
  * @returns {Promise<{ success: boolean, message: string }>}
  * @throws {AppError} code: OLD_PASSWORD_WRONG | VALIDATION | UNAUTHORIZED | ...
  */
-export async function changePassword({ oldPassword, password, confirmPassword }) {
+export async function changePassword({
+    oldPassword,
+    password,
+    confirmPassword,
+}) {
     try {
         const res = await api.patch("/auth/change-password", {
             oldPassword,
@@ -213,8 +181,15 @@ export async function changePassword({ oldPassword, password, confirmPassword })
             confirmPassword,
         });
         // Backend trả { success: true, message: "..." } — trả nguyên cho page handler
-        return res ?? { success: true, message: MESSAGES.AUTH.CHANGE_PASSWORD_SUCCESS };
+        return (
+            res ?? {
+                success: true,
+                message: MESSAGES.AUTH.CHANGE_PASSWORD_SUCCESS,
+            }
+        );
     } catch (err) {
-        throw mapApiError(err, { defaultMessage: MESSAGES.AUTH.CHANGE_PASSWORD_FAILED });
+        throw mapApiError(err, {
+            defaultMessage: MESSAGES.AUTH.CHANGE_PASSWORD_FAILED,
+        });
     }
 }

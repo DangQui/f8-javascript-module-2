@@ -1,20 +1,3 @@
-// ======================================================
-// NEW RELEASES PAGE — Handler
-// ======================================================
-//
-// Flow (port từ base.js route `/new-releases` dòng 5757-5760):
-//   1. Show skeleton ngay (UX: user thấy structure trước khi data về)
-//   2. Parallel fetch `exploreService.getNewReleases()` + `getVideos()`
-//   3. Render HTML từ `new-releases.render.js`
-//   4. Inject vào #main
-//
-// Data shape (từ API):
-//   - getNewReleases() → [{ id, slug, title, thumbnails[], artists[], albumType }]
-//   - getVideos() → [{ id, slug, title, thumbnails[], artists[], albumType }]
-//
-// Note Phase 11.2: KHÔNG dùng `loading.show()` (spinner overlay che skeleton).
-// ======================================================
-
 import { renderPage } from "@/pages/_shared.js";
 import { renderNewReleases } from "@/pages/new-releases/new-releases.render.js";
 import { SKELETON_SECTION } from "@/components/skeleton.js";
@@ -28,10 +11,7 @@ import { toast } from "@/libs/toast.js";
 export async function newReleasesPage(route = {}) {
     try {
         // 0. Render skeleton ngay (UX: user thấy structure trước)
-        // Phase 14.1: 2 sections (albums + videos) → render 2 skeletons.
-        renderPage(
-            SKELETON_SECTION(true, 6) + SKELETON_SECTION(true, 6)
-        );
+        renderPage(SKELETON_SECTION(true, 6) + SKELETON_SECTION(true, 6));
 
         // 1. Parallel fetch
         const [albums, videos] = await Promise.all([
@@ -47,7 +27,8 @@ export async function newReleasesPage(route = {}) {
     } catch (err) {
         console.error("[new-releases] Critical error:", err);
         // Ưu tiên err.message (từ AppError mapApiError) thay vì hardcode
-        const fallback = "Không thể tải trang Bản phát hành mới. Vui lòng thử lại.";
+        const fallback =
+            "Không thể tải trang Bản phát hành mới. Vui lòng thử lại.";
         toast.error(err.message || fallback);
         renderPage(`
             <section class="page-placeholder">

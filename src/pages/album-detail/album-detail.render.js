@@ -1,29 +1,3 @@
-// ======================================================
-// ALBUM DETAIL PAGE — Render functions
-// ======================================================
-//
-// Layout (2 columns) — port từ `_r()` trong base.js (dòng 4593):
-//
-//   ┌──────────────────────┬─────────────────────────┐
-//   │   .info-detail       │     .track-list         │
-//   │   (img + title       │     (scrollable list    │
-//   │    + meta)           │      of album tracks)  │
-//   └──────────────────────┴─────────────────────────┘
-//
-// Data flow (port từ `mr()` dòng 4498 + `_r()` dòng 4593):
-//   - Info-detail dùng `mr(album)` logic:
-//       * albumType present → show "Loại album" + "Phát hành"
-//       * songCount > 0 → show "X bài hát"
-//       * duration > 0 → show "X giờ Y phút"
-//       * popularity >= 0 → show "X lượt nghe"
-//   - Track-list: render `album.tracks[]` trực tiếp.
-//   - Mỗi track link → /songs/details/:id (Navigo).
-//
-// Lưu ý:
-//   - Tracks có `artists[]` rỗng → fallback "Không rõ nghệ sĩ".
-//   - Track item dùng `<a href="/songs/details/...">` (giống song-detail).
-//
-
 import { escapeHtml, formatDuration, formatViews } from "@/utils/format.js";
 import { renderTrackList as renderTrackItemComponent } from "@/components/track-item.js";
 
@@ -39,25 +13,29 @@ import { renderTrackList as renderTrackItemComponent } from "@/components/track-
 export function renderInfoDetail(album) {
     // Album detail có `thumbnails[]` thường rỗng → fallback từ tracks[0]
     const fallbackThumb = album.tracks?.[0]?.thumbnails?.[0];
-    const thumbnail = album.thumbnails?.[0] || fallbackThumb || "/images/quick-picks-01.jpg";
+    const thumbnail =
+        album.thumbnails?.[0] || fallbackThumb || "/images/quick-picks-01.jpg";
 
     const title = escapeHtml(album.title || "Không rõ tên album");
     const songCount = Number(album.songCount) || 0;
     const totalDuration = Number(album.duration) || 0;
-    const popularity = Number.isFinite(album.popularity) && album.popularity >= 0
-        ? album.popularity
-        : null;
+    const popularity =
+        Number.isFinite(album.popularity) && album.popularity >= 0
+            ? album.popularity
+            : null;
     const albumType = album.albumType || null;
     const releaseDate = album.releaseDate
         ? new Date(album.releaseDate).toLocaleDateString("vi-VN")
         : null;
-    const artists = Array.isArray(album.artists) && album.artists.length > 0
-        ? album.artists.map((a) => escapeHtml(a)).join(", ")
-        : null;
+    const artists =
+        Array.isArray(album.artists) && album.artists.length > 0
+            ? album.artists.map((a) => escapeHtml(a)).join(", ")
+            : null;
 
     // Tính giờ/phút nếu có totalDuration
     const hours = totalDuration > 0 ? Math.floor(totalDuration / 3600) : null;
-    const minutes = totalDuration > 0 ? Math.floor((totalDuration % 3600) / 60) : null;
+    const minutes =
+        totalDuration > 0 ? Math.floor((totalDuration % 3600) / 60) : null;
 
     return `
         <div class="info-detail">

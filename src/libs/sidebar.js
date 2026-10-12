@@ -1,20 +1,3 @@
-/**
- * sidebar.js — Sidebar UI handlers (highlight active + upgrade toggle)
- *
- * Layer: layout-libs (pure DOM, no API, no state).
- *
- * Exports:
- *   - initSidebarActive()  → highlight active sidebar item theo URL hiện tại
- *   - initUpgradeLink()     → toggle "Nâng cấp" button
- *
- * Consumed by:
- *   - `@/layout/init.js` gọi sau khi sidebar render xong
- *
- * Lưu ý:
- *   - Logic match path: "/" (root) match nhiều biến thể (path thuần hoặc HTML file).
- *   - Path khác: so khớp CHÍNH XÁC với current pathname.
- */
-
 import { $$ } from "@/utils/dom-helpers.js";
 
 /** @returns {string} Current pathname không query/hash. */
@@ -33,8 +16,11 @@ function isPathMatch(currentPath, href) {
 
     if (currentPath === "/") {
         const rootVariants = [
-            "/", "/index.html", "/index-logined.html",
-            "./index.html", "./index-logined.html"
+            "/",
+            "/index.html",
+            "/index-logined.html",
+            "./index.html",
+            "./index-logined.html",
         ];
         return rootVariants.includes(href);
     }

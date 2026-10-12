@@ -1,24 +1,3 @@
-/**
- * layout/init.js — Init layout shells + UI handlers
- *
- * Render header/sidebar/player partials (async, parallel) sau đó init
- * các UI modules cần DOM đã sẵn sàng.
- *
- * Consumed by:
- *   - `@/main.js` gọi 1 lần ở entry point
- *
- * Thứ tự:
- *   1. renderHeader + renderSidebar + renderPlayer (Promise.all parallel)
- *   2. init UI modules (toggle, dropdown, slider, sidebar, auth)
- *   3. applyAuthVisibility (hide/show header login vs avatar)
- *   4. restorePlayerState (load from localStorage)
- *   5. bindBeforeUnloadSave
- *
- * Lưu ý:
- *   - renderPlayer visibility được điều khiển hoàn toàn bởi state-changed event
- *     từ video-overlay. Xem `layout/player.js` → bindPlayerEvents().
- */
-
 import { renderHeader } from "@/layout/header.js";
 import { renderSidebar } from "@/layout/sidebar.js";
 import { renderPlayer } from "@/layout/player.js";
@@ -61,7 +40,10 @@ export async function initLayout() {
     //    User click play để resume từ currentTime đã lưu.
     const persisted = loadPlayerState();
     if (persisted) {
-        console.info("[initLayout] Khôi phục state từ localStorage:", persisted);
+        console.info(
+            "[initLayout] Khôi phục state từ localStorage:",
+            persisted,
+        );
 
         // Mount video overlay trước (cần DOM trước khi restore)
         videoOverlay.mount();

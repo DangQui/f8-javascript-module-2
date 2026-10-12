@@ -41,7 +41,6 @@
             scroll-behavior: smooth;
             padding-bottom: 26px;
 
-            // Cursor kéo khi hover (JS thêm class .is-draggable)
             &.is-draggable {
                 cursor: grab;
 
@@ -76,14 +75,6 @@
     }
 }
 
-// Quick Picks khi được dùng làm slider ngang (column-based).
-// Style flex column gốc trong `_quick-picks-item.scss` đã set list là
-// `flex-direction: column` để items xếp dọc như banner.
-// Khi bật slider (`data-slider`), ta muốn:
-// - Mỗi cột là 1 slide ngang → list flex row
-// - Bên trong mỗi cột (`.row.row-cols-1` hoặc `.col` chứa column nội bộ)
-//   vẫn giữ column dọc theo đúng style gốc của component.
-// → Chỉ override `flex-direction` của LIST, không đụng nội dung card.
 .home__container .quick-picks__list[data-slider] {
     flex-direction: row;
     overflow-x: auto;
@@ -114,12 +105,12 @@
     .hscroll-inner {
         display: flex;
         gap: 24px;
-        width: 100%; 
+        width: 100%;
         padding-bottom: 20px;
     }
 
     .quick-picks-col {
-        flex: 0 0 auto; 
+        flex: 0 0 auto;
         width: calc((100% - 48px) / 3);
         display: flex;
         flex-direction: column;
@@ -134,12 +125,6 @@
     padding: 8px 12px;
     border-radius: 8px;
 
-    // ======================================================
-    // Inactive state — port base.js tr() dòng 4144:
-    //   `bg-white/10 text-white hover:bg-white/20`
-    // bg-white/10 = #ffffff1a (rgba 255,255,255,.1)
-    // hover:bg-white/20 = #ffffff33 (rgba 255,255,255,.2)
-    // ======================================================
     &--inactive {
         color: #ffffff;
         background-color: rgba(255, 255, 255, 0.1);
@@ -150,22 +135,10 @@
         }
     }
 
-    // ======================================================
-    // Active state — port base.js tr() dòng 4143:
-    //   `bg-white text-black font-semibold`
-    // bg-white = #ffffff, text-black = #000
-    // Phase 18.5 yêu cầu: style giống hover (sáng, nổi bật) để
-    // user biết đang ở mood-page nào. Dùng hover style
-    // (.cate-btn--inactive:hover) làm tham chiếu.
-    // ======================================================
     &--active {
         color: #ffffff;
         font-weight: 600;
         background-color: rgba(255, 255, 255, 0.2);
-
-        // Khoá t??ng t??c (user dang ? mood-page này r?i):
-        //   - user-select: none    → không cho select text chip
-        //   - pointer-events: none → không cho click lại (vì nav cùng page)
         user-select: none;
         pointer-events: none;
     }

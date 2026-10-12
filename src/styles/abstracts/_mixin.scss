@@ -1,14 +1,3 @@
-/**
- * abstracts/_mixin.scss — Sass mixins
- *
- * Cung cấp:
- *   - $grid-breakpoints: map các breakpoint (sm/md/lg/xl/2xl)
- *   - screen($key): mobile-first media query helper
- *
- * Consumed by:
- *   - Tất cả file SCSS dùng responsive (grid, layout, page-specific)
- */
-
 @use "sass:map";
 
 // Mobile-first breakpoints (dùng chung với _grid.scss):

@@ -1,10 +1,6 @@
 // ======================================================
 // EXPLORE SERVICE — api.Explore.* (Phase 4 port từ base.js G.Explore)
 // ======================================================
-//
-// Phase 20: Wrap mapApiError để throw AppError {code, message, field, status}
-// → explore/discover page hiển thị đúng message backend.
-//
 
 import { api } from "@/libs/api.js";
 import { mapApiError } from "@/libs/api-error.js";
@@ -15,7 +11,9 @@ export const exploreService = {
         try {
             return (await api.get("/explore/albums"))?.items ?? [];
         } catch (err) {
-            throw mapApiError(err, { defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR });
+            throw mapApiError(err, {
+                defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR,
+            });
         }
     },
 
@@ -35,7 +33,9 @@ export const exploreService = {
             }));
             return [...categories, ...lines];
         } catch (err) {
-            throw mapApiError(err, { defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR });
+            throw mapApiError(err, {
+                defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR,
+            });
         }
     },
 
@@ -43,7 +43,9 @@ export const exploreService = {
         try {
             return (await api.get("/explore/videos"))?.items ?? [];
         } catch (err) {
-            throw mapApiError(err, { defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR });
+            throw mapApiError(err, {
+                defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR,
+            });
         }
     },
 
@@ -51,7 +53,9 @@ export const exploreService = {
         try {
             return (await api.get("/explore/new-releases"))?.items ?? [];
         } catch (err) {
-            throw mapApiError(err, { defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR });
+            throw mapApiError(err, {
+                defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR,
+            });
         }
     },
 
@@ -59,23 +63,35 @@ export const exploreService = {
         try {
             return (await api.get("/charts/countries"))?.countries ?? [];
         } catch (err) {
-            throw mapApiError(err, { defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR });
+            throw mapApiError(err, {
+                defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR,
+            });
         }
     },
 
     async getTopVideos(country) {
         try {
-            return (await api.get(`/charts/videos?country=${country}`))?.items ?? [];
+            return (
+                (await api.get(`/charts/videos?country=${country}`))?.items ??
+                []
+            );
         } catch (err) {
-            throw mapApiError(err, { defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR });
+            throw mapApiError(err, {
+                defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR,
+            });
         }
     },
 
     async getTopArtists(country) {
         try {
-            return (await api.get(`/charts/top-artists?country=${country}`))?.items ?? [];
+            return (
+                (await api.get(`/charts/top-artists?country=${country}`))
+                    ?.items ?? []
+            );
         } catch (err) {
-            throw mapApiError(err, { defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR });
+            throw mapApiError(err, {
+                defaultMessage: MESSAGES.COMMON.UNKNOWN_ERROR,
+            });
         }
     },
 };

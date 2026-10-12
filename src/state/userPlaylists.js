@@ -1,41 +1,3 @@
-/**
- * state/userPlaylists.js — Local user-created playlists (workaround)
- *
- * Phase L-2.1 (09/10/2026) — workaround cho backend chưa implement
- * `/me/playlists` (16 endpoint dạng `/me/*` đều 404).
- *
- * Lý do tạo:
- *   - Backend KHÔNG có `/me/playlists` (test 09/10/2026).
- *   - base.js gốc CŨNG không có library API (chỉ `getPlaylist(slug)`).
- *   - User muốn click "Thêm vào playlist" ở dấu 3 chấm video → lưu được
- *     và xem lại ở `/library`.
- *
- * Schema: {version, playlists: [{slug, title, videos: [...], createdAt}]}
- *   - slug: tự generate từ title + random (unique)
- *   - videos: [{id, title, thumbnail, artists, addedAt}]
- *   - Max 50 playlists (FIFO).
- *   - Sort theo createdAt DESC.
- *
- * Khi nào upgrade:
- *   - Backend implement `/me/playlists` → service fallback xuống localStorage
- *     khi API 404 (Phase L-2.x).
- *   - Có thể sync localStorage ↔ backend qua `userId` key.
- *
- * Exports:
- *   - getUserPlaylists()                → tất cả playlist (sort DESC)
- *   - getUserPlaylist(slug)              → 1 playlist
- *   - createPlaylist(title)              → tạo mới
- *   - addVideoToUserPlaylist(slug, v)   → thêm video (dedup by id)
- *   - removeVideoFromUserPlaylist(slug, videoId) → xóa video
- *   - removeUserPlaylist(slug)           → xóa playlist
- *   - clearUserPlaylists()               → xóa tất cả
- *   - getStorageKey()                    → debug
- *
- * Consumed by:
- *   - `@/components/video-overlay.js` (3 chấm menu → "Thêm vào playlist")
- *   - `@/pages/library/library.js` (render Playlists tab)
- */
-
 const STORAGE_KEY = "music.userPlaylists.v1";
 const SCHEMA_VERSION = 1;
 const MAX_PLAYLISTS = 50;
@@ -123,7 +85,9 @@ function generateSlug(title) {
  */
 export function getUserPlaylists() {
     const data = readRaw();
-    return [...data.playlists].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return [...data.playlists].sort(
+        (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+    );
 }
 
 /**
@@ -175,7 +139,10 @@ export function createPlaylist(title) {
 export function addVideoToUserPlaylist(slug, video) {
     if (!slug) return null;
     if (!isValidVideo(video)) {
-        console.warn("[userPlaylists] addVideoToUserPlaylist: invalid video", video);
+        console.warn(
+            "[userPlaylists] addVideoToUserPlaylist: invalid video",
+            video,
+        );
         return null;
     }
 

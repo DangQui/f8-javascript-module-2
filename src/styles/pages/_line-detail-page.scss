@@ -1,25 +1,3 @@
-// ======================================================
-// LINE DETAIL PAGE — BEM styles
-// ======================================================
-//
-// Port 1:1 từ `code chức năng gốc/base.js` function `pr()` dòng 4488-4496
-// + wrapper `.p-4 text-white` dòng 4489.
-//
-// Phase 18 cleanup: Xóa các class CSS `.line-detail-page__song-row`,
-// `__song-thumb-wrap`, `__song-thumb`, `__song-overlay`, `__song-play`,
-// `__song-info`, `__song-title`, `__song-meta`, `__songs`, `__songs-col`
-// vì giờ section "Bài hát" reuse `renderQuickPicksSection` từ
-// `home.render.js` (4 cols × 4 items giống "Nghe gần đây").
-//
-// Style cho `.quick-picks` + `.quick-picks-col` đã có sẵn ở:
-//   - `src/styles/components/_quick-picks-item.scss` (item 68px, gap 16px)
-//   - `src/styles/pages/_home.scss` (`.home__container .quick-picks__list[data-slider]`
-//     override flex-direction row + `.quick-picks-col` width calc(33.33%))
-//
-// Lý do NEW file: Page wrapper `.line-detail-page` không có trong codebase
-// hiện tại. Reference pattern đúng: `.mood-page` ở `_mood-page.scss`.
-//
-
 .line-detail-page {
     &__empty {
         color: var(--text-color-muted, rgba(255, 255, 255, 0.6));

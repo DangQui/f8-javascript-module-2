@@ -1,36 +1,3 @@
-/**
- * state/mediaState.js — Single source of truth cho "media player nào đang active"
- *
- * Phase 8.5 v7 — giải quyết vấn đề 2 player (audio + video) chạy song song
- * dẫn đến 2 audio cùng phát.
- *
- * Concept:
- *   - `activePlayer`: 'audio' | 'video' | null
- *     + 'audio' = audioPlayer (HTMLAudio) đang phát
- *     + 'video' = videoOverlay (YouTube IFrame) đang phát
- *     + null    = không có gì phát
- *
- *   - Các player KHÔNG gọi trực tiếp nhau. Thay vào đó:
- *     1. Khi state player đổi → broadcast `media:active-changed` event
- *     2. Player khác listen event → nếu `active !== self` thì PAUSE mình
- *
- * Centralized để tránh:
- *   - Circular dependency giữa audio-player.js ↔ video-overlay.js
- *   - Race condition khi cả 2 cùng PLAYING
- *
- * Exports:
- *   - getActive()              → 'audio' | 'video' | null
- *   - setActive(active)        → set + broadcast (no-op nếu giá trị không đổi)
- *   - onActiveChange(fn)       → subscribe, returns unsubscribe
- *   - onActiveEvent(fn)        → listen document event
- *   - mediaState               → object gộp các hàm trên
- *
- * Consumed by:
- *   - `@/components/audio-player.js` setActive("audio") khi play/pause
- *   - `@/components/video-overlay.js` setActive("video") khi YT play/pause
- *   - `@/layout/player.js` getActive() để route button clicks
- */
-
 /** @type {"audio" | "video" | null} */
 let activePlayer = null;
 
@@ -59,7 +26,7 @@ export function setActive(active) {
 
     // Broadcast event cho cross-module sync
     document.dispatchEvent(
-        new CustomEvent("media:active-changed", { detail: { active } })
+        new CustomEvent("media:active-changed", { detail: { active } }),
     );
 
     // Internal listeners

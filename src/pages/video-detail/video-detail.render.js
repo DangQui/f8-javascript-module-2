@@ -1,32 +1,3 @@
-// ======================================================
-// VIDEO DETAIL PAGE — Render functions
-// ======================================================
-//
-// Layout (2 columns) — port từ `Cr()` trong base.js (dòng 5527):
-//
-//   ┌──────────────────────┬─────────────────────────┐
-//   │   .info-detail       │     .video-list         │
-//   │   (YouTube iframe    │     (scrollable list    │
-//   │    + title + meta)   │      of related videos)  │
-//   └──────────────────────┴─────────────────────────┘
-//
-// Data flow (port từ `Cr()` base.js dòng 5527 + `Sr()` dòng 5509 + `xr()` dòng 5477):
-//   - API trả `video` ở root + `related[]` ~20 items (đã bao gồm video hiện tại ở cuối).
-//   - `n = [video, ...related]` dedupe by `id` (giữ thứ tự đầu tiên) → render related list.
-//   - Info-detail:
-//       * YouTube iframe embed (16:9, autoplay=1, no controls stop nav).
-//       * title
-//       * "Đang phát" label
-//       * duration → format "X giờ Y phút" (port `hr()` base.js dòng 4558)
-//       * popularity → "X lượt xem"
-//   - Mỗi video trong related list click → navigate `/videos/details/:id` (Navigo).
-//
-// Lưu ý (theo PLAN.md Task 8.6 — VideoPlayer sẽ làm sau):
-//   - Tạm thời dùng YouTube iframe embed thuần (không dùng class `Z` phức tạp của base.js).
-//   - Click related → navigate trang → iframe reset với video mới.
-//   - `videoId` là YouTube ID 11-char (vd "Rb0UmrCXxVA").
-//
-
 import { escapeHtml, formatViews } from "@/utils/format.js";
 
 // ======================================================
@@ -34,8 +5,6 @@ import { escapeHtml, formatViews } from "@/utils/format.js";
 // ======================================================
 
 /**
- * Format duration (giây) → "X giờ Y phút" / "Y phút Z giây" / "Z giây"
- * Port từ `hr()` base.js dòng 4558-4563.
  * @param {number} seconds
  * @returns {string}
  */
@@ -65,24 +34,16 @@ function buildYouTubeEmbedUrl(videoId) {
 }
 
 // ======================================================
-// INFO DETAIL — left column (label + title + meta)
+// INFO DETAIL
 // ======================================================
 
-/**
- * Render info-detail box (left column) cho video.
- * Gồm:
- *   - Label "Đang phát"
- *   - Title (h1)
- *   - Meta: duration + popularity
- *
- * KHÔNG render iframe ở đây (player được mount bởi video-overlay component).
- */
 export function renderInfoDetail(video) {
     const title = escapeHtml(video.title || "Không rõ tên video");
     const duration = Number(video.duration) || 0;
-    const popularity = Number.isFinite(video.popularity) && video.popularity >= 0
-        ? video.popularity
-        : null;
+    const popularity =
+        Number.isFinite(video.popularity) && video.popularity >= 0
+            ? video.popularity
+            : null;
 
     return `
         <div class="info-detail info-detail--video">

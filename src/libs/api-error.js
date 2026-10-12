@@ -1,48 +1,3 @@
-/**
- * api-error.js — Map axios/network errors → structured AppError
- *
- * Centralize error mapping để page handlers chỉ cần switch theo `err.code`
- * thay vì parse `err.response.data.message` thủ công.
- *
- * Exports:
- *   - mapApiError(err, context?) → AppError {code, message, field?, status?, original?}
- *   - isErrorCode(appError, ...codes) → boolean
- *
- * Consumed by:
- *   - `@/services/authService.js` map error trước khi throw
- *   - `@/pages/auth/auth.js`, `@/pages/profile/profile.js`,
- *     `@/pages/change-password/change-password.js` switch theo code
- *
- * Error codes (machine-readable):
- *   - VALIDATION          — 400 + errors object
- *   - EMAIL_TAKEN         — register/update email đã tồn tại
- *   - INVALID_CREDENTIALS — login sai email/password
- *   - USER_NOT_FOUND      — login với email chưa đăng ký
- *   - OLD_PASSWORD_WRONG  — change-password sai mật khẩu cũ
- *   - PASSWORD_MISMATCH   — register confirmPassword khớp
- *   - NOT_FOUND           — 404
- *   - UNAUTHORIZED        — 401 token invalid/expired
- *   - FORBIDDEN           — 403
- *   - RATE_LIMIT          — 429
- *   - BAD_REQUEST         — 400 generic
- *   - SERVER_ERROR        — 5xx
- *   - NETWORK_ERROR       — offline, DNS fail, CORS block
- *   - TIMEOUT             — request > ENV.API_TIMEOUT
- *   - UNKNOWN             — fallback
- *
- * Backend message → code mapping (substring match, lowercase):
- *   "Invalid credentials"     → INVALID_CREDENTIALS
- *   "User not found"          → USER_NOT_FOUND
- *   "Email already in use"    → EMAIL_TAKEN
- *   "Old password is wrong"  → OLD_PASSWORD_WRONG
- *   "Passwords do not match"  → PASSWORD_MISMATCH
- *   "Token expired"           → UNAUTHORIZED
- *   "Service unavailable"     → SERVER_ERROR
- *   "Rate limit exceeded"     → RATE_LIMIT
- *   "Validation failed"       → VALIDATION
- *   message khác              → UNKNOWN (giữ message gốc)
- */
-
 import { MESSAGES } from "@/utils/messages.js";
 
 /**
@@ -81,7 +36,10 @@ function mapApiMessage(apiMessage) {
             message: MESSAGES.AUTH.LOGIN_USER_NOT_FOUND,
         };
     }
-    if (msg.includes("email already in use") || msg.includes("email already exists")) {
+    if (
+        msg.includes("email already in use") ||
+        msg.includes("email already exists")
+    ) {
         return {
             code: "EMAIL_TAKEN",
             field: "email",
@@ -95,7 +53,10 @@ function mapApiMessage(apiMessage) {
             message: MESSAGES.AUTH.CHANGE_PASSWORD_OLD_INCORRECT,
         };
     }
-    if (msg.includes("passwords do not match") || msg.includes("confirmpassword")) {
+    if (
+        msg.includes("passwords do not match") ||
+        msg.includes("confirmpassword")
+    ) {
         return {
             code: "PASSWORD_MISMATCH",
             field: "confirm-password",

@@ -1,27 +1,3 @@
-// ======================================================
-// DISCOVER PAGE — Init + render
-// ======================================================
-//
-// Flow:
-//   1. Show loading overlay
-//   2. Fetch parallel: albums, moodsGenres, videos (3 endpoints)
-//   3. Render HTML từ `discover.render.js`
-//   4. Inject vào #main, re-init sliders (lib scan DOM sau mỗi page)
-//   5. Hide loading overlay
-//
-// Sections (theo base.js `ar()` function):
-//   - Discover Navigation   ← 3 cards (New Releases / Charts / Moods & Genres)
-//   - Albums mới            ← exploreService.getAlbums()
-//   - Tâm trạng & thể loại  ← exploreService.getMoodsGenres() (categories + lines)
-//   - Video nhạc mới        ← exploreService.getVideos()
-//
-// Lưu ý:
-//   - Mỗi section render fail → fallback `[]` để page vẫn render được.
-//   - Sau khi render, PHẢI gọi `initSliders()` vì slider lib scan DOM
-//     một lần ở app init, không tự detect DOM mới.
-//
-
-// vì spinner sẽ che skeleton).
 import { renderPage } from "@/pages/_shared.js";
 import { renderDiscover } from "@/pages/discover/discover.render.js";
 import { SKELETON_DISCOVER } from "@/components/skeleton.js";
@@ -60,7 +36,6 @@ async function safeFetch(fn, fallback, label) {
  * @param {{ params: object, query: object, url: string }} route
  */
 export async function discoverPage(route = {}) {
-
     // Nếu dùng cả 2 → spinner overlay che skeleton, user không thấy structure.
 
     try {
@@ -74,7 +49,7 @@ export async function discoverPage(route = {}) {
             safeFetch(
                 () => exploreService.getMoodsGenres(),
                 [],
-                "getMoodsGenres"
+                "getMoodsGenres",
             ),
             safeFetch(() => exploreService.getVideos(), [], "getVideos"),
         ]);
@@ -101,7 +76,6 @@ export async function discoverPage(route = {}) {
             </section>
         `);
     }
-
 }
 
 export default discoverPage;

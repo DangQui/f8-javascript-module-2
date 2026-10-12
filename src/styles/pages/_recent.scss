@@ -1,14 +1,3 @@
-/**
- * pages/_recent.scss — Recent listens list (4 cols × 4 items)
- *
- * Layout & style giống .quick-picks__list nhưng dùng ảnh vuông (như album)
- * thay vì thumbnail ngang. Item có meta "2 giờ trước" / "Hôm qua" thay
- * cho "200 lượt nghe".
- *
- * Consumed by:
- *   - `@/components/listen-history.js` (data source)
- */
-
 .recent {
     display: flex;
     align-items: center;

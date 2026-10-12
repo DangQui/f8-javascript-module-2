@@ -1,25 +1,3 @@
-/**
- * layout/player.js — Render player partial + bind controls
- *
- * SSOT (Single Source of Truth): player HTML chỉ tồn tại trong file partial,
- * không duplicate trong JS. Logic:
- *   1. Build time: index.html embed partials/player.html → FCP nhanh
- *   2. Runtime: fetch partial → inject innerHTML + bind events
- *
- * Player là "central dispatch" cho cả audio (audio-player.js) và video
- * (video-overlay.js). Mỗi button (play/next/prev/shuffle/repeat/close) chỉ
- * có 1 listener ở đây, route theo `getActive()`:
- *   - active="audio" → gọi audioPlayer.* trực tiếp
- *   - active="video" → emit event cho videoOverlay listen
- *
- * Exports:
- *   - renderPlayer(target) → inject player HTML + bind events
- *
- * Consumed by:
- *   - `@/layout/init.js` gọi trong Promise.all render layout
- *   - `@/state/playerPersistState.js` re-apply state khi restore từ localStorage
- */
-
 import { audioPlayer } from "@/components/audio-player.js";
 import { getActive } from "@/state/mediaState.js";
 
@@ -53,7 +31,14 @@ function fmtTime(seconds) {
     const h = Math.floor(total / 3600);
     const m = Math.floor((total % 3600) / 60);
     const s = total % 60;
-    if (h > 0) return h + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    if (h > 0)
+        return (
+            h +
+            ":" +
+            String(m).padStart(2, "0") +
+            ":" +
+            String(s).padStart(2, "0")
+        );
     return m + ":" + String(s).padStart(2, "0");
 }
 
@@ -68,7 +53,8 @@ function setPlayerPlayIcon(playing) {
     if (!btn) return;
     btn.classList.toggle("is-playing", !!playing);
     const icon = btn.querySelector("i");
-    if (icon) icon.className = playing ? "fa-solid fa-pause" : "fa-solid fa-play";
+    if (icon)
+        icon.className = playing ? "fa-solid fa-pause" : "fa-solid fa-play";
 }
 
 /** Toggle .is-active cho button. */
@@ -93,13 +79,6 @@ function setPlayerVolumeIcon(volume) {
 }
 
 /**
- * Lấy URL thumbnail từ field `thumbnails` (handle cả 2 shape từ API):
- *   - String: "https://..."
- *   - Array:  ["https://...", ...]
- *
- * Bối cảnh: API backend trả về `thumbnails` không nhất quán giữa các
- * endpoint. Helper này normalize → trả URL string hoặc undefined.
- *
  * @param {string|string[]|undefined} thumbnails
  * @returns {string|undefined}
  */
@@ -140,22 +119,12 @@ function setPlayerProgress(currentTime, duration) {
     const rangeEl = document.querySelector(".player__progress-bar");
     if (!rangeEl) return;
     if (rangeEl.dataset.dragging === "1") return;
-    const percent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
+    const percent =
+        duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
     rangeEl.value = String(percent);
     rangeEl.style.setProperty("--progress-fill", percent + "%");
 }
 
-/**
- * Apply toàn bộ audio state lên #player UI.
- *
- * Được gọi từ 2 nguồn:
- *   1. `audio:state-changed` (audioPlayer emit khi play/pause/seek/timeupdate/...)
- *   2. `video-overlay:state-changed` (overlay mirror audio khi user toggle ở overlay)
- *
- * State shape (từ audioPlayer.getState()):
- *   { playing, currentTime, duration, volume, shuffle, repeat,
- *     currentSong: { id, title, thumbnails[], artists[], duration } }
- */
 function applyAudioState(state) {
     if (!state) return;
 
@@ -189,12 +158,18 @@ function applyAudioState(state) {
         const currentTitle = titleEl?.getAttribute?.("data-current-song-id");
         if (currentTitle !== state.currentSong.id) {
             setPlayerTrackInfo(state.currentSong);
-            titleEl?.setAttribute("data-current-song-id", state.currentSong.id || "");
+            titleEl?.setAttribute(
+                "data-current-song-id",
+                state.currentSong.id || "",
+            );
         }
     }
 
     // 5. Time + progress bar
-    if (typeof state.currentTime === "number" && typeof state.duration === "number") {
+    if (
+        typeof state.currentTime === "number" &&
+        typeof state.duration === "number"
+    ) {
         setPlayerTime(state.currentTime, state.duration);
         setPlayerProgress(state.currentTime, state.duration);
     }
@@ -234,13 +209,13 @@ function bindPlayerProgressDrag() {
 
     const emit = (percent) => {
         document.dispatchEvent(
-            new CustomEvent("player:progress-seek", { detail: { percent } })
+            new CustomEvent("player:progress-seek", { detail: { percent } }),
         );
     };
 
     const seekFromPointer = (e) => {
         const rect = rangeEl.getBoundingClientRect();
-        const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
+        const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
         if (!clientX) return;
         const percent = ((clientX - rect.left) / rect.width) * 100;
         const clamped = Math.max(0, Math.min(100, percent));
@@ -300,7 +275,11 @@ function bindPlayerMenu() {
     });
 
     document.addEventListener("click", (e) => {
-        if (!menu.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) {
+        if (
+            !menu.contains(e.target) &&
+            e.target !== menuBtn &&
+            !menuBtn.contains(e.target)
+        ) {
             menu.hidden = true;
         }
     });
@@ -318,7 +297,7 @@ function bindPlayerMenu() {
         const action = btn.dataset.action;
         if (!action) return;
         document.dispatchEvent(
-            new CustomEvent("player:menu-action", { detail: { action } })
+            new CustomEvent("player:menu-action", { detail: { action } }),
         );
     });
 }
@@ -326,16 +305,6 @@ function bindPlayerMenu() {
 /**
  * Bind click handlers + listen state-changed từ video-overlay.
  * Idempotent — chỉ bind 1 lần.
- *
- * Phase 8.5 v9: Central Dispatch.
- * Mỗi button chỉ có 1 listener ở đây. Handler check `getActive()` → route
- * đến player tương ứng:
- *   - active="audio" → audioPlayer.{togglePlay,next,prev,toggleShuffle,toggleRepeat}
- *   - active="video" → emit event cho videoOverlay listen
- *
- * Trước đó (v8): `audio-player.js` + `layout/player.js` đều attach listener
- * vào `.player__control--play` → 2 listener cùng chạy → BUG toast spam +
- * UI flicker.
  */
 function bindPlayerEvents() {
     if (bound) return;
@@ -350,32 +319,50 @@ function bindPlayerEvents() {
         }
     };
 
-    document.querySelector(".player__control--play")?.addEventListener("click", () => {
-        routeToActive(() => audioPlayer.togglePlay(), "player:play-toggle");
-    });
-    document.querySelector(".player__control--next")?.addEventListener("click", () => {
-        routeToActive(() => audioPlayer.next(), "player:next");
-    });
-    document.querySelector(".player__control--prev")?.addEventListener("click", () => {
-        routeToActive(() => audioPlayer.prev(), "player:prev");
-    });
-    document.querySelector(".player__action--shuffle")?.addEventListener("click", () => {
-        routeToActive(() => audioPlayer.toggleShuffle(), "player:shuffle-toggle");
-    });
-    document.querySelector(".player__action--repeat")?.addEventListener("click", () => {
-        routeToActive(() => audioPlayer.toggleRepeat(), "player:repeat-toggle");
-    });
+    document
+        .querySelector(".player__control--play")
+        ?.addEventListener("click", () => {
+            routeToActive(() => audioPlayer.togglePlay(), "player:play-toggle");
+        });
+    document
+        .querySelector(".player__control--next")
+        ?.addEventListener("click", () => {
+            routeToActive(() => audioPlayer.next(), "player:next");
+        });
+    document
+        .querySelector(".player__control--prev")
+        ?.addEventListener("click", () => {
+            routeToActive(() => audioPlayer.prev(), "player:prev");
+        });
+    document
+        .querySelector(".player__action--shuffle")
+        ?.addEventListener("click", () => {
+            routeToActive(
+                () => audioPlayer.toggleShuffle(),
+                "player:shuffle-toggle",
+            );
+        });
+    document
+        .querySelector(".player__action--repeat")
+        ?.addEventListener("click", () => {
+            routeToActive(
+                () => audioPlayer.toggleRepeat(),
+                "player:repeat-toggle",
+            );
+        });
 
     // Close button: eject audio / close video
-    document.querySelector(".player__action--close")?.addEventListener("click", () => {
-        const active = getActive();
-        if (active === "audio") {
-            audioPlayer.ejectSong();
-        } else if (active === "video") {
-            emitPlayerEvent("player:close");
-        }
-        // else (no active) → no-op
-    });
+    document
+        .querySelector(".player__action--close")
+        ?.addEventListener("click", () => {
+            const active = getActive();
+            if (active === "audio") {
+                audioPlayer.ejectSong();
+            } else if (active === "video") {
+                emitPlayerEvent("player:close");
+            }
+            // else (no active) → no-op
+        });
 
     // Progress bar: full drag → seek
     bindPlayerProgressDrag();
@@ -411,13 +398,19 @@ function bindPlayerEvents() {
 
     // Show/hide #player theo overlay state
     document.addEventListener("video-overlay:opened", () => {
-        document.querySelector("#player")?.classList.add("is-hidden-by-overlay");
+        document
+            .querySelector("#player")
+            ?.classList.add("is-hidden-by-overlay");
     });
     document.addEventListener("video-overlay:minimized", () => {
-        document.querySelector("#player")?.classList.remove("is-hidden-by-overlay");
+        document
+            .querySelector("#player")
+            ?.classList.remove("is-hidden-by-overlay");
     });
     document.addEventListener("video-overlay:closed", () => {
-        document.querySelector("#player")?.classList.remove("is-hidden-by-overlay");
+        document
+            .querySelector("#player")
+            ?.classList.remove("is-hidden-by-overlay");
     });
 
     // Volume slider: set volume qua audioPlayer (single source of truth)
@@ -426,7 +419,9 @@ function bindPlayerEvents() {
         const v = Math.max(0, Math.min(100, Number(value) || 0));
         audioPlayer.setVolume(v);
         document.dispatchEvent(
-            new CustomEvent("video-overlay:set-volume", { detail: { volume: v } })
+            new CustomEvent("video-overlay:set-volume", {
+                detail: { volume: v },
+            }),
         );
     };
 
@@ -484,11 +479,12 @@ function bindPlayerEvents() {
  * @returns {Promise<void>}
  */
 export async function renderPlayer(target) {
-    const el = typeof target === "string"
-        ? document.querySelector(target)
-        : target;
+    const el =
+        typeof target === "string" ? document.querySelector(target) : target;
     if (!el) {
-        console.warn('[layout/player] Không tìm thấy container "' + target + '"');
+        console.warn(
+            '[layout/player] Không tìm thấy container "' + target + '"',
+        );
         return;
     }
 

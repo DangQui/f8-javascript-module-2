@@ -1,31 +1,3 @@
-// ======================================================
-// PLAYLIST DETAIL PAGE — Render functions
-// ======================================================
-//
-// Layout (2 columns) — port từ `_r()` trong base.js (dòng 4593):
-//
-//   ┌──────────────────────┬─────────────────────────┐
-//   │   .info-detail       │     .track-list         │
-//   │   (img + title       │     (scrollable list    │
-//   │    + desc + meta)    │      of playlist tracks)│
-//   └──────────────────────┴─────────────────────────┘
-//
-// Data flow (port từ `mr()` dòng 4498 + `_r()` dòng 4593, áp dụng cho playlist):
-//   - Playlist KHÔNG có `albumType` / `releaseDate` (chỉ album có).
-//   - Playlist có `description` → show nếu không có `songCount` (theo logic `n`).
-//   - Info-detail meta:
-//       * songCount + duration → flex row có dot `•` ở giữa (giống album).
-//       * popularity → show "X lượt nghe".
-//       * description → show (nếu không có songCount).
-//       * artists → show "Các nghệ sĩ: ...".
-//   - Track-list: render `playlist.tracks[]` trực tiếp.
-//   - Mỗi track link → /songs/details/:id (Navigo).
-//
-// Lưu ý:
-//   - Tracks có `artists[]` rỗng → fallback "Không rõ nghệ sĩ".
-//   - Track item dùng `<a href="/songs/details/...">` (giống album-detail).
-//
-
 import { escapeHtml, formatDuration, formatViews } from "@/utils/format.js";
 import { renderTrackList as renderTrackItemComponent } from "@/components/track-item.js";
 
@@ -41,22 +13,28 @@ import { renderTrackList as renderTrackItemComponent } from "@/components/track-
 export function renderInfoDetail(playlist) {
     // Playlist có `thumbnails[]` thường có sẵn ở root → fallback từ tracks[0]
     const fallbackThumb = playlist.tracks?.[0]?.thumbnails?.[0];
-    const thumbnail = playlist.thumbnails?.[0] || fallbackThumb || "/images/quick-picks-01.jpg";
+    const thumbnail =
+        playlist.thumbnails?.[0] ||
+        fallbackThumb ||
+        "/images/quick-picks-01.jpg";
 
     const title = escapeHtml(playlist.title || "Không rõ tên playlist");
     const songCount = Number(playlist.songCount) || 0;
     const totalDuration = Number(playlist.duration) || 0;
-    const popularity = Number.isFinite(playlist.popularity) && playlist.popularity >= 0
-        ? playlist.popularity
-        : null;
+    const popularity =
+        Number.isFinite(playlist.popularity) && playlist.popularity >= 0
+            ? playlist.popularity
+            : null;
     const description = playlist.description || null;
-    const artists = Array.isArray(playlist.artists) && playlist.artists.length > 0
-        ? playlist.artists.map((a) => escapeHtml(a)).join(", ")
-        : null;
+    const artists =
+        Array.isArray(playlist.artists) && playlist.artists.length > 0
+            ? playlist.artists.map((a) => escapeHtml(a)).join(", ")
+            : null;
 
     // Tính giờ/phút nếu có totalDuration
     const hours = totalDuration > 0 ? Math.floor(totalDuration / 3600) : null;
-    const minutes = totalDuration > 0 ? Math.floor((totalDuration % 3600) / 60) : null;
+    const minutes =
+        totalDuration > 0 ? Math.floor((totalDuration % 3600) / 60) : null;
 
     return `
         <div class="info-detail">
@@ -68,7 +46,6 @@ export function renderInfoDetail(playlist) {
             <h1 class="info-detail__title">${title}</h1>
             <div class="info-detail__meta">
                 ${
-                    // Chỉ show description khi KHÔNG có songCount (port logic `n` từ base.js dòng 4500)
                     !songCount && description
                         ? `<p class="info-detail__desc">${escapeHtml(description)}</p>`
                         : ""

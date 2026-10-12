@@ -1,18 +1,6 @@
 // ======================================================
 // TOKEN STORAGE — Wrapper quanh localStorage
 // ======================================================
-//
-// Phase 4: tách phần localStorage auth từ `src/js/core/auth.js` (Phase 3)
-// ra thành module riêng để:
-//   1. Tái sử dụng ở nhiều nơi (services + state)
-//   2. Dễ test (mock localStorage)
-//   3. Tránh phụ thuộc vòng tròn giữa state ↔ service
-//
-// Storage shape:
-//   {
-//     accessToken, refreshToken, user: { email, name, ... }
-//   }
-//
 
 import { STORAGE_KEYS } from "@/utils/constants.js";
 
@@ -30,9 +18,12 @@ function readAll() {
 
 function writeAll({ accessToken, refreshToken, user }) {
     try {
-        if (accessToken != null) localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-        if (refreshToken != null) localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-        if (user != null) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        if (accessToken != null)
+            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+        if (refreshToken != null)
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+        if (user != null)
+            localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     } catch (err) {
         console.warn("tokenStorage writeAll failed:", err);
     }
@@ -48,7 +39,8 @@ export function getAccessToken() {
 
 export function setAccessToken(token) {
     try {
-        if (token != null) localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+        if (token != null)
+            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
         else localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     } catch {}
 }
@@ -59,7 +51,8 @@ export function getRefreshToken() {
 
 export function setRefreshToken(token) {
     try {
-        if (token != null) localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
+        if (token != null)
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
         else localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     } catch {}
 }
@@ -70,7 +63,8 @@ export function getUser() {
 
 export function setUser(user) {
     try {
-        if (user != null) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        if (user != null)
+            localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
         else localStorage.removeItem(STORAGE_KEYS.USER);
     } catch {}
 }

@@ -1,31 +1,3 @@
-// ======================================================
-// PLAYER LAYOUT
-// ======================================================
-//
-// QUAN TRỌNG — Cấu trúc lồng file (matched với template gốc):
-//
-//   <footer class="player" id="player">      ← placeholder trong index.html
-//     <div class="player__inner">            ← template inject vào ĐÂY
-//       <div class="player__progress">...</div>
-//       <div class="player__main">...</div>
-//     </div>
-//   </footer>
-//
-// Lưu ý CSS: KHÔNG dùng nested `.player { &__progress { ... } }` selector
-// vì rule `.player` sẽ match CẢ wrapper (placeholder) lẫn inner div.
-// → Phải dùng selector flat `.player__xxx` để tránh xung đột với wrapper.
-// → Wrapper `.player` chỉ nhận animation/hide/show từ _loading.scss.
-//
-// VISIBILITY:
-//   - Mặc định: player bị ẨN (translateY(100%) + visibility hidden).
-//   - Khi playSong() được gọi → thêm class `.is-visible` → slide-up từ dưới.
-//   - Khi hidePlayer() → remove `.is-visible` → slide-down xuống dưới.
-// → Xem state/playerState.js để biết API toggle.
-//
-// CSS trick dùng `visibility: hidden` kết hợp `pointer-events: none`
-// để ngăn click vào player trong khi nó ẩn dưới viewport.
-//
-
 .player {
     position: fixed;
     bottom: 0;
@@ -38,14 +10,18 @@
     transform: translateY(100%);
     visibility: hidden;
     pointer-events: none;
-    transition: transform 0.4s ease, visibility 0s linear 0.4s;
+    transition:
+        transform 0.4s ease,
+        visibility 0s linear 0.4s;
 
     // Trạng thái hiện: trượt lên đúng vị trí + nhận click
     &.is-visible {
         transform: translateY(0);
         visibility: visible;
         pointer-events: auto;
-        transition: transform 0.4s ease, visibility 0s linear 0s;
+        transition:
+            transform 0.4s ease,
+            visibility 0s linear 0s;
     }
 
     // Ẩn khi overlay video mở full (tránh 2 player chồng lên nhau)
@@ -53,7 +29,9 @@
         transform: translateY(100%);
         visibility: hidden;
         pointer-events: none;
-        transition: transform 0.3s ease, visibility 0s linear 0.3s;
+        transition:
+            transform 0.3s ease,
+            visibility 0s linear 0.3s;
     }
 }
 
@@ -166,7 +144,9 @@
 .player__action--shuffle,
 .player__action--repeat,
 .player__action--volume {
-    transition: color 0.2s ease, background-color 0.2s ease;
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .player__action--shuffle.is-active,
@@ -177,7 +157,6 @@
 .player__action--volume.is-muted {
     color: #fff; // đỏ nhạt khi muted
 }
-
 
 .player__volume-slider-wrap {
     position: absolute;
@@ -200,7 +179,10 @@
     // Margin-left âm để kéo slider sang phải, đè vào button volume một chút
     // → khi di chuột từ button sang slider, không bị mất hover ở khoảng gap
     margin-left: -8px;
-    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease,
+        transform 0.25s ease;
 }
 
 .player__volume-slider {
@@ -214,11 +196,11 @@
     -webkit-appearance: none;
     // Filled portion dùng gradient tương tự progress bar
     background: linear-gradient(
-            to right,
-            #fff 0%,
-            #fff var(--vol-fill, 100%),
-            rgba(255, 255, 255, 0.25) var(--vol-fill, 100%),
-            rgba(255, 255, 255, 0.25) 100%
+        to right,
+        #fff 0%,
+        #fff var(--vol-fill, 100%),
+        rgba(255, 255, 255, 0.25) var(--vol-fill, 100%),
+        rgba(255, 255, 255, 0.25) 100%
     );
     border-radius: 999px;
     cursor: pointer;
@@ -272,8 +254,10 @@
     }
 }
 
-.player__settings:has(.player__action--volume:hover) .player__volume-slider-wrap,
-.player__settings:has(.player__volume-slider-wrap:hover) .player__volume-slider-wrap {
+.player__settings:has(.player__action--volume:hover)
+    .player__volume-slider-wrap,
+.player__settings:has(.player__volume-slider-wrap:hover)
+    .player__volume-slider-wrap {
     opacity: 1;
     visibility: visible;
     transform: scaleX(1);

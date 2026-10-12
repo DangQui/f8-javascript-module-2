@@ -1,37 +1,3 @@
-/**
- * toast.js — Lightweight toast helper (with icon + close button)
- *
- * Lightweight toast UI — không phụ thuộc thư viện ngoài, render thẳng vào DOM.
- * Cảm hứng từ `base.js` (line 3389-3416).
- *
- * Exports:
- *   - toast.success(message, duration?) → toast element
- *   - toast.error(message, duration?)   → toast element
- *   - toast.warning(message, duration?) → alias of toast.error (backward compat)
- *   - toast.info(message, duration?)    → alias of toast.error (backward compat)
- *   - toast.dismissAll()               → đóng mọi toast đang hiện
- *
- * Consumed by:
- *   - `@/services/authService.js` (login/register/logout success/error)
- *   - `@/libs/api.js` (force logout session expired)
- *   - Mọi page handler muốn show feedback ngắn
- *
- * Options:
- *   - duration (ms) mặc định 3000; truyền 0 = không auto-remove (user đóng thủ công)
- *
- * Stacking:
- *   - Container dùng flexbox column, mỗi toast tự stack.
- *
- * Accessibility:
- *   - role="status" + aria-live="polite" cho screen reader
- *   - Close button có aria-label
- *
- * Lưu ý:
- *   - Container lazy-create nếu chưa có (#toast-container).
- *   - Markup giữ class `toast--{variant}` để pages cũ không vỡ.
- *   - Message dùng textContent (không innerHTML) tránh XSS.
- */
-
 const ICONS = {
     success: "fa-circle-check",
     error: "fa-circle-xmark",
@@ -48,7 +14,7 @@ function getContainer() {
     let container = document.getElementById("toast-container");
     if (!container) {
         console.warn(
-            "[toast] #toast-container không tồn tại trong DOM. Tạo tạm thời."
+            "[toast] #toast-container không tồn tại trong DOM. Tạo tạm thời.",
         );
         container = document.createElement("div");
         container.id = "toast-container";
@@ -131,8 +97,7 @@ function createToast(message, variant = "info", duration = DEFAULT_DURATION) {
 /** Toast helper object — chỉ giữ 2 variants: success / error. */
 export const toast = {
     /** @param {string} message @param {number} [duration] */
-    success: (message, duration) =>
-        createToast(message, "success", duration),
+    success: (message, duration) => createToast(message, "success", duration),
 
     /** @param {string} message @param {number} [duration] */
     error: (message, duration) => createToast(message, "error", duration),

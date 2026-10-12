@@ -1,28 +1,3 @@
-// ======================================================
-// TOP ARTIST — Rank + trend arrow component (Phase 14.2)
-// ======================================================
-//
-// Port từ `code chức năng gốc/base.js` function `$n()` dòng 4059 + helpers:
-//   - `Zn()`   dòng 4050 — chunked 4 items per col
-//   - `Qn()`   dòng 4054 — format views tiếng Việt (>=1e9 → "T", >=1e6 → "Tr", >=1e3 → "N")
-//
-// USAGE:
-//   import { renderTopArtistsSection } from "@/components/top-artist.js";
-//   const html = renderTopArtistsSection("Nghệ sĩ hàng đầu", topArtists);
-//
-// Note kiến trúc:
-//   - `basePath` không dùng — code gốc link `/artist/${e.artistId}` (route
-//     không tồn tại trong project) → em render dưới dạng `<div>` thay vì `<a>`
-//     để KHÔNG navigate đến route 404. Khi nào có /artist/:id → chuyển sang `<a>`.
-//   - `renderItem(artist)` exposed nếu muốn custom từng item sau này.
-//
-// Lưu ý render:
-//   - 4 cols × 4 items (chunked via `chunkArray(artists, 4)`).
-//   - Layout mỗi item: rank + trend (flex row) | name + views (col) — 1 row per artist.
-//   - Trend arrow: `up` → "▲" green, `down` → "▼" red, khác → ẩn.
-//
-// ======================================================
-
 import { escapeHtml, formatViewsVN } from "@/utils/format.js";
 
 // ======================================================
@@ -30,7 +5,6 @@ import { escapeHtml, formatViewsVN } from "@/utils/format.js";
 // ======================================================
 
 /**
- * Chunk array thành N phần tử mỗi nhóm (port từ `Zn()` base.js dòng 4050).
  *
  * @example
  * chunkArray([1,2,3,4,5,6,7,8,9], 4) // [[1,2,3,4], [5,6,7,8], [9]]
@@ -50,11 +24,6 @@ function chunkArray(arr, size = 4) {
 }
 
 /**
- * Render trend arrow (port từ inner `n()` function trong `$n()` base.js dòng 4061).
- *   - "up"   → green ▲
- *   - "down" → red ▼
- *   - khác   → ẩn
- *
  * @param {string|undefined} trend
  * @returns {string} HTML inline span
  */
@@ -125,7 +94,7 @@ export function renderTopArtistsSection(title, artists) {
                 <div class="top-artist__col" data-slider-item>
                     ${col.map(renderTopArtist).join("")}
                 </div>
-            `
+            `,
         )
         .join("");
 

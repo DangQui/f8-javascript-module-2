@@ -1,25 +1,3 @@
-// ======================================================
-// CATEGORY DETAIL PAGE — Init + render
-// ======================================================
-//
-// Flow:
-//   1. Render skeleton ngay (UX: user thấy structure trước khi data về)
-//   2. Fetch `categoriesService.getCategory(slug)`
-//   3. Render HTML từ `category-detail.render.js`
-//   4. Inject + re-init sliders
-//
-// Port từ `code chức năng gốc/base.js` route handler dòng 5779-5781:
-//   "/categories/:slug": async ({data: e}) => {
-//       let t = await G.Categories.getCategory(e.slug);
-//       await Q( () => fr(t))
-//   }
-//
-// Lưu ý:
-//   - Fetch fail → render placeholder + toast.
-//   - Sau render PHẢI gọi `initSliders()` vì slider lib scan DOM
-//     một lần ở app init, không tự detect DOM mới.
-//
-
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import {
     renderCategoryDetail,
@@ -63,7 +41,10 @@ export async function categoryDetailPage(route = {}) {
     const slug = route.params?.slug;
     if (!slug) {
         renderPage(
-            renderPlaceholder("Thiếu slug", "Không tìm thấy danh mục được yêu cầu.")
+            renderPlaceholder(
+                "Thiếu slug",
+                "Không tìm thấy danh mục được yêu cầu.",
+            ),
         );
         return;
     }
@@ -79,8 +60,8 @@ export async function categoryDetailPage(route = {}) {
             renderPage(
                 renderPlaceholder(
                     "Không tìm thấy danh mục",
-                    `Danh mục "${slug}" không tồn tại hoặc đã bị xoá.`
-                )
+                    `Danh mục "${slug}" không tồn tại hoặc đã bị xoá.`,
+                ),
             );
             return;
         }

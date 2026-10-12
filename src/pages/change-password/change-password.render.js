@@ -1,17 +1,3 @@
-// ======================================================
-// CHANGE PASSWORD PAGE — Render HTML
-// ======================================================
-//
-
-//   - Mật khẩu hiện tại (oldPassword)
-//   - Mật khẩu mới (password)
-//   - Xác nhận mật khẩu mới (confirmPassword)
-//
-// UI structure port từ base.js `Tr()` dòng 5610-5652.
-// Style dùng class `.auth` (modal centered + background image) +
-// `.form` (input + error) — đã có sẵn trong SCSS 7-1.
-//
-
 /**
  * Render trang đổi mật khẩu.
  * @returns {string} HTML string

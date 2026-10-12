@@ -1,40 +1,3 @@
-// ======================================================
-// VIDEO SLIDER COMPONENT — Landscape video slider (Phase 17 → 18.5 refactor)
-// ======================================================
-//
-// Mục tiêu: Tách landscape video slider (port `J()` từ base.js dòng 4097)
-// thành component độc lập để dùng ở Line Detail (và bất kỳ page nào cần
-// slider video 16:9 ngang).
-//
-// Phase 18.5 refactor:
-//   - TRƯỚC: dùng class riêng `.video-slider__list` + `.video-slider__item`
-//     (custom markup + custom SCSS). Khác với pattern chuẩn của Discover
-//     page → slider progress không hoạt động, scrollbar khác, padding-bottom lệch.
-//   - SAU: dùng class `cart-item cart-item--large` (giống Discover page
-//     `renderVideoItem`) + `listClass: "album__list home-album__list"`
-//     + `modifierClass: "home-album"` → 100% đồng bộ với Discover page,
-//     có scrollbar styling giống các slider khác (Home, Discover, Search).
-//
-// Reference: `code chức năng gốc/base.js`
-//   - J(e, t) dòng 4097 → render 1 video slider
-//   - discover.render.js `renderVideoItem` → cart-item--large pattern
-//   - section.js `renderSection` → wrapper section (Phase 17)
-//
-// API:
-//   renderVideoSliderItem(video)
-//     → 1 landscape card `.cart-item.cart-item--large` (giống Discover)
-//
-//   renderVideoSlider({ title, videos })
-//     → 1 section hoàn chỉnh với title + slider (album-list pattern) + progress
-//
-//   pickVideoHref(video)
-//     → fallback chain id/_id/slug/videoId (Phase 14.12 pattern, dùng chung)
-//
-// Style: REUSE class `.cart-item` + `.cart-item--large` + `.home-album__list`
-// đã có sẵn ở `_cart-item.scss` + `_home.scss`. KHÔNG cần SCSS mới.
-// File `_video-slider.scss` cũ đã xóa (Phase 18.5 cleanup) — không còn dùng.
-//
-
 import { escapeHtml, formatViews } from "@/utils/format.js";
 import { renderSection } from "@/components/section.js";
 
@@ -100,11 +63,6 @@ export function renderVideoSliderItem(video) {
     const titleEsc = escapeHtml(title);
     const thumbEsc = escapeHtml(thumb);
 
-    // Phase 18.5: đổi từ `.video-slider__*` → `.cart-item.cart-item--large`
-    // để đồng bộ với Discover page (line 117-145 discover.render.js).
-    // Markup giống hệt `renderVideoItem` ở discover — chỉ khác:
-    //   - Bỏ `cart-item__brand` (meta) vì phase 14.12 đã đơn giản hoá
-    //     views thành text phụ dưới title.
     return `
         <a
             href="${escapeHtml(href)}"
@@ -130,16 +88,6 @@ export function renderVideoSliderItem(video) {
 }
 
 /**
- * Render 1 video slider section hoàn chỉnh (port `J()` từ base.js dòng 4097).
- *
- * Phase 18.5 refactor: dùng cùng pattern với Discover `renderVideosSection`
- * → `listClass: "album__list home-album__list"` + `modifierClass: "home-album"`
- * → đồng bộ với Discover page.
- *
- * Slider dùng `home__container` + `home__row` + `home__body[data-slider]`
- * giống các slider khác (Home, Discover, Mood detail) → auto-detected bởi
- * `libs/slider.js` + có prev/next controls.
- *
  * @param {object} options
  * @param {string} [options.title] - Tiêu đề section (vd: "Video nhạc")
  * @param {Array<object>} [options.videos=[]] - Mảng video items

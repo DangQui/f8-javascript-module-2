@@ -1,17 +1,3 @@
-// ======================================================
-// PROFILE PAGE — Render HTML
-// ======================================================
-//
-
-//   - Header card: avatar lớn + tên + email + joinedAt
-//   - Form #update-profile-form: name + email
-//   - Link "Đổi mật khẩu" → /auth/change-password
-//
-// UI structure port từ base.js `wr()` dòng 5572-5609.
-// Style dùng class `.auth` (modal centered + background image) +
-// `.form` (input + error) — đã có sẵn trong SCSS 7-1.
-//
-
 /**
  * Render trang profile.
  * @param {{ name?: string, email?: string, initial?: string, joinedAt?: string }} user
@@ -114,10 +100,6 @@ export function renderProfilePage(user = {}) {
 // HELPERS
 // ======================================================
 
-/**
- * Format ISO date string → "DD/MM/YYYY" (tiếng Việt).
- * Trả về "" nếu input không hợp lệ.
- */
 function formatJoinedDate(iso) {
     if (!iso) return "";
     const d = new Date(iso);
@@ -128,13 +110,17 @@ function formatJoinedDate(iso) {
 }
 
 function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-    }[c]));
+    return String(s).replace(
+        /[&<>"']/g,
+        (c) =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+            })[c],
+    );
 }
 
 function escapeAttr(s) {

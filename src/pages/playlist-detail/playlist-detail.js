@@ -1,25 +1,3 @@
-// ======================================================
-// PLAYLIST DETAIL PAGE — Init + render
-// ======================================================
-//
-// Flow:
-//   1. Show loading overlay
-//   2. Fetch detailsService.getPlaylist(slug)
-//   3. Render HTML từ `playlist-detail.render.js`
-//   4. Inject vào #main
-//   5. Hide loading overlay
-//
-// Data shape (port từ base.js `_r()` dòng 4593 + `mr()` dòng 4498, áp dụng cho playlist):
-//   {
-//     id, title, slug, thumbnails[], description,
-//     popularity, songCount, duration, artists[], tracks[]
-//   }
-//
-// Lưu ý:
-//   - Click track → navigate /songs/details/:id.
-//   - Playlist khác album ở chỗ: KHÔNG có albumType/releaseDate, CÓ description.
-//
-
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import { renderPlaylistDetail } from "@/pages/playlist-detail/playlist-detail.render.js";
 import { SKELETON_PLAYLIST_DETAIL } from "@/components/skeleton.js";
@@ -44,8 +22,8 @@ export async function playlistDetailPage(route = {}) {
         renderPage(
             renderPlaceholder(
                 "Chi tiết playlist",
-                "Thiếu slug playlist. Vui lòng truy cập lại từ danh sách."
-            )
+                "Thiếu slug playlist. Vui lòng truy cập lại từ danh sách.",
+            ),
         );
         return;
     }
@@ -59,7 +37,6 @@ export async function playlistDetailPage(route = {}) {
         // 1. Fetch playlist details
         const playlist = await detailsService.getPlaylist(slug);
 
-        // 1b. Phase 15: Ghi nhận "user vừa xem detail playlist này" (best-effort).
         //     Port từ base.js `Er('playlist', id)` dòng 5657. Fire-and-forget.
         recordPlay("playlist", playlist.id);
 
@@ -69,7 +46,6 @@ export async function playlistDetailPage(route = {}) {
         // 3. Inject
         renderPage(html);
 
-        // 4. Set queue = playlist.tracks + AUTO-PLAY track đầu (Phase 15.3)
         //    Port từ base.js route `/playlists/details/:slug` dòng 5802:
         //      `await yr.playSongFromDetail(e.id)` + queue = playlist.tracks.
         //    User click 1 track trong track-list → audio-player.playSongById(id)
@@ -88,7 +64,6 @@ export async function playlistDetailPage(route = {}) {
             if (queueTracks.length > 0) {
                 audioPlayer.setQueue(queueTracks);
 
-                // Phase 15.3: Auto-play track đầu (port base.js:5802).
                 // Cùng pattern với album-detail:
                 //   - Chưa phát bài nào (paused) → auto-play track đầu.
                 //   - Đang phát đúng track đầu → skip.
@@ -104,7 +79,6 @@ export async function playlistDetailPage(route = {}) {
         }
     } catch (err) {
         console.error("[playlist-detail] Critical error:", err);
-        // Ưu tiên err.message (từ AppError mapApiError) thay vì hardcode
         const fallback = "Không thể tải chi tiết playlist. Vui lòng thử lại.";
         toast.error(err.message || fallback);
         renderPage(`
@@ -114,7 +88,6 @@ export async function playlistDetailPage(route = {}) {
             </section>
         `);
     }
-
 }
 
 // ======================================================

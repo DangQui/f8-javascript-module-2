@@ -1,27 +1,3 @@
-// ======================================================
-// SONG DETAIL PAGE — Init + render
-// ======================================================
-//
-// Flow:
-//   1. Show loading overlay
-//   2. Fetch detailsService.getSong(id)
-//   3. Render HTML từ `song-detail.render.js`
-//   4. Inject vào #main
-//   5. Hide loading overlay
-//
-// Data shape (port từ base.js `br()` dòng 4961):
-//   {
-//     id, audioUrl, thumbnails[], title, duration, popularity,
-//     album: { tracks[] },
-//     playlists: [{ tracks[] }],
-//     related: [...]
-//   }
-//
-// Lưu ý Phase 8+:
-//   - Audio play thật sẽ hook vào đây qua yr.playSongFromDetail(id) (base.js).
-//   - Hiện tại chỉ render info + list, click vào track → navigate /songs/details/:id.
-//
-
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import { renderSongDetail } from "@/pages/song-detail/song-detail.render.js";
 import { SKELETON_SONG_DETAIL } from "@/components/skeleton.js";
@@ -46,8 +22,8 @@ export async function songDetailPage(route = {}) {
         renderPage(
             renderPlaceholder(
                 "Chi tiết bài hát",
-                "Thiếu ID bài hát. Vui lòng truy cập lại từ danh sách."
-            )
+                "Thiếu ID bài hát. Vui lòng truy cập lại từ danh sách.",
+            ),
         );
         return;
     }
@@ -61,10 +37,6 @@ export async function songDetailPage(route = {}) {
         // 1. Fetch song details
         const song = await detailsService.getSong(id);
 
-        // 1b. Phase 15: Ghi nhận "user vừa xem detail bài hát này" (best-effort).
-        //     Port từ base.js `Er('song', id)` dòng 5657. KHÔNG await chặn
-        //     page render (fire-and-forget để UX nhanh). event-tracker tự nuốt
-        //     lỗi internally.
         recordPlay("song", song.id);
 
         // 2. Render HTML
@@ -74,25 +46,16 @@ export async function songDetailPage(route = {}) {
         renderPage(html);
 
         // 4. AUTO-PLAY khi navigate /songs/details/:id
-        //    (port từ base.js:5805 `await yr.playSongFromDetail(e.id)`)
-        //    + set queue = album.tracks + playlists[].tracks + related
-        //    (port từ base.js:4961-4985 function `br()`)
-        //    - Set queue = album+playlists (dedupe by id) — fallback related
-        //      nếu 2 nguồn đầu rỗng
-        //    - Set currentIndex = vị trí current song trong queue
-        //    - Play song hiện tại (loadSong + playSong)
         if (song?.audioUrl) {
             try {
                 // 1. Build queue từ album + playlists (port base.js:4970-4985)
                 const albumTracks = song?.album?.tracks || [];
                 const playlistTracks = (song?.playlists || []).flatMap(
-                    (p) => p.tracks || []
+                    (p) => p.tracks || [],
                 );
                 const combined = [...albumTracks, ...playlistTracks];
                 // Dedupe by id
-                const dedupMap = new Map(
-                    combined.map((t) => [t.id, t])
-                );
+                const dedupMap = new Map(combined.map((t) => [t.id, t]));
                 let queueSource = [...dedupMap.values()];
 
                 // Fallback: nếu album + playlists rỗng → dùng related
@@ -119,7 +82,7 @@ export async function songDetailPage(route = {}) {
                 if (normalizedQueue.length > 0) {
                     audioPlayer.setQueue(normalizedQueue);
                     const idx = normalizedQueue.findIndex(
-                        (t) => t.id === song.id
+                        (t) => t.id === song.id,
                     );
                     if (idx >= 0) {
                         // Set currentIndex mà KHÔNG phát lại (vì sẽ playSongById bên dưới)
@@ -143,8 +106,7 @@ export async function songDetailPage(route = {}) {
                 //    Lưu ý: track-item click handler (audio-player.js:bindTrackClicks)
                 //    đã gọi playSongById() TRƯỚC khi navigate, nên audio có thể
                 //    đã chạy bài này rồi → KHÔNG restart.
-                const isCurrent =
-                    audioPlayer.currentSong?.id === song.id;
+                const isCurrent = audioPlayer.currentSong?.id === song.id;
                 if (!isCurrent) {
                     await audioPlayer.playSongById(song.id);
                 }
@@ -164,14 +126,11 @@ export async function songDetailPage(route = {}) {
             </section>
         `);
     }
-
 }
 
 // ======================================================
 // HELPERS
 // ======================================================
 //
-
-// Giờ dùng renderPlaceholder import từ _shared.js.
 
 export default songDetailPage;

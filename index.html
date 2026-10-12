@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="app-loading">
     <head>
         <meta charset="UTF-8" />
@@ -7,22 +7,67 @@
 
         <!-- Favicon - Vite serve từ public/ -->
         <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
-        <link rel="apple-touch-icon" sizes="57x57" href="/favicon/apple-icon-57x57.png" />
-        <link rel="apple-touch-icon" sizes="60x60" href="/favicon/apple-icon-60x60.png" />
-        <link rel="apple-touch-icon" sizes="72x72" href="/favicon/apple-icon-72x72.png" />
-        <link rel="apple-touch-icon" sizes="76x76" href="/favicon/apple-icon-76x76.png" />
-        <link rel="apple-touch-icon" sizes="114x114" href="/favicon/apple-icon-114x114.png" />
-        <link rel="apple-touch-icon" sizes="120x120" href="/favicon/apple-icon-120x120.png" />
-        <link rel="apple-touch-icon" sizes="144x144" href="/favicon/apple-icon-144x144.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/favicon/apple-icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-icon-180x180.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-icon-192x192.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon/favicon-16x16.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon/favicon-32x32.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="96x96"
+            href="/favicon/favicon-96x96.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="57x57"
+            href="/favicon/apple-icon-57x57.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="60x60"
+            href="/favicon/apple-icon-60x60.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="72x72"
+            href="/favicon/apple-icon-72x72.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="76x76"
+            href="/favicon/apple-icon-76x76.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="114x114"
+            href="/favicon/apple-icon-114x114.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="120x120"
+            href="/favicon/apple-icon-120x120.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="144x144"
+            href="/favicon/apple-icon-144x144.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="152x152"
+            href="/favicon/apple-icon-152x152.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/favicon/apple-icon-180x180.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="192x192"
+            href="/favicon/android-icon-192x192.png" />
         <link rel="manifest" href="/favicon/manifest.json" />
         <meta name="msapplication-TileColor" content="#ffffff" />
-        <meta name="msapplication-TileImage" content="/favicon/ms-icon-144x144.png" />
+        <meta
+            name="msapplication-TileImage"
+            content="/favicon/ms-icon-144x144.png" />
         <meta name="theme-color" content="#ffffff" />
 
         <!-- Fonts -->
@@ -40,16 +85,15 @@
             crossorigin="anonymous"
             referrerpolicy="no-referrer" />
 
-
         <script type="module" src="/src/main.js"></script>
     </head>
     <body>
-        <!-- Header placeholder (Phase 9.3: inject từ public/partials/header-logged-out.html) -->
+        <!-- Header placeholder  -->
         <header class="header" id="header">
             <%- include('public/partials/header-logged-out.html') %>
         </header>
 
-        <!-- Sidebar placeholder (Phase 9: inject từ public/partials/sidebar.html) -->
+        <!-- Sidebar placeholder  -->
         <aside class="sidebar" id="sidebar">
             <%- include('public/partials/sidebar.html') %>
         </aside>
@@ -57,12 +101,12 @@
         <!-- Main content (router render) -->
         <main class="main-layout" id="main"></main>
 
-        <!-- Player placeholder (Phase 9: inject từ public/partials/player.html) -->
+        <!-- Player placeholder ) -->
         <footer class="player" id="player">
             <%- include('public/partials/player.html') %>
         </footer>
 
-        <!-- Toast container (dùng bởi libs/toast.js ở Phase 4) -->
+        <!-- Toast container  -->
         <div id="toast-container" class="toast-container"></div>
     </body>
 </html>

@@ -1,18 +1,3 @@
-// ======================================================
-// AUTH PAGE — Render HTML cho login + register
-// ======================================================
-//
-// Form structure:
-//   - <div class="auth"> wrapper (background image + fixed)
-//   - <div class="auth__inner"> modal centered
-//   - 2 form: #login-form (email + password) + #register-form
-//     (email + name + password + confirmPassword)
-//
-// Lưu ý: Phải khác với gốc là KHÔNG bọc <main class="auth"> — SPA router
-// đã có <main id="main" class="main-layout"> rồi, page chỉ render inner.
-// CSS `.auth` vẫn giữ position: fixed để background phủ toàn viewport.
-//
-
 /**
  * Render form HTML theo route.
  * @param {"login"|"register"} mode

@@ -1,36 +1,3 @@
-/**
- * api.js — Axios instance + interceptors + auto refresh token
- *
- * Centralized HTTP client cho toàn bộ services. Wire axios với 2 interceptor:
- *   - Request: attach Authorization header (trừ _skipAuth routes)
- *   - Response: unwrap res.data + auto refresh-token on 401
- *
- * Exports:
- *   - `api`         → Axios instance dùng trong `@/services/*`
- *   - `api.default` → same instance (backward compat)
- *
- * Consumed by:
- *   - `@/services/*.js` — mọi HTTP call đều qua `api`
- *   - `@/services/authService.js` set `_skipAuth: true` cho login/register/refresh
- *
- * Response shape (backend trả snake_case):
- *   { access_token, refresh_token, user: { id, name, email, created_at, updated_at } }
- *   → Auth service tự unwrap + map `created_at` → `joinedAt` cho UI.
- *
- * Refresh token flow:
- *   1. Request → 401 (token expired)
- *   2. POST /auth/refresh-token với body { refreshToken }
- *   3. Response 200: lưu access_token + refresh_token mới
- *   4. Retry original request với token mới
- *   5. Nếu refresh fail → forceLogout() (clearStorage + SPA navigate /auth/login)
- *
- * Lưu ý:
- *   - Vite dev server có thể cần proxy tránh CORS — đã verify OK (backend CORS *).
- *   - Refresh dùng `axios.post` gốc (không qua instance `api`) tránh infinite loop.
- *   - `isRefreshing` + `refreshQueue` đảm bảo chỉ 1 refresh request chạy cùng lúc,
- *     các request 401 khác queue lại và retry khi refresh xong.
- */
-
 import axios from "axios";
 
 import { ENV } from "@/config/env.js";
@@ -69,7 +36,7 @@ api.interceptors.request.use(
         }
         return config;
     },
-    (err) => Promise.reject(err)
+    (err) => Promise.reject(err),
 );
 
 // Refresh state — đảm bảo chỉ 1 refresh request chạy 1 lúc.
@@ -114,7 +81,7 @@ async function performRefresh() {
             timeout: ENV.API_TIMEOUT,
             headers: { "Content-Type": "application/json" },
             _skipAuth: true,
-        }
+        },
     );
     return res.data; // { access_token, refresh_token }
 }
@@ -181,7 +148,7 @@ api.interceptors.response.use(
         } finally {
             isRefreshing = false;
         }
-    }
+    },
 );
 
 // Chống re-entry khi nhiều request 401 fail đồng thời.
@@ -205,7 +172,9 @@ async function forceLogout() {
         clearStorage();
         // Dispatch event để listeners (header, sidebar, main.js) tự re-render
         window.dispatchEvent(
-            new CustomEvent("auth-changed", { detail: { isLoggedIn: false, user: null } })
+            new CustomEvent("auth-changed", {
+                detail: { isLoggedIn: false, user: null },
+            }),
         );
     } catch (e) {
         console.warn("[api] forceLogout cleanup failed:", e);

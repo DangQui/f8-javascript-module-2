@@ -1,18 +1,3 @@
-// ======================================================
-// NOT FOUND PAGE — Render HTML 404
-// ======================================================
-//
-
-//   - Icon lớn "404" với hiệu ứng gradient
-//   - Heading "Không tìm thấy trang"
-//   - Đường dẫn user đã gõ (echo lại)
-//   - 2 CTA buttons: "Về trang chủ" + "Xem thư viện"
-//   - Suggestion text cho user
-//
-// Lưu ý: KHÔNG dùng modal `.auth` (khác vibe), dùng layout content
-// thường để giữ tone nhẹ nhàng.
-//
-
 /**
  * Render trang 404.
  * @param {string} [path] - Đường dẫn user đã gõ (echo lại)
@@ -56,11 +41,15 @@ export function renderNotFoundPage(path = "") {
 }
 
 function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-    }[c]));
+    return String(s).replace(
+        /[&<>"']/g,
+        (c) =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+            })[c],
+    );
 }

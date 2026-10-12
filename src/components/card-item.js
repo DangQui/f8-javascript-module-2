@@ -1,37 +1,3 @@
-// ======================================================
-// CARD ITEM COMPONENT — Album / Playlist card
-// ======================================================
-//
-
-// Component này wrap lại `renderCartItem()` cũ trong `home.render.js`
-// để có thể dùng lại ở Discover, Library, Album Detail, ...
-//
-// Style dùng class `.cart-item` có sẵn trong SCSS
-// (`src/styles/components/_cart-item.scss`).
-// Không thêm SCSS mới — chỉ wrap markup.
-//
-// API:
-//   renderCard({ title, subtitle, thumb, href, type, size })
-//     - title:   string  (required) — Tên album/playlist
-//     - subtitle: string (optional) — VD: "Various Artists • Album"
-//     - thumb:   string  (required) — URL ảnh
-//     - href:    string  (required) — URL navigate (VD "/albums/details/slug")
-//     - type:    string  (optional) — "album" | "playlist" | "song" (cho data)
-//     - size:    string  (optional) — "default" | "large" (default = 220px,
-//                  large = 400px dùng cho featured card)
-//
-// Returns: HTML string
-//
-// USAGE:
-//   import { renderCard } from "@/components/card-item.js";
-//   const cardHtml = renderCard({
-//       title: "Nhạc Lofi Mới",
-//       subtitle: "Various Artists • Album",
-//       thumb: "https://...",
-//       href: "/albums/details/lofi-moi",
-//   });
-//
-
 import { escapeHtml } from "@/utils/format.js";
 
 /**
@@ -82,9 +48,11 @@ export function renderCard(item) {
             </div>
             <div class="cart-item__content">
                 <h3 class="cart-item__title">${escapeHtml(title)}</h3>
-                ${subtitle
-                    ? `<span class="cart-item__brand">${escapeHtml(subtitle)}</span>`
-                    : ""}
+                ${
+                    subtitle
+                        ? `<span class="cart-item__brand">${escapeHtml(subtitle)}</span>`
+                        : ""
+                }
             </div>
         </a>
     `;

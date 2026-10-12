@@ -1,26 +1,3 @@
-// ======================================================
-// CHARTS PAGE — Handler
-// ======================================================
-//
-// Flow (port từ base.js route `/charts` dòng 5762-5765):
-//   1. Show skeleton ngay
-//   2. Parallel fetch `getCountries()` + `getTopVideos('GLOBAL')` + `getTopArtists('GLOBAL')`
-//   3. Render HTML (H1 + country select + 2 sections trong #charts-content)
-//   4. Bind country select change → re-fetch + swap #charts-content.innerHTML
-//
-// Country change handler (port từ base.js `er()` dòng 4123):
-//   - listen `change` trên `#country-select`
-//   - on change → re-fetch `[getTopVideos(country), getTopArtists(country)]`
-//   - re-render CHỈ phần #charts-content (không render lại H1 + country select)
-//   - KHÔNG cần loading spinner ngắn vì content swap nhanh (< 500ms)
-//
-// Data shape (từ API):
-//   - getCountries()        → [{ code, name }]
-//   - getTopVideos(country) → [{ id, slug, title, thumbnails[], artists[] }]
-//   - getTopArtists(country)→ [{ rank, name, totalViews, trend, artistId }]
-//
-// ======================================================
-
 import { renderPage } from "@/pages/_shared.js";
 import {
     renderCharts,
@@ -48,7 +25,9 @@ function bindChartsCountrySelect(defaultCode = "GLOBAL") {
     const contentEl = document.querySelector("#charts-content");
 
     if (!selectEl || !contentEl) {
-        console.warn("[charts] #country-select hoặc #charts-content không tồn tại trong DOM");
+        console.warn(
+            "[charts] #country-select hoặc #charts-content không tồn tại trong DOM",
+        );
         return;
     }
 

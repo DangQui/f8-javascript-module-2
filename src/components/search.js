@@ -1,36 +1,3 @@
-// ======================================================
-// SEARCH ENGINE — Phase 13 (port từ base.js class Mr dòng 5843-6036)
-// ======================================================
-//
-// HARD RULE #0: Port logic + thuật toán 1:1 từ code gốc `base.js`.
-//
-// Reference từ base.js:
-//   - class Mr (dòng 5843-6036): search engine singleton
-//   - hàm jr (dòng 5836-5842): debounce 400ms (Mr dùng 350ms)
-//   - hàm Dr (dòng 5668-5696): render search results page
-//   - Search.search (dòng 3997-4000): G.Search.search → /search/suggestions?q=
-//   - getPath mapping (dòng 5998-6003): {playlist, album, song, video} → routes
-//
-// Thuật toán port 1:1:
-//   1. Debounce 350ms cho input event (desktop + mobile)
-//   2. Clear button → input rỗng + hide dropdown + focus input
-//   3. Enter → navigateSearch(q) → /search?keyword=... (encodeURIComponent)
-//   4. focus input → nếu lastData có → re-render dropdown
-//   5. Click outside dropdown + input → hideDropdown()
-//   6. Click suggestion → fill input + handleSearch lại
-//   7. Click result → navigate theo type
-//   8. Mobile: mở/đóng modal qua open-search / mobile-close-search
-//
-// Cấu trúc DOM cần (từ partials/header-*.html — Task 13.1):
-//   - #navbar-search-input + #navbar-search-clear + #search-dropdown (desktop)
-//   - #open-search + #mobile-search-modal + #mobile-search-input +
-//     #mobile-search-clear + #mobile-close-search + #search-modal-results (mobile)
-//
-// USAGE:
-//   import { initSearch } from "@/components/search.js";
-//   initSearch(); // gọi 1 lần sau khi layout render xong
-//
-
 import { debounce } from "@/utils/format.js";
 import { searchService } from "@/services/searchService.js";
 import { navigate, router } from "@/libs/router.js";
@@ -132,7 +99,7 @@ function renderDropdown(data) {
                     </span>
                     <span>${esc(s)}</span>
                 </button>
-            `
+            `,
                 )
                 .join("")}
         `
@@ -140,9 +107,11 @@ function renderDropdown(data) {
 
     const resultsHtml = completed.length
         ? `
-            ${suggestions.length
-                ? '<hr class="search-dropdown__divider" />'
-                : ""}
+            ${
+                suggestions.length
+                    ? '<hr class="search-dropdown__divider" />'
+                    : ""
+            }
             <p class="search-dropdown__section-title">Kết quả</p>
             ${completed
                 .map((item) => {
@@ -151,7 +120,7 @@ function renderDropdown(data) {
                     const thumb = esc(
                         Array.isArray(item.thumbnails)
                             ? item.thumbnails[0]
-                            : item.thumb || FALLBACK_THUMB
+                            : item.thumb || FALLBACK_THUMB,
                     );
                     const href = getPath(item.type, item.id);
                     return `
@@ -169,9 +138,11 @@ function renderDropdown(data) {
                         loading="lazy" />
                     <div class="search-dropdown__info">
                         <p class="search-dropdown__title">${title}</p>
-                        ${subtitle
-                            ? `<p class="search-dropdown__subtitle">${subtitle}</p>`
-                            : ""}
+                        ${
+                            subtitle
+                                ? `<p class="search-dropdown__subtitle">${subtitle}</p>`
+                                : ""
+                        }
                     </div>
                 </a>
             `;
@@ -185,7 +156,7 @@ function renderDropdown(data) {
 }
 
 // ======================================================
-// MOBILE: renderMobileResults (port từ base.js:6005-6022)
+// MOBILE: renderMobileResults
 // ======================================================
 
 /**
@@ -211,7 +182,7 @@ function renderMobileResults(data) {
             const thumb = esc(
                 Array.isArray(item.thumbnails)
                     ? item.thumbnails[0]
-                    : item.thumb || FALLBACK_THUMB
+                    : item.thumb || FALLBACK_THUMB,
             );
             return `
             <button
@@ -227,9 +198,11 @@ function renderMobileResults(data) {
                     loading="lazy" />
                 <div class="search-dropdown__info">
                     <p class="search-dropdown__title">${title}</p>
-                    ${subtitle
-                        ? `<p class="search-dropdown__subtitle">${subtitle}</p>`
-                        : ""}
+                    ${
+                        subtitle
+                            ? `<p class="search-dropdown__subtitle">${subtitle}</p>`
+                            : ""
+                    }
                 </div>
             </button>
         `;
@@ -242,15 +215,6 @@ function renderMobileResults(data) {
 // ======================================================
 
 /**
- * Navigate tới search results page. Port từ base.js:5985-5989 (navigateSearch).
- * Bọc trong requestAnimationFrame (giống base.js) để đợi input event loop
- * xử lý xong trước khi navigate.
- *
- * Edge case quan trọng: Navigo 8.x `router.navigate()` KHÔNG trigger resolve lại
- * khi path đã trùng path hiện tại (chỉ khác query). VD: đang ở `/search?keyword=A`,
- * Enter lại với keyword "B" → path vẫn là `/search` → không re-render. Fix: detect
- * trùng path → gọi `router.resolve()` manually để trigger lại searchPage().
- *
  * @param {string} q
  */
 function navigateSearch(q) {
@@ -408,13 +372,6 @@ function bindEvents() {
         }
     });
 
-    // Task 13.11: Desktop blur → hide dropdown (UX giống YouTube Music).
-    // Khi user gõ xong và focus sang chỗ khác (click body, tab, click link
-    // sidebar, etc.) → dropdown ẩn ngay. Dùng setTimeout(0) để delay 1 tick
-    // — tránh race với click event "click outside" (line 447-454) vẫn chạy
-    // đồng thời, không gây double-call.
-    // Lưu ý: KHÔNG hide nếu focus chuyển sang dropdown (suggestion/result)
-    // → check `e.relatedTarget` có nằm trong dropdown hay không.
     inputEl.addEventListener("blur", (e) => {
         const nextFocus = e.relatedTarget;
         if (dropdown && nextFocus && dropdown.contains(nextFocus)) {
@@ -448,7 +405,9 @@ function bindEvents() {
                 if (value) {
                     inputEl.value = value;
                     // Dispatch input event để trigger debounced search
-                    inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+                    inputEl.dispatchEvent(
+                        new Event("input", { bubbles: true }),
+                    );
                 }
             } else if (action === "navigate") {
                 // Click result → navigate (port base.js:5902-5905)
@@ -460,11 +419,7 @@ function bindEvents() {
 
     // Click outside → hide dropdown (port base.js:5907-5910)
     document.addEventListener("click", (e) => {
-        if (
-            dropdown &&
-            !dropdown.contains(e.target) &&
-            e.target !== inputEl
-        ) {
+        if (dropdown && !dropdown.contains(e.target) && e.target !== inputEl) {
             hideDropdown();
         }
     });
@@ -526,10 +481,7 @@ function bindEvents() {
 
     // Esc → close mobile modal
     document.addEventListener("keydown", (e) => {
-        if (
-            e.key === "Escape" &&
-            mobileModal?.classList.contains("is-open")
-        ) {
+        if (e.key === "Escape" && mobileModal?.classList.contains("is-open")) {
             closeMobileModal();
         }
     });
@@ -563,26 +515,27 @@ export function initSearch() {
     mobileResults = document.querySelector("#search-modal-results");
 
     if (!inputEl) {
-        // Phase 13: Header partial có thể chưa inject xong khi initSearch()
-        // chạy lần đầu (race giữa fetch partial + DOMContentLoaded).
-        // Thay vì log warning + skip, đợi event `header:rendered` rồi retry.
-        // Robust cho cả boot (initial) và onAuthChange (rebind sau swap).
-        console.info("[search] #navbar-search-input chưa có, đợi header:rendered...");
+        console.info(
+            "[search] #navbar-search-input chưa có, đợi header:rendered...",
+        );
         const onHeaderRendered = () => {
             document.removeEventListener("header:rendered", onHeaderRendered);
             // Retry sau khi DOM đã có input (microtask để innerHTML settle)
             requestAnimationFrame(() => initSearch());
         };
-        document.addEventListener("header:rendered", onHeaderRendered, { once: true });
+        document.addEventListener("header:rendered", onHeaderRendered, {
+            once: true,
+        });
 
-        // Safety net: nếu header partial đã có sẵn (build-time HTML, FCP),
-        // `header:rendered` không bao giờ fire → thử MutationObserver.
         const headerEl = document.querySelector("#header");
         if (headerEl) {
             const observer = new MutationObserver(() => {
                 if (document.querySelector("#navbar-search-input")) {
                     observer.disconnect();
-                    document.removeEventListener("header:rendered", onHeaderRendered);
+                    document.removeEventListener(
+                        "header:rendered",
+                        onHeaderRendered,
+                    );
                     requestAnimationFrame(() => initSearch());
                 }
             });
@@ -595,10 +548,6 @@ export function initSearch() {
     initialized = true;
     console.info("[search] Search engine ready (debounce 350ms)");
 
-    // Phase 13.3c: Force clearBtn + mobileClearBtn về `d-none` ngay khi init
-    // (defensive — tránh trường hợp HTML cache cũ không có class `d-none` →
-    // CSS `.form__close:not(.d-none) { display: inline-block }` sẽ làm nút
-    // close hiện ngay cả khi input rỗng).
     if (clearBtn && inputEl.value.trim() === "") {
         clearBtn.classList.add("d-none");
     }

@@ -1,11 +1,3 @@
-// ======================================================
-// PROFILE PAGE — Thông tin user + đổi mật khẩu + logout
-// ======================================================
-//
-// Phase 10.1: dùng MESSAGES + form-helpers + mapApiError (giống auth.js)
-// → giảm duplicate, error mapping chuẩn hoá.
-//
-
 import { renderPage, loading } from "@/pages/_shared.js";
 import { renderProfilePage } from "@/pages/profile/profile.render.js";
 
@@ -22,9 +14,6 @@ import { navigate } from "@/libs/router.js";
 /**
  * Render Profile page (/auth/profile).
  *
- * Auth guard: port từ base.js:5826 — `let e = await Ar(); e && await Q(wr(e), Wn)`
- * → Nếu getProfile throw (chưa login) → render form login `Wn` thay vì profile.
- * → Trong dự án dùng requireAuth() (đọc localStorage, navigate + toast nếu fail).
  */
 export async function profilePage(route = {}) {
     void route;
@@ -103,7 +92,8 @@ async function handleUpdateProfileSubmit(e) {
         if (nameEl) nameEl.textContent = user.name;
         if (emailEl) emailEl.textContent = user.email;
         const avatarEl = $(".profile-header__avatar");
-        if (avatarEl) avatarEl.textContent = user.initial || name.charAt(0).toUpperCase();
+        if (avatarEl)
+            avatarEl.textContent = user.initial || name.charAt(0).toUpperCase();
 
         toast.success(MESSAGES.AUTH.PROFILE_UPDATE_SUCCESS);
     } catch (err) {

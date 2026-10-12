@@ -10,7 +10,9 @@
         opacity: 0.3;
         background-color: var(--control-btn-bg);
         cursor: pointer;
-        transition: opacity 0.2s ease, transform 0.15s ease;
+        transition:
+            opacity 0.2s ease,
+            transform 0.15s ease;
 
         &:hover {
             opacity: 1;

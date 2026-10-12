@@ -1,21 +1,3 @@
-/**
- * layout/sidebar.js — Render sidebar partial
- *
- * SSOT (Single Source of Truth): sidebar HTML chỉ tồn tại trong file partial,
- * không duplicate trong JS. Logic:
- *   1. Build time: index.html embed partials/sidebar.html → FCP nhanh
- *   2. Runtime: fetch partial → inject innerHTML (giống hệt build time markup)
- *
- * Navigation: dùng `data-navigo` + path thuần (`/`, `/discover`, ...)
- * để Navigo handle click không reload.
- *
- * Exports:
- *   - renderSidebar(target) → inject sidebar HTML vào target
- *
- * Consumed by:
- *   - `@/layout/init.js` gọi trong Promise.all render layout
- */
-
 const PARTIAL_URL = "/partials/sidebar.html";
 
 /**
@@ -44,11 +26,12 @@ async function fetchPartial(url) {
  * @returns {Promise<void>}
  */
 export async function renderSidebar(target) {
-    const el = typeof target === "string"
-        ? document.querySelector(target)
-        : target;
+    const el =
+        typeof target === "string" ? document.querySelector(target) : target;
     if (!el) {
-        console.warn('[layout/sidebar] Không tìm thấy container "' + target + '"');
+        console.warn(
+            '[layout/sidebar] Không tìm thấy container "' + target + '"',
+        );
         return;
     }
 

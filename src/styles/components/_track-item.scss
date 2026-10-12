@@ -33,11 +33,6 @@
         }
     }
 
-    // Phase 14.7: Highlight track đang phát
-    // - audio-player.js:_highlightActiveSong() add class này cho
-    //   [data-track-id="<id>"] khi playSong
-    // - Background tint nhẹ để phân biệt với item thường
-    // - Border-radius: 8px (giống item thường) để đồng bộ
     &__item--active {
         background: rgba(255, 255, 255, 0.08);
 

@@ -1,39 +1,14 @@
-// ======================================================
-// LINE DETAIL PAGE — Init + render
-// ======================================================
-//
-// Flow:
-//   1. Render skeleton ngay (UX: user thấy structure trước khi data về)
-//   2. Fetch parallel: 4 endpoints (songs, playlists, videos, albums)
-//   3. Render HTML từ `line-detail.render.js`
-//   4. Inject + re-init sliders
-//
-// Port từ `code chức năng gốc/base.js` route handler dòng 5784-5787:
-//   "/lines/:slug": async ({data: e}) => {
-//       let[t,n,r,i] = await Promise.all([
-//           G.Lines.getLineSongs(e.slug),
-//           G.Lines.getLinePlaylists(e.slug),
-//           G.Lines.getLineVideos(e.slug),
-//           G.Lines.getLineAlbums(e.slug)
-//       ]);
-//       await Q( () => pr(t, n, r, i))
-//   }
-//
-// Lưu ý:
-//   - Mỗi fetch fail → fallback `[]` để page vẫn render 3 sections còn lại.
-//   - Cả 4 rỗng → render empty state.
-//   - Sau render PHẢI gọi `initSliders()`.
-//   - KHÔNG auto-play (Phase 17 chỉ render theo yêu cầu của anh).
-//   - KHÔNG `recordPlay` event (line detail chưa có event type "line" ở backend).
-//
-
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import {
     renderLineDetail,
     renderLineDetailEmpty,
 } from "@/pages/line-detail/line-detail.render.js";
 import { linesService } from "@/services/linesService.js";
-import { SKELETON_SECTION, skeletonLine, skeletonBox } from "@/components/skeleton.js";
+import {
+    SKELETON_SECTION,
+    skeletonLine,
+    skeletonBox,
+} from "@/components/skeleton.js";
 import { initSliders } from "@/libs/slider.js";
 import { toast } from "@/libs/toast.js";
 
@@ -53,9 +28,13 @@ function SKELETON_LINE_DETAIL() {
                 </div>
                 <div class="quick-picks__list hscroll" data-slider>
                     <div class="hscroll-inner">
-                        ${Array.from({ length: 4 }, () => `
+                        ${Array.from(
+                            { length: 4 },
+                            () => `
                             <div class="col quick-picks-col skeleton-col">
-                                ${Array.from({ length: 4 }, () => `
+                                ${Array.from(
+                                    { length: 4 },
+                                    () => `
                                     <div class="quick-picks skeleton-quickpick">
                                         ${skeletonBox("64px", "64px", "8px")}
                                         <div class="quick-picks__content">
@@ -63,9 +42,11 @@ function SKELETON_LINE_DETAIL() {
                                             ${skeletonLine("60%")}
                                         </div>
                                     </div>
-                                `).join("")}
+                                `,
+                                ).join("")}
                             </div>
-                        `).join("")}
+                        `,
+                        ).join("")}
                     </div>
                 </div>
             </section>
@@ -90,7 +71,10 @@ export async function lineDetailPage(route = {}) {
     const slug = route.params?.slug;
     if (!slug) {
         renderPage(
-            renderPlaceholder("Thiếu slug", "Không tìm thấy dòng nhạc được yêu cầu.")
+            renderPlaceholder(
+                "Thiếu slug",
+                "Không tìm thấy dòng nhạc được yêu cầu.",
+            ),
         );
         return;
     }
@@ -103,19 +87,31 @@ export async function lineDetailPage(route = {}) {
         //    Mỗi fail → fallback [] (best-effort).
         const [songs, playlists, videos, albums] = await Promise.all([
             linesService.getLineSongs(slug).catch((err) => {
-                console.warn(`[line-detail] songs for "${slug}" failed:`, err.message);
+                console.warn(
+                    `[line-detail] songs for "${slug}" failed:`,
+                    err.message,
+                );
                 return [];
             }),
             linesService.getLinePlaylists(slug).catch((err) => {
-                console.warn(`[line-detail] playlists for "${slug}" failed:`, err.message);
+                console.warn(
+                    `[line-detail] playlists for "${slug}" failed:`,
+                    err.message,
+                );
                 return [];
             }),
             linesService.getLineVideos(slug).catch((err) => {
-                console.warn(`[line-detail] videos for "${slug}" failed:`, err.message);
+                console.warn(
+                    `[line-detail] videos for "${slug}" failed:`,
+                    err.message,
+                );
                 return [];
             }),
             linesService.getLineAlbums(slug).catch((err) => {
-                console.warn(`[line-detail] albums for "${slug}" failed:`, err.message);
+                console.warn(
+                    `[line-detail] albums for "${slug}" failed:`,
+                    err.message,
+                );
                 return [];
             }),
         ]);

@@ -1,56 +1,3 @@
-/**
- * router.js — Navigo singleton + route registration
- *
- * Wire SPA routing cho toàn bộ pages. Navigo 8.11 dùng `ONE` strategy
- * (1 listener per route). Hash routing tắt, dùng History API.
- *
- * Exports:
- *   - initRouter()        → gọi 1 lần ở app init (sau khi layout render)
- *   - navigate(path)      → programmatic navigation
- *   - getRouter()         → truy cập Navigo instance
- *   - resolveRouter()     → backward compat alias
- *
- * Routes (Navigo patterns):
- *   "/"                              → homePage
- *   "/discover"                      → discoverPage
- *   "/library"                       → libraryPage
- *   "/songs/details/:id"             → songDetailPage
- *   "/albums/details/:slug"          → albumDetailPage
- *   "/playlists/details/:slug"       → playlistDetailPage
- *   "/videos/details/:id"            → videoDetailPage
- *   "/auth/login"                    → loginPage
- *   "/auth/register"                 → registerPage
- *   "/auth/profile"                  → profilePage
- *   "/auth/change-password"          → changePasswordPage
- *   "/search"                        → searchPage
- *   "/new-releases"                  → newReleasesPage
- *   "/charts"                        → chartsPage
- *   "/moods/:slug"                   → moodDetailPage
- *   "/moods-and-genres"              → moodsAndGenresPage
- *   "/categories/:slug"              → categoryDetailPage
- *   "/lines/:slug"                   → lineDetailPage
- *   "/*"                             → notFoundPage
- *
- * Consumed by:
- *   - `@/main.js` gọi `initRouter()` ở entry point
- *   - `@/libs/api.js` dùng dynamic import → `router.navigate()` khi force logout
- *   - Mọi page module nhận `{params, query, url}` qua wrap
- *
- * Hooks:
- *   - before: show loading overlay (safety net — page tự show/hide trong try/finally)
- *   - after: hide loading overlay + scroll to top
- *
- * Phase 13.1: AWAIT pageFn (async) rồi mới re-bind Navigo links.
- *   - Lý do: Navigo 8.x fire-and-forget handler. Nếu không await, page render
- *     chưa xong thì `updatePageLinks()` đã chạy → track-items mới chưa có
- *     data-navigo handler → click → browser reload.
- *   - Fix: wrap pageFn → await → updatePageLinks() (idempotent).
- *
- * Phase 13.2: Close video overlay (nếu đang mở) trước khi render page mới
- *   - Lý do: tránh 2 audio chạy song song khi navigate từ video-detail
- *     (YouTube IFrame vẫn phát khi page đã đổi).
- */
-
 import Navigo from "navigo";
 
 import { homePage } from "@/pages/home/home.js";
@@ -123,9 +70,10 @@ function registerRoutes() {
                 if (videoOverlay.isOpenNow()) {
                     videoOverlay.closeFull();
                 }
-                await withErrorBoundary(pageFn, "Đã xảy ra lỗi không xác định")(
-                    route
-                );
+                await withErrorBoundary(
+                    pageFn,
+                    "Đã xảy ra lỗi không xác định",
+                )(route);
             } finally {
                 // Bind Navigo link handler cho DOM mới (track-items, buttons, ...)
                 // để click `<a href data-navigo>` → SPA navigate (không reload).

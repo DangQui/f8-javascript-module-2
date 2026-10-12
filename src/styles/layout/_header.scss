@@ -3,9 +3,6 @@
     align-items: center;
 }
 
-// Header parent cần tạo stacking context để nav-bar (fixed + z-990) luôn
-// được paint đúng z-index tại root. Khi parent là static + z-auto, một số
-// trường hợp edge case có thể khiến main (z-1) che mất nav-bar khi scroll.
 .header {
     position: relative;
     z-index: 990;

@@ -1,29 +1,3 @@
-/**
- * messages.js — Centralized user-facing text
- *
- * Gom tất cả text hiển thị cho user vào 1 file duy nhất.
- * Lý do:
- *   1. Tránh typo / không đồng nhất giữa các page
- *   2. Sau này dễ migrate i18n (chỉ cần thay 1 file)
- *   3. Copywriter review 1 chỗ thay vì search cả project
- *
- * Cấu trúc:
- *   - VALIDATION.* → error inline dưới input
- *   - AUTH.*       → login/register/profile/change-password messages
- *   - COMMON.*     → network, timeout, server errors (chia sẻ giữa các flow)
- *
- * Lưu ý:
- *   - Text tiếng Việt (UI user-facing)
- *   - Giữ ngắn gọn, có dấu
- *   - Không chứa HTML (dùng textContent)
- *
- * Consumed by:
- *   - `@/utils/validators.js` (VALIDATION)
- *   - `@/services/authService.js`, `@/state/authState.js` (AUTH + COMMON)
- *   - `@/libs/api-error.js` (COMMON)
- *   - Mọi page auth/profile dùng inline string từ đây
- */
-
 export const MESSAGES = {
     /** Error inline hiển thị dưới input khi user nhập sai. */
     VALIDATION: {
@@ -32,8 +6,7 @@ export const MESSAGES = {
         EMAIL_TOO_LONG: "Email quá dài (tối đa 254 ký tự)",
         PASSWORD_REQUIRED: "Vui lòng nhập mật khẩu",
         PASSWORD_TOO_SHORT: "Mật khẩu phải có ít nhất 6 ký tự!",
-        PASSWORD_WEAK:
-            "Mật khẩu nên có chữ hoa, chữ thường và số để mạnh hơn",
+        PASSWORD_WEAK: "Mật khẩu nên có chữ hoa, chữ thường và số để mạnh hơn",
         CONFIRM_PASSWORD_REQUIRED: "Vui lòng nhập lại mật khẩu",
         CONFIRM_PASSWORD_MISMATCH: "Mật khẩu nhập lại không khớp!",
         NAME_REQUIRED: "Vui lòng nhập tên hiển thị",

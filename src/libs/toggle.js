@@ -1,22 +1,3 @@
-/**
- * toggle.js — Show/hide element by class .hide / .show
- *
- * Bind click handler cho `[data-toggle-target]` / `.js-toggle` elements.
- * Mô hình:
- *   - Simple toggle: ẩn → hiện, hiện → ẩn.
- *   - Swap: ẩn target, hiện showTarget.
- *
- * HTML pattern:
- *   Simple:  <button class="js-toggle" toggle-target="#box">Click</button>
- *   Swap:    <button toggle-target="#box1" toggle-show="#box2">Click</button>
- *
- * Exports:
- *   - initJsToggle() → bind handlers cho mọi .js-toggle trong DOM
- *
- * Consumed by:
- *   - `@/layout/init.js` gọi 1 lần sau khi layout render xong
- */
-
 import { $, $$ } from "@/utils/dom-helpers.js";
 
 export function initJsToggle() {

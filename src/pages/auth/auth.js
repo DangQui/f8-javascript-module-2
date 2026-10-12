@@ -1,22 +1,3 @@
-// ======================================================
-// AUTH PAGE — Login + Register
-// ======================================================
-//
-// Flow:
-//   1. Show loading overlay (router hook before)
-//   2. Render form HTML từ auth.render.js
-//   3. Re-init js-toggle (vì page render xong cần bind cho button mới)
-//   4. Bind submit handler cho form tương ứng
-//   5. On success: navigate("/") thay vì reload page (SPA)
-//   6. On error: hiển thị .form__error inline + toast
-//
-// Phase 10.1 refactor:
-//   - Mọi text lấy từ `@/utils/messages.js` (không hardcode)
-//   - Form helpers từ `@/utils/form-helpers.js` (xoá duplicate)
-//   - Error mapping qua `mapApiError()` → switch theo `err.code`
-//   - Validators dùng `getXxxError()` → trả về string|null
-//
-
 import { renderPage, loading } from "@/pages/_shared.js";
 import { renderAuthPage } from "@/pages/auth/auth.render.js";
 
@@ -65,7 +46,6 @@ export async function loginPage(route = {}) {
 export async function registerPage(route = {}) {
     void route;
 
-    // (hack cũ từ Phase 7 gây flicker: render skeleton → delay 50ms → render form thật).
     loading.show();
     try {
         renderPage(renderAuthPage("register"));

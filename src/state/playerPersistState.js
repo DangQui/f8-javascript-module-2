@@ -1,41 +1,3 @@
-/**
- * state/playerPersistState.js — Persist player state vào localStorage
- *
- * Phase 14 (v2) — Unified store: lưu cả audio + video trong 1 object.
- * Mục đích: khôi phục state sau khi user F5 / đóng browser / mất điện.
- *
- * Schema v2:
- *   {
- *     version: 2,
- *     audio: { currentSong, currentTime, volume, shuffle, repeat } | null,
- *     video: { currentVideo, currentTime, volume, isRepeatOn, isShuffleOn,
- *              relatedList, currentIndex } | null,
- *     savedAt: number (timestamp ms)
- *   }
- *
- * Exports:
- *   - savePlayerState(partial)   → throttled save (5s) hoặc flush nếu quá lâu
- *   - loadPlayerState()          → { audio, video, savedAt } | null
- *   - clearPlayerState(options?) → selective clear (audio/video/all)
- *   - flushPlayerState()         → force save ngay
- *   - bindBeforeUnloadSave()     → bind beforeunload event
- *
- * Consumed by:
- *   - `@/components/audio-player.js` savePlayerState({audio}) mỗi 5s
- *   - `@/components/video-overlay.js` savePlayerState({video}) mỗi 5s
- *   - `@/layout/init.js` loadPlayerState() ở boot, bindBeforeUnloadSave()
- *
- * Flow:
- *   - Save:  audio/video emit state → throttled save (5s)
- *            + force save ngay khi `beforeunload`
- *            Mỗi lần save MERGE vào store hiện tại (không ghi đè phần kia).
- *   - Load:  initLayout() → check localStorage → trả { audio, video } để restore
- *   - Clear: khi eject (audio) / closeFull (video) / logout
- *
- * Khi nào upgrade v3:
- *   - Thêm field khác (queue, playlist context) → bump version
- */
-
 const STORAGE_KEY = "music.playerState.v2";
 const SCHEMA_VERSION = 2;
 const THROTTLE_MS = 5000; // 5 giây
@@ -52,17 +14,9 @@ let _lastSave = 0;
 let _saveTimer = null;
 
 /**
- * Throttled save state vào localStorage (MERGE với state hiện tại).
  *
  * @param {{ audio?: object, video?: object }} partial
- *   - audio/video: pass object { currentSong, currentTime, ... } để save.
- *   - pass null để clear slot đó (vd: { audio: null } → chỉ clear audio).
- *   - pass undefined (hoặc không truyền key) → KHÔNG đụng vào slot đó.
  *
- * Ví dụ:
- *   savePlayerState({ audio: { currentSong, currentTime, ... } });  // chỉ save audio
- *   savePlayerState({ audio: null });                                // chỉ clear audio
- *   savePlayerState({});                                             // no-op
  */
 export function savePlayerState(partial) {
     if (!partial) {
@@ -73,7 +27,12 @@ export function savePlayerState(partial) {
     // Load state hiện tại để merge (không load nếu đang có pending → tránh stale)
     let current = _pendingSave || _readRaw();
     if (!current || current.version !== SCHEMA_VERSION) {
-        current = { version: SCHEMA_VERSION, audio: null, video: null, savedAt: 0 };
+        current = {
+            version: SCHEMA_VERSION,
+            audio: null,
+            video: null,
+            savedAt: 0,
+        };
     }
 
     // Merge audio (nếu partial có key 'audio')
@@ -207,7 +166,9 @@ export function loadPlayerState() {
             volume: Number(data.video.volume) || 100,
             isRepeatOn: !!data.video.isRepeatOn,
             isShuffleOn: !!data.video.isShuffleOn,
-            relatedList: Array.isArray(data.video.relatedList) ? data.video.relatedList : [],
+            relatedList: Array.isArray(data.video.relatedList)
+                ? data.video.relatedList
+                : [],
             currentIndex: Number(data.video.currentIndex) || 0,
         };
     }
@@ -235,14 +196,7 @@ function _readRaw() {
  * Clear state khỏi localStorage.
  *
  * @param {{ audio?: boolean, video?: boolean, all?: boolean }} [options]
- *   - audio: true → clear slot audio
- *   - video: true → clear slot video
- *   - all: true → clear toàn bộ (default nếu không truyền gì)
- *
- * Ví dụ:
- *   clearPlayerState();                              // clear cả 2
- *   clearPlayerState({ audio: true });               // chỉ clear audio
- *   clearPlayerState({ audio: true, video: true });  // clear cả 2
+
  */
 export function clearPlayerState(options) {
     const clearAudio = !options || options.all || options.audio;

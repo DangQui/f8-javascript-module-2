@@ -1,11 +1,3 @@
-// ======================================================
-// MAIN ENTRY — Vite ES module root (Phase 6)
-// ======================================================
-//
-// Phase 5: render layout (header/sidebar/player) từ `src/layout/`.
-// Phase 6: thêm router (Navigo) để handle page navigation.
-//
-
 // === SCSS entry ===
 import "@/styles/main.scss";
 
@@ -50,28 +42,7 @@ window.load = async function load(selector, path) {
         });
 };
 
-// ======================================================
-// HELPERS
-// ======================================================
-
-/**
- * Re-bind UI handlers + apply auth visibility cho header markup MỚI
- * sau khi renderHeader() swap HTML (login → logged-in partial,
- * logout → logged-out partial).
- *
- * Lý do cần rebind thủ công:
- *   - initLayout() chỉ init 1 lần lúc boot.
- *   - Khi swap HTML, DOM elements cũ bị thay thế → dropdown toggle,
- *     js-toggle, slider handlers mất.
- *   - applyAuthVisibility() (subscribe trong initAuthUI) cũng không
- *     tự động fill user info vào DOM mới vì nó chỉ query toàn page.
- */
 function rebindAuthUI() {
-    // 1. Re-init UI modules cho DOM mới (sau khi renderHeader/sidebar swap HTML)
-    //    - initJsToggle: bind lại .js-toggle (nút bars mobile, X close, ...)
-    //    - initDropdowns: bind lại [data-dropdown] (avatar dropdown)
-    //    - initSidebarActive: highlight lại sidebar item theo current path
-    //    - initUpgradeLink: bind lại [data-upgrade-link] toggle
     initJsToggle();
     initSidebarActive();
     initUpgradeLink();
@@ -114,13 +85,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.documentElement.classList.add("app-dom-ready");
 
     // 1. Render layout + init UI handlers
-    //    Phase 9.3: async vì renderHeader/renderSidebar/renderPlayer fetch() partials
     await initLayout();
 
-    // 1.5. Wire audio player UI (Phase 8.5) — auto-bind buttons ở #player
     bindAudioPlayerUI();
 
-    // 1.6. Wire search engine (Phase 13) — debounced input + dropdown + mobile modal
     initSearch();
 
     // 2. Wire search close button (init in layout nhưng tách riêng để dễ quản lý)
@@ -132,17 +100,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 4. Init router (Phase 6) — phải sau initLayout vì router render page vào #main
     initRouter();
 
-    // 4.5. Phase 9.3 fix: Re-render header khi auth state đổi.
-    //      Bắt buộc vì renderHeader ban đầu load partial theo isLoggedIn()
-    //      tại thời điểm boot — sau khi user login/logout, cần fetch
-    //      partial khác để swap HTML (data-user-initial, dropdown, v.v.).
     onAuthChange(async () => {
-        await Promise.all([
-            renderHeader("#header"),
-            renderSidebar("#sidebar"),
-        ]);
-        // Phase 13: rebind search engine sau khi swap header HTML
-        // (vì #navbar-search-input cũ đã bị thay thế bởi partial mới)
+        await Promise.all([renderHeader("#header"), renderSidebar("#sidebar")]);
+
         resetSearch();
         initSearch();
 
@@ -183,23 +143,6 @@ function initSearchClose() {
     });
 }
 
-// ======================================================
-// LOGOUT CLICK — global listener (Phase 11.5: API-aware)
-// ======================================================
-// Phase 3 (multi-page static): reload page về "./index.html" sau logout.
-// Phase 9 (SPA + Navigo): KHÔNG reload — chỉ re-render UI qua onAuthChange
-// (header swap HTML, sidebar update visibility). Dùng router.navigate("/")
-// để đưa user về home route (không reload, giữ Navigo state).
-//
-// Phase 11.5 (Task B): Thay `logout()` (state mock) bằng `logoutRequest()`
-// (authService) để gọi API backend + clear local storage + emit auth-changed
-// → onAuthChange tự swap header. Trước đó chỉ gọi state.logout() → backend
-// không biết user logout (chỉ clear local). Giờ flow đầy đủ như base.js
-// gốc: `await Auth.logout()` + clear + swap + navigate + toast.
-//
-// Lưu ý: KHÔNG dùng window.location.href = "./index.html" nữa — vì
-// path "index.html" không phải SPA route, Vite sẽ trả về notFoundPage
-// (404 UI).
 async function initLogoutClick() {
     document.addEventListener("click", async (e) => {
         const btn = e.target.closest("[data-logout]");
@@ -208,12 +151,10 @@ async function initLogoutClick() {
 
         try {
             // Gọi API logout (best-effort — backend có thể không có endpoint,
-            // service sẽ nuốt lỗi) + clear local storage + emit auth-changed
             await logoutRequest();
             toast.success(MESSAGES.AUTH.LOGOUT_SUCCESS);
 
             // Navigate về home route. onAuthChange sẽ tự swap header HTML
-            // (logged-in → logged-out) + sidebar show-when update.
             navigate("/");
         } catch (err) {
             console.error("[main] logout failed:", err);
@@ -223,6 +164,6 @@ async function initLogoutClick() {
 }
 
 // ======================================================
-// Re-export load() (backward compat)
+// Re-export
 // ======================================================
 export const load = window.load;

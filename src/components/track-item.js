@@ -1,26 +1,3 @@
-// ======================================================
-// TRACK ITEM COMPONENT — Item bài hát trong track list
-// ======================================================
-//
-
-// ở Album Detail, Playlist Detail, Song Detail, Search results, ...
-//
-// Style dùng class `.track-list__item` + `.track-list__*` có sẵn
-// trong SCSS (`src/styles/components/_track-item.scss`).
-// Không thêm SCSS mới — chỉ wrap markup.
-//
-// API:
-//   renderTrackItem({ id, title, artists, thumb, duration, isActive })
-//     → HTML string cho 1 track item
-//
-//   renderTrackList(tracks)
-//     → HTML string cho cả list (kèm empty state)
-//
-// USAGE:
-//   import { renderTrackList } from "@/components/track-item.js";
-//   const html = renderTrackList(album.tracks);
-//
-
 import { escapeHtml, formatDuration } from "@/utils/format.js";
 
 const FALLBACK_THUMB = "/images/quick-picks-01.jpg";
@@ -67,20 +44,16 @@ export function renderTrackItem(track, index = 0, options = {}) {
     if (!track || !track.id) return "";
 
     const normalized = normalizeTrackItem(track);
-    const {
-        isActive = false,
-        basePath = "/songs/details",
-    } = options;
+    const { isActive = false, basePath = "/songs/details" } = options;
 
     const title = escapeHtml(normalized.title);
-    const artists = normalized.artists.length > 0
-        ? normalized.artists.map((a) => escapeHtml(a)).join(", ")
-        : "Không rõ nghệ sĩ";
+    const artists =
+        normalized.artists.length > 0
+            ? normalized.artists.map((a) => escapeHtml(a)).join(", ")
+            : "Không rõ nghệ sĩ";
     const duration = formatDuration(normalized.duration);
     const activeClass = isActive ? " track-list__item--active" : "";
-    const dataAttrs = isActive
-        ? ` data-track-active="true"`
-        : "";
+    const dataAttrs = isActive ? ` data-track-active="true"` : "";
 
     return `
         <a
@@ -118,9 +91,7 @@ export function renderTrackItem(track, index = 0, options = {}) {
  */
 export function renderTrackItems(tracks, options = {}) {
     if (!Array.isArray(tracks) || tracks.length === 0) return "";
-    return tracks
-        .map((t, i) => renderTrackItem(t, i, options))
-        .join("");
+    return tracks.map((t, i) => renderTrackItem(t, i, options)).join("");
 }
 
 /**

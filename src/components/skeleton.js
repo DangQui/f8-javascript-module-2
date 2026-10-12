@@ -1,39 +1,3 @@
-// ======================================================
-// SKELETON COMPONENT — Loading placeholders (Phase 11.2)
-// ======================================================
-//
-// Mục tiêu: Hiển thị skeleton placeholders (pulse animation) khi page
-// đang fetch data, thay vì để trống hoặc chỉ spinner toàn trang.
-//
-// OPTION A — Per-section skeleton:
-//   Mỗi page có skeleton riêng match đúng layout thật của page đó.
-//   UX chính xác (user thấy structure ngay khi load), nhưng nhiều code.
-//
-// Pattern gốc: base.js KHÔNG có skeleton (chỉ full overlay `H` dòng ~3380).
-// → Em design riêng theo pattern modern skeleton (Facebook, YouTube Music).
-//
-// Cơ chế Pulse animation (CSS):
-//   - background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%)
-//   - background-size: 200% 100%
-//   - animation: skeleton-pulse 1.4s ease-in-out infinite
-//
-// API:
-//   - SKELETON_HOME()             → full Home skeleton (5 sections)
-//   - SKELETON_DISCOVER()         → full Discover skeleton (3 sections)
-//   - SKELETON_ALBUM_DETAIL()     → 2 cột (info + track-list)
-//   - SKELETON_PLAYLIST_DETAIL()  → 2 cột (info + track-list)
-//   - SKELETON_SONG_DETAIL()      → 2 cột (info + related list)
-//   - SKELETON_VIDEO_DETAIL()     → 2 cột (info + video list)
-//   - SKELETON_PROFILE()          → header card + form
-//   - SKELETON_CHANGE_PASSWORD()  → form 3 field
-//   - SKELETON_SEARCH()           → 4 sections (songs/albums/playlists/videos)
-//   - SKELETON_AUTH()             → form login/register
-//   - skeletonBox(w, h, options)  → 1 box skeleton (helper)
-//   - skeletonLine(w, h)          → 1 line text skeleton
-//
-// SCSS: src/styles/components/_skeleton.scss
-//
-
 /**
  * Render 1 box skeleton (pulse animation).
  * @param {string} w - width (VD "100%", "220px", "12rem")
@@ -108,7 +72,9 @@ export function SKELETON_GREETING() {
  * @returns {string} HTML
  */
 export function SKELETON_SECTION(slider = true, itemCount = 6) {
-    const items = Array.from({ length: itemCount }, () => `
+    const items = Array.from(
+        { length: itemCount },
+        () => `
         <div class="cart-item skeleton-card">
             <div class="cart-item__media">
                 ${skeletonBox("100%", "100%", "12px")}
@@ -118,7 +84,8 @@ export function SKELETON_SECTION(slider = true, itemCount = 6) {
                 ${skeletonLine("60%")}
             </div>
         </div>
-    `).join("");
+    `,
+    ).join("");
 
     return `
         <section class="home__container">
@@ -138,9 +105,13 @@ export function SKELETON_SECTION(slider = true, itemCount = 6) {
  * @returns {string} HTML
  */
 export function SKELETON_QUICK_PICKS() {
-    const cols = Array.from({ length: 4 }, () => `
+    const cols = Array.from(
+        { length: 4 },
+        () => `
         <div class="col quick-picks-col skeleton-col">
-            ${Array.from({ length: 4 }, () => `
+            ${Array.from(
+                { length: 4 },
+                () => `
                 <div class="quick-picks skeleton-quickpick">
                     ${skeletonBox("64px", "64px", "8px")}
                     <div class="quick-picks__content">
@@ -148,9 +119,11 @@ export function SKELETON_QUICK_PICKS() {
                         ${skeletonLine("60%")}
                     </div>
                 </div>
-            `).join("")}
+            `,
+            ).join("")}
         </div>
-    `).join("");
+    `,
+    ).join("");
 
     return `
         <section class="home__container">
@@ -193,14 +166,17 @@ export function SKELETON_DISCOVER_NAV() {
     return `
         <div class="discover__navigation">
             <div class="row row-cols-3 gx-2">
-                ${Array.from({ length: 3 }, () => `
+                ${Array.from(
+                    { length: 3 },
+                    () => `
                     <div class="col">
                         <div class="btn discover-item">
                             ${skeletonBox("40px", "40px", "50%")}
                             ${skeletonLine("80%")}
                         </div>
                     </div>
-                `).join("")}
+                `,
+                ).join("")}
             </div>
         </div>
     `;
@@ -260,7 +236,9 @@ export function SKELETON_INFO_DETAIL() {
  * @returns {string} HTML
  */
 export function SKELETON_TRACK_LIST(count = 10) {
-    const items = Array.from({ length: count }, () => `
+    const items = Array.from(
+        { length: count },
+        () => `
         <div class="track-list__item skeleton-track">
             ${skeletonBox("24px", "24px", "50%")}
             ${skeletonBox("48px", "48px", "4px")}
@@ -270,7 +248,8 @@ export function SKELETON_TRACK_LIST(count = 10) {
             </div>
             ${skeletonBox("40px", "16px", "4px")}
         </div>
-    `).join("");
+    `,
+    ).join("");
 
     return `<div class="track-list">${items}</div>`;
 }
@@ -314,7 +293,9 @@ export function SKELETON_VIDEO_DETAIL() {
  * @returns {string} HTML
  */
 export function SKELETON_VIDEO_LIST(count = 10) {
-    const items = Array.from({ length: count }, () => `
+    const items = Array.from(
+        { length: count },
+        () => `
         <div class="video-list__item skeleton-track">
             ${skeletonBox("120px", "68px", "8px")}
             <div class="video-list__info">
@@ -322,7 +303,8 @@ export function SKELETON_VIDEO_LIST(count = 10) {
                 ${skeletonLine("60%")}
             </div>
         </div>
-    `).join("");
+    `,
+    ).join("");
 
     return `<div class="video-list">${items}</div>`;
 }

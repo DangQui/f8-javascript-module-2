@@ -1,25 +1,3 @@
-// ======================================================
-// HOME PAGE — Render functions (Phase 7)
-// ======================================================
-//
-// Tách riêng markup khỏi logic ở `home.js` để dễ đọc + test.
-//
-// Sections của Home page (theo templates/index-logined-backup.html):
-//   1. Greeting (nếu logged-in)
-//   2. Mood chips (Năng lượng, Thư giãn, ...)
-//   3. Quick Picks (slider ngang, items xếp cột 4 item/cột)
-//   4. Album gợi ý cho bạn (slider ngang, cart-item)
-//   5. Today's Hits (slider ngang, cart-item)
-//   6. Nhạc Việt (slider ngang, cart-item)
-//
-// Mỗi section có:
-//   - `<div class="home__row">` chứa heading + control buttons (crt__prev/crt__next)
-//   - `<div class="...-list" data-slider>` chứa items
-//
-// Slider lib (libs/slider.js) auto-detect `data-slider` + tìm `.crt__prev/next`
-// trong section chứa list (xem `closest('.home__container') || parentElement`).
-//
-
 import { escapeHtml, formatViews } from "@/utils/format.js";
 import { DEFAULT_COUNTRY } from "@/utils/constants.js";
 import {
@@ -72,49 +50,24 @@ export function renderMoodChips(moods) {
     return renderSectionComponent({
         bodyHtml: renderMoodChipsComponent(moods),
         listClass: "home__cate",
-        // Modifier: bỏ margin-top 80px (default container) + 40px (first-child)
-        // → mood chips áp sát header "Music". File `_section-modifier.scss`.
         modifierClass: "home__container--flush-top",
         showControls: true,
         slider: true,
     });
 }
 
-// ======================================================
-// QUICK PICKS — slider ngang, items xếp cột 4 item/cột
-// ======================================================
-
 /**
- * Render quick picks section.
- *
- * Cấu trúc markup (port từ base.js `q()` function — slider ngang):
- *   <div class="quick-picks__list hscroll" data-slider>
- *     <div class="hscroll-inner flex gap-6">
- *       <div class="col" data-slider-item>           ← 1 slide = 1 column
- *         <div class="quick-picks-col">              ← wrapper items
- *           <a class="quick-picks">item 1</a>
- *           <a class="quick-picks">item 2</a>
- *           <a class="quick-picks">item 3</a>
- *           <a class="quick-picks">item 4</a>
- *         </div>
- *       </div>
- *       ... 4 columns × 4 items = 16 items max
- *     </div>
- *   </div>
- *
- * Lưu ý: KHÔNG dùng grid system (.row.row-cols-3) vì gutter padding gây
- * thừa width khi slider ngang. Dùng flex gap đơn giản, mỗi column
- * là 1 slide.
- *
- * Phase 18.5: refactor để dùng `renderSection` → nhận prev/next + body
- * qua option. Trước đây hard-code markup.
  *
  * @param {string} title - Tiêu đề section (VD "Nghe gần đây", "Quick Picks")
  * @param {Array} items
  * @param {string} [basePath="/songs/details"] - Prefix cho href items
  * @returns {string} HTML
  */
-export function renderQuickPicksSection(title, items, basePath = "/songs/details") {
+export function renderQuickPicksSection(
+    title,
+    items,
+    basePath = "/songs/details",
+) {
     if (!Array.isArray(items) || items.length === 0) return "";
 
     // Chia items thành chunks 4 (1 column = 4 items dọc)
@@ -130,7 +83,7 @@ export function renderQuickPicksSection(title, items, basePath = "/songs/details
         <div class="col quick-picks-col" data-slider-item>
             ${col.map((item) => renderQuickPickItem(item, basePath)).join("")}
         </div>
-    `
+    `,
         )
         .join("");
 

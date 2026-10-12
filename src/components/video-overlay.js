@@ -1,36 +1,8 @@
-// ======================================================
-// VIDEO OVERLAY COMPONENT — YouTube IFrame API overlay
-// ======================================================
-//
-// Tạo "Video Player Overlay" giống YouTube Music.
-//
-// Player engine: **YouTube IFrame API** (window.YT.Player) thay vì iframe embed thuần.
-// Lý do: cần biết currentTime thực của video để sync progress bar + giữ vị trí khi pause/resume.
-//
-//   - loadVideo(video): destroy player cũ → tạo YT.Player mới với videoId
-//   - onPlayerReady: player.getCurrentTime() / getDuration() / seekTo() / playVideo() / pauseVideo()
-//   - onPlayerStateChange: PLAYING/PAUSED/ENDED → update UI
-//   - Interval 250ms poll currentTime → update progress bar + time labels
-//
-// Public API:
-//   - mount()          : Inject overlay HTML 1 lần vào body (lazy, idempotent)
-//   - open(video, relatedList) : Mở overlay + load video, render related list
-//   - close()          : Đóng overlay + stop player
-//   - isOpen()         : boolean
-//
-// YouTube IFrame API script: load từ `https://www.youtube.com/iframe_api` (1 lần).
-// Globals: `window.YT`, `window.YT.Player`, `window.onYouTubeIframeAPIReady`.
-//
-
 import { escapeHtml } from "@/utils/format.js";
 import { toast } from "@/libs/toast.js";
 import { playlistsService } from "@/services/playlistsService.js";
 import { setActive, getActive } from "@/state/mediaState.js";
-// Phase 14.9: Ghi nhận lịch sử nghe video vào localStorage.
-// Chỉ ghi khi user CHỦ ĐỘNG load video (KHÔNG ghi khi next/prev internal).
 import { recordListen } from "@/state/listenHistory.js";
-// Phase 14.10: Lưu + khôi phục video state (currentVideo + currentTime + volume
-// + relatedList) vào cùng store `playerPersistState.js` (unified audio + video).
 import {
     savePlayerState,
     clearPlayerState,
@@ -40,9 +12,6 @@ const OVERLAY_ID = "video-overlay";
 const Z_INDEX = 1000;
 const YT_API_SRC = "https://www.youtube.com/iframe_api";
 
-/**
- * Helper toast ngắn gọn (success/error).
- */
 function showToast(message, variant = "success") {
     if (variant === "error") toast.error(message);
     else toast.success(message);
@@ -278,7 +247,8 @@ function fmtTime(seconds) {
     const h = Math.floor(total / 3600);
     const m = Math.floor((total % 3600) / 60);
     const s = total % 60;
-    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    if (h > 0)
+        return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
     return `${m}:${String(s).padStart(2, "0")}`;
 }
 
@@ -324,7 +294,8 @@ function emitStateChanged(extra = {}) {
  * Helper: YT.Player đang phát không?
  */
 function isPlayingNow() {
-    if (!ytPlayer || typeof ytPlayer.getPlayerState !== "function") return false;
+    if (!ytPlayer || typeof ytPlayer.getPlayerState !== "function")
+        return false;
     try {
         return ytPlayer.getPlayerState() === window.YT?.PlayerState?.PLAYING;
     } catch {
@@ -426,7 +397,9 @@ function onPlayerReady(event) {
     if (!ytPlayer || typeof ytPlayer.getDuration !== "function") return;
     const total = ytPlayer.getDuration() || 0;
     if (total > 0) {
-        const durationEl = document.querySelector("#video-overlay-duration-time");
+        const durationEl = document.querySelector(
+            "#video-overlay-duration-time",
+        );
         if (durationEl) durationEl.textContent = fmtTime(total);
     }
     startProgressTimer();
@@ -476,20 +449,19 @@ function onPlayerStateChange(event) {
                 setActive(null);
             }
 
-            // Phase 14.10: Force save currentTime khi pause (KHÔNG throttle).
-            // Pause là action cuối thường gặp trước khi user F5/đóng tab →
-            // cần save ngay để restore chính xác.
             if (currentList.length > 0 && currentList[currentIndex]) {
-                const currentTime = ytPlayer && typeof ytPlayer.getCurrentTime === "function"
-                    ? ytPlayer.getCurrentTime() || 0
-                    : 0;
+                const currentTime =
+                    ytPlayer && typeof ytPlayer.getCurrentTime === "function"
+                        ? ytPlayer.getCurrentTime() || 0
+                        : 0;
                 savePlayerState({
                     video: {
                         currentVideo: {
                             id: currentList[currentIndex].id,
                             videoId: currentList[currentIndex].videoId,
                             title: currentList[currentIndex].title,
-                            thumbnails: currentList[currentIndex].thumbnails || [],
+                            thumbnails:
+                                currentList[currentIndex].thumbnails || [],
                             artists: currentList[currentIndex].artists || [],
                             duration: currentList[currentIndex].duration,
                         },
@@ -514,7 +486,6 @@ function onPlayerStateChange(event) {
             syncPlayButtons(false);
             stopProgressTimer();
 
-            // Phase 14.10: Clear video slot (user đã xem hết → KHÔNG restore).
             clearPlayerState({ video: true });
 
             // Repeat ON → replay current video (không push history)
@@ -591,9 +562,6 @@ function startProgressTimer() {
             updateProgressUI(current, total);
         }
 
-        // Phase 14.10: Throttled save currentTime vào localStorage (mỗi 5s).
-        // KHÔNG save khi user đang drag (đã check ở trên).
-        // KHÔNG save khi video ENDED (current ≈ total) → coi như đã xem hết.
         const now = Date.now();
         if (
             currentList.length > 0 &&
@@ -696,7 +664,7 @@ function bindProgressDrag({ rangeSelector, getTotal, seekTo, onSeek }) {
     // Để click anywhere → seek, dùng pointerdown để tính percent từ vị trí click.
     const seekFromPointer = (e) => {
         const rect = rangeEl.getBoundingClientRect();
-        const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
+        const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
         if (!clientX) return;
         const percent = ((clientX - rect.left) / rect.width) * 100;
         handleSeek(percent);
@@ -786,7 +754,8 @@ async function loadVideo(video) {
     if (currentEl) currentEl.textContent = fmtTime(0);
     if (durationEl) durationEl.textContent = fmtTime(video.duration);
     if (titleEl) titleEl.textContent = video.title || "Không rõ tên";
-    if (subEl) subEl.textContent = `Video ${currentIndex + 1} / ${currentList.length}`;
+    if (subEl)
+        subEl.textContent = `Video ${currentIndex + 1} / ${currentList.length}`;
 
     // Update play button → "is-playing" (autoplay=1, cả overlay + mini)
     syncPlayButtons(true);
@@ -798,12 +767,12 @@ async function loadVideo(video) {
             id: video.id,
             type: "video",
             title: video.title,
-            thumbnails: video.thumbnails || (video.thumbnail ? [video.thumbnail] : []),
+            thumbnails:
+                video.thumbnails || (video.thumbnail ? [video.thumbnail] : []),
             artists: video.artists || (video.artist ? [video.artist] : []),
         });
     }
 
-    // Phase 14.10: Save video state vào localStorage (currentVideo + relatedList + index).
     // Volume + currentTime sẽ được update qua progressTimer.
     if (video && video.id) {
         savePlayerState({
@@ -844,7 +813,9 @@ async function loadVideo(video) {
 
 function highlightActive() {
     // Sync active trong overlay (related list bên phải)
-    const relatedItems = document.querySelectorAll(".video-overlay__related-item");
+    const relatedItems = document.querySelectorAll(
+        ".video-overlay__related-item",
+    );
     relatedItems.forEach((el) => {
         const idx = Number(el.dataset.index);
         el.classList.toggle("is-active", idx === currentIndex);
@@ -861,8 +832,9 @@ function highlightActive() {
     videoListItems.forEach((el) => {
         const href = el.getAttribute("href") || "";
         // href dạng /videos/details/:id — match id ở cuối
-        const isMatch = href.endsWith(`/${encodeURIComponent(currentVideoId)}`)
-            || href.endsWith(`/${currentVideoId}`);
+        const isMatch =
+            href.endsWith(`/${encodeURIComponent(currentVideoId)}`) ||
+            href.endsWith(`/${currentVideoId}`);
         el.classList.toggle("is-active", isMatch);
     });
 }
@@ -984,25 +956,43 @@ function togglePlay() {
 
 function bindEvents() {
     // Close button → minimize (thu nhỏ về mini-player, không destroy)
-    document.querySelector("#video-overlay-close-btn")?.addEventListener("click", minimize);
+    document
+        .querySelector("#video-overlay-close-btn")
+        ?.addEventListener("click", minimize);
 
     // Fullscreen button (đã chuyển vào video-overlay__controls)
-    document.querySelector("#video-overlay-fullscreen-btn")?.addEventListener("click", toggleFullscreen);
+    document
+        .querySelector("#video-overlay-fullscreen-btn")
+        ?.addEventListener("click", toggleFullscreen);
 
     // === MINI MODE events (2 nút absolute trong iframe) ===
     // Expand (mini → overlay full)
-    document.querySelector("#video-overlay-mini-expand-btn")?.addEventListener("click", expand);
+    document
+        .querySelector("#video-overlay-mini-expand-btn")
+        ?.addEventListener("click", expand);
 
     // Close hoàn toàn (destroy player)
-    document.querySelector("#video-overlay-mini-close-btn")?.addEventListener("click", closeFull);
+    document
+        .querySelector("#video-overlay-mini-close-btn")
+        ?.addEventListener("click", closeFull);
 
     // ===== OVERLAY CONTROLS =====
     // overlay play/pause tương tự mini — onPlayerStateChange sync tự động.
-    document.querySelector("#video-overlay-play-btn")?.addEventListener("click", togglePlay);
-    document.querySelector("#video-overlay-next-btn")?.addEventListener("click", playNext);
-    document.querySelector("#video-overlay-prev-btn")?.addEventListener("click", playPrev);
-    document.querySelector("#video-overlay-shuffle-btn")?.addEventListener("click", toggleShuffle);
-    document.querySelector("#video-overlay-repeat-btn")?.addEventListener("click", toggleRepeat);
+    document
+        .querySelector("#video-overlay-play-btn")
+        ?.addEventListener("click", togglePlay);
+    document
+        .querySelector("#video-overlay-next-btn")
+        ?.addEventListener("click", playNext);
+    document
+        .querySelector("#video-overlay-prev-btn")
+        ?.addEventListener("click", playPrev);
+    document
+        .querySelector("#video-overlay-shuffle-btn")
+        ?.addEventListener("click", toggleShuffle);
+    document
+        .querySelector("#video-overlay-repeat-btn")
+        ?.addEventListener("click", toggleRepeat);
 
     // ============================================================
     // Listen events từ #player (player.js dispatch) để sync ngược lại
@@ -1077,7 +1067,7 @@ function bindEvents() {
             if (navigator.clipboard?.writeText) {
                 navigator.clipboard.writeText(url).then(
                     () => showToast("Đã copy link vào clipboard"),
-                    () => showToast("Không thể copy link", "error")
+                    () => showToast("Không thể copy link", "error"),
                 );
             } else {
                 showToast("Trình duyệt không hỗ trợ clipboard", "error");
@@ -1142,76 +1132,91 @@ function bindEvents() {
     }
 
     // Menu items — log action (sẽ nối service sau)
-    document.querySelector("#video-overlay-menu")?.addEventListener("click", (e) => {
-        const btn = e.target.closest(".video-overlay__menu-item");
-        if (!btn) return;
-        const action = btn.dataset.action;
-        const video = currentList[currentIndex];
+    document
+        .querySelector("#video-overlay-menu")
+        ?.addEventListener("click", (e) => {
+            const btn = e.target.closest(".video-overlay__menu-item");
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const video = currentList[currentIndex];
 
-        // "Thêm vào playlist" → mở submenu (KHÔNG đóng menu chính)
-        if (action === "add-playlist") {
-            showPlaylistSubmenu(video);
-            return;
-        }
-
-        // Các action khác → ẩn menu sau khi click
-        const menu = document.querySelector("#video-overlay-menu");
-        if (menu) menu.hidden = true;
-
-        if (action === "share") {
-            // Copy URL dùng slug (ưu tiên) hoặc id
-            const slug = video?.slug || video?.id;
-            const url = `${location.origin}/videos/details/${slug}`;
-            if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(url).then(
-                    () => showToast("Đã copy link vào clipboard"),
-                    () => showToast("Không thể copy link", "error")
-                );
-            } else {
-                showToast("Trình duyệt không hỗ trợ clipboard", "error");
+            // "Thêm vào playlist" → mở submenu (KHÔNG đóng menu chính)
+            if (action === "add-playlist") {
+                showPlaylistSubmenu(video);
+                return;
             }
-        } else if (action === "detail") {
-            // Navigate sang trang detail (overlay close → page load)
-            const slug = video?.slug || video?.id;
-            if (slug) {
-                emit("video-overlay:closed");
-                window.location.href = `/videos/details/${slug}`;
+
+            // Các action khác → ẩn menu sau khi click
+            const menu = document.querySelector("#video-overlay-menu");
+            if (menu) menu.hidden = true;
+
+            if (action === "share") {
+                // Copy URL dùng slug (ưu tiên) hoặc id
+                const slug = video?.slug || video?.id;
+                const url = `${location.origin}/videos/details/${slug}`;
+                if (navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(url).then(
+                        () => showToast("Đã copy link vào clipboard"),
+                        () => showToast("Không thể copy link", "error"),
+                    );
+                } else {
+                    showToast("Trình duyệt không hỗ trợ clipboard", "error");
+                }
+            } else if (action === "detail") {
+                // Navigate sang trang detail (overlay close → page load)
+                const slug = video?.slug || video?.id;
+                if (slug) {
+                    emit("video-overlay:closed");
+                    window.location.href = `/videos/details/${slug}`;
+                }
             }
-        }
-    });
+        });
 
     // Submenu — back button (ẩn submenu, hiện main menu)
-    document.querySelector(".video-overlay__submenu-back")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        document.querySelector("#video-overlay-playlist-submenu")?.setAttribute("hidden", "");
-    });
+    document
+        .querySelector(".video-overlay__submenu-back")
+        ?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            document
+                .querySelector("#video-overlay-playlist-submenu")
+                ?.setAttribute("hidden", "");
+        });
 
     // Submenu — click playlist → add video
-    document.querySelector("#video-overlay-playlist-list")?.addEventListener("click", async (e) => {
-        const btn = e.target.closest(".video-overlay__submenu-item");
-        if (!btn) return;
-        const playlistSlug = btn.dataset.slug;
-        const video = currentList[currentIndex];
-        if (!playlistSlug || !video) return;
+    document
+        .querySelector("#video-overlay-playlist-list")
+        ?.addEventListener("click", async (e) => {
+            const btn = e.target.closest(".video-overlay__submenu-item");
+            if (!btn) return;
+            const playlistSlug = btn.dataset.slug;
+            const video = currentList[currentIndex];
+            if (!playlistSlug || !video) return;
 
-        // Disable + visual feedback
-        btn.classList.add("is-loading");
-        btn.disabled = true;
+            // Disable + visual feedback
+            btn.classList.add("is-loading");
+            btn.disabled = true;
 
-        try {
-            await playlistsService.addVideoToPlaylist(playlistSlug, video.id);
-            showToast(`Đã thêm "${video.title}" vào playlist`);
-        } catch (err) {
-            console.error("[video-overlay] add to playlist error:", err);
-            showToast("Không thể thêm vào playlist", "error");
-        } finally {
-            btn.classList.remove("is-loading");
-            btn.disabled = false;
-            // Đóng cả submenu + main menu
-            document.querySelector("#video-overlay-playlist-submenu")?.setAttribute("hidden", "");
-            document.querySelector("#video-overlay-menu")?.setAttribute("hidden", "");
-        }
-    });
+            try {
+                await playlistsService.addVideoToPlaylist(
+                    playlistSlug,
+                    video.id,
+                );
+                showToast(`Đã thêm "${video.title}" vào playlist`);
+            } catch (err) {
+                console.error("[video-overlay] add to playlist error:", err);
+                showToast("Không thể thêm vào playlist", "error");
+            } finally {
+                btn.classList.remove("is-loading");
+                btn.disabled = false;
+                // Đóng cả submenu + main menu
+                document
+                    .querySelector("#video-overlay-playlist-submenu")
+                    ?.setAttribute("hidden", "");
+                document
+                    .querySelector("#video-overlay-menu")
+                    ?.setAttribute("hidden", "");
+            }
+        });
 
     // Volume — slider input → setVolume() + update number display
     const volSlider = document.querySelector("#video-overlay-volume-slider");
@@ -1304,12 +1309,14 @@ function bindEvents() {
     });
 
     // Related list — event delegation
-    document.querySelector("#video-overlay-related-list")?.addEventListener("click", (e) => {
-        const btn = e.target.closest(".video-overlay__related-item");
-        if (!btn) return;
-        const idx = Number(btn.dataset.index);
-        if (Number.isInteger(idx)) playAt(idx);
-    });
+    document
+        .querySelector("#video-overlay-related-list")
+        ?.addEventListener("click", (e) => {
+            const btn = e.target.closest(".video-overlay__related-item");
+            if (!btn) return;
+            const idx = Number(btn.dataset.index);
+            if (Number.isInteger(idx)) playAt(idx);
+        });
 
     // Progress bar — full drag: click anywhere hoặc drag thumb → seekTo()
     bindProgressDrag({
@@ -1325,7 +1332,9 @@ function bindEvents() {
         },
         onSeek: (targetTime) => {
             // Update time label ngay khi seek (real-time feedback)
-            const currentEl = document.querySelector("#video-overlay-current-time");
+            const currentEl = document.querySelector(
+                "#video-overlay-current-time",
+            );
             if (currentEl) currentEl.textContent = fmtTime(targetTime);
         },
     });
@@ -1362,7 +1371,9 @@ export function mount() {
     bindEvents();
 
     // Preload YouTube API (không đợi)
-    loadYouTubeAPI().catch((err) => console.error("[video-overlay] YT API load fail:", err));
+    loadYouTubeAPI().catch((err) =>
+        console.error("[video-overlay] YT API load fail:", err),
+    );
 }
 
 /**
@@ -1378,9 +1389,10 @@ export async function open(video, relatedList = [], options = {}) {
     mount();
 
     // Set state
-    currentList = Array.isArray(relatedList) && relatedList.length > 0
-        ? relatedList
-        : [video];
+    currentList =
+        Array.isArray(relatedList) && relatedList.length > 0
+            ? relatedList
+            : [video];
     currentIndex = currentList.findIndex((v) => v.id === video.id);
     if (currentIndex < 0) {
         currentIndex = 0;
@@ -1393,8 +1405,12 @@ export async function open(video, relatedList = [], options = {}) {
     isRepeatOn = false;
 
     // Reset shuffle/repeat buttons UI
-    document.querySelector("#video-overlay-shuffle-btn")?.classList.remove("is-active");
-    document.querySelector("#video-overlay-repeat-btn")?.classList.remove("is-active");
+    document
+        .querySelector("#video-overlay-shuffle-btn")
+        ?.classList.remove("is-active");
+    document
+        .querySelector("#video-overlay-repeat-btn")
+        ?.classList.remove("is-active");
 
     // Render UI (related list chỉ dùng cho overlay full, mini sẽ render riêng)
     renderRelatedList(currentList);
@@ -1460,14 +1476,6 @@ export function expand() {
 /**
  * Toggle mini mode. Internal — dùng chung cho minimize/expand.
  * @param {boolean} mini - true = mini, false = full
- *
- * Phase 8.5 v9.2 fix (re-apply):
- *   Bug trước: `if (mini)` chỉ add `is-minimized` mà KHÔNG remove `is-open`
- *   → CSS conflict: `.is-open` (opacity:1, visibility:visible) + `.is-minimized`
- *     (pointer-events:none, ẩn controls) → overlay vẫn "hiện" full màn dù contentẩn.
- *   → User thấy mini ở góc nhưng click vào nội dung bên dưới không tác động.
- *
- *   Fix bằng cách đảm bảo 2 class EXCLUSIVE — luôn remove class không liên quan trước khi add.
  */
 function setMiniMode(mini) {
     const overlay = document.querySelector(`#${OVERLAY_ID}`);
@@ -1503,10 +1511,14 @@ export function closeFull() {
 
     // Pause + destroy player
     if (ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-        try { ytPlayer.pauseVideo(); } catch (_) {}
+        try {
+            ytPlayer.pauseVideo();
+        } catch (_) {}
     }
     if (ytPlayer && typeof ytPlayer.destroy === "function") {
-        try { ytPlayer.destroy(); } catch (_) {}
+        try {
+            ytPlayer.destroy();
+        } catch (_) {}
         ytPlayer = null;
     }
 
@@ -1529,30 +1541,9 @@ export function closeFull() {
         setActive(null);
     }
 
-    // Phase 14.6 fix: Ẩn #player + reset UI ngay (giống ejectSong() pattern)
-    //
-    // BUG cũ: Khi user click close ở #player khi đang phát video:
-    //   - closeFull() clear currentList, emit video-overlay:state-changed với
-    //     video: null → applyAudioState({currentSong: undefined, playing: false})
-    //   - Fix 14.5 SKIP toggle `is-visible` khi state rỗng (để tránh flicker)
-    //   → Player KHÔNG bị ẩn!
-    //   - Listener `video-overlay:closed` chỉ REMOVE `is-hidden-by-overlay`
-    //   → Player hiện ra với title/cover video cũ (state bị "kẹt").
-    //
-    // Fix: gọi `hidePlayer()` trực tiếp + reset UI ngay (giống ejectSong).
-    // applyAudioState sau đó vẫn work bình thường (Fix 14.5 skip đã đúng,
-    // vì state rỗng KHÔNG nên remove is-visible — chính hidePlayer() ở đây
-    // đã lo việc đó).
-    //
-    // LƯU Ý: KHÔNG gọi `hidePlayer()` từ `state/playerState.js` vì hàm đó
-    // check `if (!visible) return;` (state `visible` chỉ set true khi
-    // `showPlayer()` được gọi — mà video KHÔNG gọi showPlayer, nó dùng
-    // applyAudioState toggle class trực tiếp). → `hidePlayer` sẽ skip
-    // trong context video. → Force remove class trực tiếp.
     document.querySelector("#player")?.classList.remove("is-visible");
     resetPlayerUIForClose();
 
-    // Phase 14.10: Clear video slot trong localStorage (giữ nguyên audio).
     clearPlayerState({ video: true });
 
     // Emit state-changed để #player biết track đã bị destroy → ẩn player
@@ -1561,18 +1552,6 @@ export function closeFull() {
 }
 
 /**
- * Phase 14.10: Khôi phục video state từ localStorage.
- *
- * Được gọi bởi `initLayout()` khi phát hiện có persisted state.
- * Hiển thị ở mini-player (góc dưới phải) dạng "stopped" (KHÔNG auto-play):
- *   - currentVideo → load mini-player UI + set related list + set currentIndex
- *   - volume → set volume
- *   - isRepeatOn/isShuffleOn → set toggle UI
- *   - currentTime → seek tới vị trí đã lưu (khi user click play sẽ resume)
- *
- * Pattern mirror `audioPlayer.restoreFromState()` (line 460-540) + dùng
- * `videoOverlay.open({ startAsMini: true })` để hiển thị mini.
- *
  * @param {object} persisted - { currentVideo, currentTime, volume, isRepeatOn, isShuffleOn, relatedList, currentIndex }
  */
 export async function restoreFromState(persisted) {
@@ -1584,9 +1563,10 @@ export async function restoreFromState(persisted) {
     log("restoreFromState()", persisted);
 
     // 1. Set state trước
-    currentList = Array.isArray(persisted.relatedList) && persisted.relatedList.length > 0
-        ? persisted.relatedList
-        : [persisted.currentVideo];
+    currentList =
+        Array.isArray(persisted.relatedList) && persisted.relatedList.length > 0
+            ? persisted.relatedList
+            : [persisted.currentVideo];
     currentIndex = persisted.currentIndex || 0;
     if (currentIndex < 0 || currentIndex >= currentList.length) {
         currentIndex = 0;
@@ -1596,8 +1576,12 @@ export async function restoreFromState(persisted) {
     playHistory = [];
 
     // 2. Reset shuffle/repeat buttons UI
-    document.querySelector("#video-overlay-shuffle-btn")?.classList.toggle("is-active", isShuffleOn);
-    document.querySelector("#video-overlay-repeat-btn")?.classList.toggle("is-active", isRepeatOn);
+    document
+        .querySelector("#video-overlay-shuffle-btn")
+        ?.classList.toggle("is-active", isShuffleOn);
+    document
+        .querySelector("#video-overlay-repeat-btn")
+        ?.classList.toggle("is-active", isRepeatOn);
 
     // 3. Render related list UI (mini + overlay)
     renderRelatedList(currentList);
@@ -1613,7 +1597,11 @@ export async function restoreFromState(persisted) {
     let attempts = 0;
     const seekWhenReady = setInterval(() => {
         attempts++;
-        if (ytPlayer && typeof ytPlayer.seekTo === "function" && typeof ytPlayer.getDuration === "function") {
+        if (
+            ytPlayer &&
+            typeof ytPlayer.seekTo === "function" &&
+            typeof ytPlayer.getDuration === "function"
+        ) {
             try {
                 const duration = ytPlayer.getDuration() || 0;
                 if (duration > 0) {
@@ -1623,39 +1611,48 @@ export async function restoreFromState(persisted) {
                         ytPlayer.pauseVideo();
                     }
                     clearInterval(seekWhenReady);
-                    log("restoreFromState: seek to", persisted.currentTime, "paused");
+                    log(
+                        "restoreFromState: seek to",
+                        persisted.currentTime,
+                        "paused",
+                    );
                 }
             } catch (err) {
-                console.warn("[videoOverlay] restoreFromState: seek failed:", err);
+                console.warn(
+                    "[videoOverlay] restoreFromState: seek failed:",
+                    err,
+                );
                 clearInterval(seekWhenReady);
             }
         } else if (attempts > 40) {
             // Timeout sau 10s (40 * 250ms)
-            console.warn("[videoOverlay] restoreFromState: timeout waiting for ytPlayer ready");
+            console.warn(
+                "[videoOverlay] restoreFromState: timeout waiting for ytPlayer ready",
+            );
             clearInterval(seekWhenReady);
         }
     }, 250);
 
     // 6. Set volume
-    if (persisted.volume != null && ytPlayer && typeof ytPlayer.setVolume === "function") {
+    if (
+        persisted.volume != null &&
+        ytPlayer &&
+        typeof ytPlayer.setVolume === "function"
+    ) {
         try {
             ytPlayer.setVolume(persisted.volume);
         } catch (_) {}
     }
 
     // 7. Update toggle UI cho shuffle/repeat (apply lại sau open)
-    document.querySelector("#video-overlay-shuffle-btn")?.classList.toggle("is-active", isShuffleOn);
-    document.querySelector("#video-overlay-repeat-btn")?.classList.toggle("is-active", isRepeatOn);
+    document
+        .querySelector("#video-overlay-shuffle-btn")
+        ?.classList.toggle("is-active", isShuffleOn);
+    document
+        .querySelector("#video-overlay-repeat-btn")
+        ?.classList.toggle("is-active", isRepeatOn);
 }
 
-/**
- * Phase 14.6 fix: Reset #player UI về empty state khi close video.
- * Mirror `_resetPlayerUI()` của audioPlayer — title "Chưa phát", cover mặc định,
- * time "0:00 / 0:00", progress 0%.
- *
- * KHÔNG touch class `is-hidden-by-overlay` (sẽ do listener
- * `video-overlay:closed` xử lý).
- */
 function resetPlayerUIForClose() {
     const titleEl = document.querySelector(".player__title");
     const coverEl = document.querySelector(".player__cover");
@@ -1674,43 +1671,19 @@ function resetPlayerUIForClose() {
     }
 }
 
-// ======================================================
-// EJECT — Phase 8.5 v8: Replace media, not update
-// ======================================================
-//
-// Port pattern từ code gốc `base.js:5396-5410` (class video destroy):
-//   destroy() {
-//       try { this.player && this.player.destroy && this.player.destroy() }
-//       catch { console.log(...) }
-//       this.player = null,
-//       this.isReady = !1,
-//       this.currentVideo = null,
-//       ...
-//   }
-//
-// Khi user chuyển sang audio (click track) hoặc load video mới, PHẢI eject
-// sạch state của video cũ. KHÔNG pause-thuần (giữ iframe + currentList).
-//
-// Flow:
-//   1. Pause + destroy YT.Player (xóa iframe khỏi DOM)
-//   2. Clear currentList / currentIndex / playHistory / shuffle / repeat
-//   3. Clear active → trigger `media:active-changed` (audio sẽ eject)
-//   4. Ẩn overlay UI (DOM vẫn giữ — chỉ ẩn để load video khác)
-//   5. Emit state-changed → #player biết track đã bị destroy
-//
-// KHÁC deleteFull(): closeFull cũng ẩn overlay hoàn toàn.
-// ejectVideo() giữ overlay DOM sẵn sàng (có thể load video mới ngay).
-//
-// Sau khi eject → overlay ở "empty state", sẵn sàng nhận video mới qua `open()`.
 export function ejectVideo() {
     log("ejectVideo()");
 
     // 1. Pause + destroy YT.Player (xóa iframe khỏi DOM)
     if (ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-        try { ytPlayer.pauseVideo(); } catch (_) {}
+        try {
+            ytPlayer.pauseVideo();
+        } catch (_) {}
     }
     if (ytPlayer && typeof ytPlayer.destroy === "function") {
-        try { ytPlayer.destroy(); } catch (_) {}
+        try {
+            ytPlayer.destroy();
+        } catch (_) {}
     }
     ytPlayer = null;
 
@@ -1784,7 +1757,7 @@ export function toggleFullscreen() {
                     document.exitFullscreen?.();
                 } else {
                     iframe.requestFullscreen?.() ||
-                    overlay?.requestFullscreen?.();
+                        overlay?.requestFullscreen?.();
                 }
                 return;
             }
@@ -1808,21 +1781,9 @@ export function isOpenNow() {
     return isOpen;
 }
 
-// ======================================================
-// PHASE 8.5 v7: MUTUAL EXCLUSION LISTENER
-// ======================================================
-//
-// Khi audioPlayer setActive("audio") → video PHẢI pause
-// (tránh 2 audio cùng phát khi user click play audio từ #player
-// trong khi video overlay đang phát).
-//
-// Listen qua document event thay vì import audioPlayer trực tiếp
-// → tránh circular dependency.
-
 document.addEventListener("media:active-changed", (e) => {
     const active = e.detail?.active;
 
-    // Phase 8.5 v8: Nếu active = audio → eject video sạch (destroy + clear).
     // Không pause thuần (vì iframe + state cũ vẫn còn → leak + "video ma" resume).
     if (active === "audio") {
         ejectVideo();

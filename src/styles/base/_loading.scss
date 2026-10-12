@@ -1,31 +1,6 @@
 @use "../abstracts/mixin" as mix;
 
 // ======================================================
-// LOADING STATE
-// ======================================================
-//
-// Khi trang đang load → class "app-loading" trên <html>
-// hiển thị spinner quay giữa màn hình.
-//
-// Khi load xong (scripts.js ready) → class "app-loaded"
-// ẩn spinner + fade-in các section.
-//
-// Cách dùng:
-//   <html class="app-loading"> ... </html>
-//   → scripts.js tự thêm "app-loaded" khi xong.
-//
-// Section có class .header, .sidebar, main
-// sẽ được fade-in theo thứ tự stagger.
-//
-// LƯU Ý: .player KHÔNG có trong list này vì:
-//   - Player có visibility state riêng (ẩn / slide-up).
-//   - Player mặc định ẨN khi page load, fade-in chỉ áp dụng
-//     cho header / sidebar / main.
-//   - Khi playSong() gọi showPlayer() → slide-up từ dưới.
-//   - Xem state/playerState.js + styles/layout/_player.scss.
-//
-
-// ======================================================
 // KEYFRAMES
 // ======================================================
 
@@ -38,7 +13,8 @@
 
 // Pulse / heartbeat cho logo hoặc text loading
 @keyframes appPulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 0.5;
         transform: scale(1);
     }

@@ -1,38 +1,3 @@
-// ======================================================
-// MOOD CHIP COMPONENT — Mood & Genre chips
-// ======================================================
-//
-
-// độc lập để dùng ở Home, Discover, Mood detail, Moods-and-genres.
-//
-// Có 2 variant:
-//   1. `renderMoodChip` — chip nhỏ dạng pill (`.cate-btn`), dùng cho
-//      mood filter ở Home và Mood Detail (port `tr()` dòng 4139 base.js).
-//   2. `renderMoodGenreItem` — chip lớn có color bar (`.mood-genre-item`),
-//      dùng cho Discover page (port `r()` trong `ir()` dòng 4247 base.js).
-//
-// Style dùng class `.cate-btn` + `.mood-genre-item` có sẵn trong SCSS
-// (`src/styles/pages/_home.scss` + `src/styles/pages/_discover.scss`).
-// Không thêm SCSS mới — chỉ wrap markup.
-//
-// API:
-//   renderMoodChip({ slug, name, href, isActive })
-//     → HTML 1 chip pill
-//
-//   renderMoodChips(moods, { activeSlug, basePath })
-//     → HTML string nhiều chip pill
-//
-//   renderMoodGenreItem({ slug, name, color, path, basePath })
-//     → HTML 1 mood/genre item có color bar
-//
-//   renderMoodGenreItems(items, { basePath })
-//     → HTML string nhiều mood/genre item
-//
-// USAGE:
-//   import { renderMoodChips } from "@/components/mood-chip.js";
-//   const html = renderMoodChips(moods, { activeSlug: currentMood });
-//
-
 import { escapeHtml } from "@/utils/format.js";
 
 const DEFAULT_COLOR = "#7fdbff";
@@ -72,11 +37,10 @@ export function renderMoodChip(mood, options = {}) {
     if (!normalized.slug && !normalized.href) return "";
 
     const { basePath = DEFAULT_MOOD_BASE_PATH } = options;
-    const href = normalized.href || `${basePath}/${encodeURIComponent(normalized.slug)}`;
+    const href =
+        normalized.href || `${basePath}/${encodeURIComponent(normalized.slug)}`;
     const isActive = normalized.isActive || Boolean(mood.active);
-    const stateClass = isActive
-        ? "cate-btn--active"
-        : "cate-btn--inactive";
+    const stateClass = isActive ? "cate-btn--active" : "cate-btn--inactive";
     const dataActive = isActive ? ` data-active="true"` : "";
 
     return `
@@ -107,7 +71,7 @@ export function renderMoodChips(moods, options = {}) {
             const slug = m.slug || m._id || "";
             return renderMoodChip(
                 { ...m, isActive: slug === activeSlug },
-                { basePath }
+                { basePath },
             );
         })
         .join("");
@@ -172,9 +136,7 @@ export function renderMoodGenreItem(item, options = {}) {
  */
 export function renderMoodGenreItems(items, options = {}) {
     if (!Array.isArray(items) || items.length === 0) return "";
-    return items
-        .map((it) => renderMoodGenreItem(it, options))
-        .join("");
+    return items.map((it) => renderMoodGenreItem(it, options)).join("");
 }
 
 export default renderMoodChip;

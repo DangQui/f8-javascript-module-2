@@ -10,7 +10,6 @@
     }
 
     // Large variant — dùng cho profile header card
-    //
     &--lg {
         width: 80px;
         height: 80px;
@@ -24,10 +23,7 @@
 // ======================================================
 // PROFILE HEADER CARD
 // ======================================================
-//
-// Layout: avatar centered, name + email + joinedAt xếp dọc.
-// Hiển thị ở đầu trang /auth/profile, trên form update.
-//
+
 .profile-header {
     display: flex;
     flex-direction: column;
@@ -74,10 +70,7 @@
 // ======================================================
 // AUTH — Extra modifiers
 // ======================================================
-//
-// Gắn vào `.auth__inner` để có variant cho profile page
-// (cao hơn để chứa header card + form).
-//
+
 .auth__inner--profile {
     width: 440px;
     padding: 32px 40px;

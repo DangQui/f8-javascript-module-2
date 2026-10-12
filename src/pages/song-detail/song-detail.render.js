@@ -1,24 +1,3 @@
-// ======================================================
-// SONG DETAIL PAGE — Render functions
-// ======================================================
-//
-// Layout (2 columns) — port từ `song-detail.html` gốc + `br()` trong base.js:
-//
-//   ┌──────────────────────┬─────────────────────────┐
-//   │   .info-detail       │     .track-list         │
-//   │   (img + title       │     (scrollable list    │
-//   │    + meta)           │      of related songs)  │
-//   └──────────────────────┴─────────────────────────┘
-//
-// Data flow (port từ base.js dòng 4961):
-//   1. Main song info: id, audioUrl, thumbnails, title, duration, popularity
-//   2. Tracks: dedupe([...album.tracks, ...playlists.flatMap(tracks)]) | related
-//
-// Lưu ý:
-//   - Track item link → /songs/details/:id (Navigo) — khi click sẽ navigate.
-//   - Empty data → fallback `<p class="track-list__empty">`.
-//
-
 import { escapeHtml, formatDuration, formatViews } from "@/utils/format.js";
 import { renderTrackList as renderTrackItemComponent } from "@/components/track-item.js";
 
@@ -27,7 +6,6 @@ import { renderTrackList as renderTrackItemComponent } from "@/components/track-
 // ======================================================
 
 /**
- * Render info-detail box (left column).
  * @param {object} song - Song object từ detailsService.getSong()
  * @returns {string} HTML
  */
@@ -35,9 +13,10 @@ export function renderInfoDetail(song) {
     const thumbnail = song.thumbnails?.[0] || "/images/quick-picks-01.jpg";
     const title = escapeHtml(song.title || "Không rõ tên bài hát");
     const durationSec = Number(song.duration) || 0;
-    const popularity = Number.isFinite(song.popularity) && song.popularity >= 0
-        ? song.popularity
-        : null;
+    const popularity =
+        Number.isFinite(song.popularity) && song.popularity >= 0
+            ? song.popularity
+            : null;
 
     return `
         <div class="info-detail">
@@ -84,9 +63,13 @@ export function renderInfoDetail(song) {
  */
 export function renderSongTrackList(song) {
     // Combine tracks từ album + playlists (theo logic base.js `br()`)
-    const fromAlbum = Array.isArray(song.album?.tracks) ? song.album.tracks : [];
+    const fromAlbum = Array.isArray(song.album?.tracks)
+        ? song.album.tracks
+        : [];
     const fromPlaylists = Array.isArray(song.playlists)
-        ? song.playlists.flatMap((p) => Array.isArray(p.tracks) ? p.tracks : [])
+        ? song.playlists.flatMap((p) =>
+              Array.isArray(p.tracks) ? p.tracks : [],
+          )
         : [];
 
     // Dedupe by id

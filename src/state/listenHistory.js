@@ -1,35 +1,3 @@
-/**
- * state/listenHistory.js — Local lịch sử nghe (workaround cho backend chưa có)
- *
- * Phase 14.9 — workaround: backend hiện trả `/home/personalized` = global top
- * albums (không phải lịch sử user). User mới chưa nghe gì vẫn thấy "Nghe gần
- * đây" → confused. Chưa wire `eventsService.playRecord()` (Phase 15 todo).
- *
- * Giải pháp tạm:
- *   - Lưu lịch sử vào localStorage mỗi khi user play 1 audio.
- *   - Schema: [{ id, type, title, thumbnail, artists, playedAt }, ...]
- *     - id = song.id (primary key)
- *     - type = "song" | "album" | "playlist" | "video"
- *     - playedAt = Date.now()
- *   - Max 20 items (FIFO).
- *   - Sort theo playedAt DESC.
- *
- * Khi nào upgrade:
- *   - Backend implement history tracking → sync localStorage với backend
- *   - Wire eventsService.playRecord() Phase 15 → backend tự track
- *
- * Exports:
- *   - recordListen(item)             → ghi nhận 1 lượt nghe (dedup by id)
- *   - getListenHistory({type, limit}) → lấy history (sorted DESC)
- *   - clearListenHistory()            → xóa toàn bộ (khi logout)
- *   - getListenHistoryCount()         → số items
- *   - historyItemToRenderItem(item)  → convert sang format home.render
- *
- * Consumed by:
- *   - `@/components/audio-player.js` gọi recordListen() khi play
- *   - `@/pages/home/home.js` getListenHistory({type: 'song', limit: 16})
- */
-
 const STORAGE_KEY = "music.listenHistory.v1";
 const SCHEMA_VERSION = 1;
 const MAX_ITEMS = 20; // chỉ dùng cho "Nghe gần đây" + tiết kiệm quota
@@ -43,7 +11,8 @@ function isValidItem(item) {
     if (!item || typeof item !== "object") return false;
     if (!item.id) return false;
     if (!item.type) return false;
-    if (!["song", "album", "playlist", "video"].includes(item.type)) return false;
+    if (!["song", "album", "playlist", "video"].includes(item.type))
+        return false;
     return true;
 }
 
@@ -76,7 +45,7 @@ function _write(items) {
                 version: SCHEMA_VERSION,
                 items,
                 savedAt: Date.now(),
-            })
+            }),
         );
     } catch (err) {
         console.warn("[listenHistory] Lỗi khi write:", err);
@@ -109,14 +78,15 @@ export function recordListen(item) {
         slug: item.slug || null,
         type: item.type,
         title: item.title || item.name || "",
-        thumbnail: Array.isArray(item.thumbnails) && item.thumbnails.length
-            ? item.thumbnails[0]
-            : item.thumb || "",
+        thumbnail:
+            Array.isArray(item.thumbnails) && item.thumbnails.length
+                ? item.thumbnails[0]
+                : item.thumb || "",
         subtitle: item.subtitle || "",
         artists: Array.isArray(item.artists)
-            ? item.artists.map((a) =>
-                  typeof a === "string" ? a : a?.name || ""
-              ).filter(Boolean)
+            ? item.artists
+                  .map((a) => (typeof a === "string" ? a : a?.name || ""))
+                  .filter(Boolean)
             : [],
         playedAt: Date.now(),
     };

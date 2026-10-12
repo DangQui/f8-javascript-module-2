@@ -1,28 +1,3 @@
-/**
- * validators.js — Form input validation (UI layer)
- *
- * Pure functions: validate string inputs từ form, trả về boolean hoặc
- * error message. Không gọi API, không touch DOM.
- *
- * Quy ước:
- *   - `isValidXxx(value)` → boolean (gate check, dùng để enable/disable button)
- *   - `getXxxError(value)` → string|null (inline error message dưới input)
- *
- * Exports:
- *   - isValidEmail / getEmailError
- *   - isValidPassword / getPasswordError
- *   - isStrongPassword (chỉ warn, không block)
- *   - isValidName / getNameError
- *   - isValidConfirmPassword / getConfirmPasswordError
- *
- * Consumed by:
- *   - `@/pages/auth/auth.js` (login/register form)
- *   - `@/pages/change-password/change-password.js`
- *   - `@/pages/profile/profile.js` (edit name)
- *
- * Tất cả messages lấy từ `@/utils/messages.js` để đồng nhất ngôn ngữ.
- */
-
 import { MESSAGES } from "@/utils/messages.js";
 
 // RFC 5321: local-part 64 + "@" + domain 255 = 254 max.
@@ -53,7 +28,9 @@ export function isValidEmail(email) {
  * @returns {boolean}
  */
 export function isValidPassword(password) {
-    return typeof password === "string" && password.length >= PASSWORD_MIN_LENGTH;
+    return (
+        typeof password === "string" && password.length >= PASSWORD_MIN_LENGTH
+    );
 }
 
 /**

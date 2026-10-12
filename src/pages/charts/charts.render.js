@@ -1,54 +1,12 @@
-// ======================================================
-// CHARTS PAGE — Render functions
-// ======================================================
-//
-// Port từ `code chức năng gốc/base.js` function `lr()` dòng 4428 +
-// function `er()` dòng 4123 (country change handler):
-//
-//   function lr(e, t, n) {
-//       return `<div class="p-4 text-white">
-//           <h1 class="font-bold text-[45px] mb-10">Bảng xếp hạng</h1>
-//           <div class="relative w-[113px] mb-6">
-//               <select id="country-select" class="...">
-//                   ${e.map(e => `<option value="${e.code}">${e.name}</option>`).join(``)}
-//               </select>
-//               <span class="...▼">▼</span>
-//           </div>
-//           <div id="charts-content">
-//               ${J(`Bảng xếp hạng video`, t)}
-//               ${$n(`Nghệ sĩ hàng đầu`, n)}
-//           </div>
-//       </div>`;
-//   }
-//
-// USAGE:
-//   import { renderCharts, renderChartsContent } from "@/pages/charts/charts.render.js";
-//   const html = renderCharts(countries, topVideos, topArtists);
-//   const inner = renderChartsContent(topVideos, topArtists);
-//
-// ======================================================
-
 import { renderSection as renderSectionComponent } from "@/components/section.js";
 import { renderTopArtistsSection } from "@/components/top-artist.js";
 import { escapeHtml } from "@/utils/format.js";
 
 // ======================================================
-// VIDEO ITEM — Copy từ riêng cho charts để style khớp 100%
+// VIDEO ITEM
 // ======================================================
 
 /**
- * Pick href cho video item — port pattern `/videos/details/:slug` (xem base.js
- * 4156 + video-overlay.js:1075).
- *
- * Thứ tự ưu tiên:
- *   1. slug (vd: "nhc-c-in-video-40-39") — chuẩn SEO, dễ đọc
- *   2. _id   (Mongo ID từ `/charts/videos` — backend trả `_id` nhưng KHÔNG có slug)
- *   3. id    (fallback generic)
- *   4. videoId (YouTube videoId — vd: "Rb0UmrCXxVA", dùng làm identifier cuối cùng)
- *
- * Note: `/charts/videos` endpoint CHỈ trả `videoId` + `_id` (KHÔNG có slug/id).
- * Backend `/videos/details/:id` chấp nhận `_id` Mongo (đã test với
- * `691cb50edd97648f59757b4d` → trả về đúng video) → nên dùng `_id` làm fallback.
  *
  * @param {object} video
  * @returns {string} path segment
@@ -68,7 +26,9 @@ function renderVideoItem(video) {
     const id = pickVideoHref(video);
     const href = id ? `/videos/details/${id}` : "#";
     const thumb =
-        video.thumb || video.thumbnails || "https://picsum.photos/seed/video/400/240";
+        video.thumb ||
+        video.thumbnails ||
+        "https://picsum.photos/seed/video/400/240";
     const title = escapeHtml(video.title || video.name || "Untitled");
 
     const artists = Array.isArray(video.artists)
@@ -133,7 +93,7 @@ function renderTopVideosSection(topVideos) {
 }
 
 // ======================================================
-// CHARTS CONTENT — Phần swap khi country change (port từ `er()` base.js dòng 4123)
+// CHARTS CONTENT
 // ======================================================
 
 /**
@@ -159,7 +119,7 @@ export function renderChartsContent(topVideos, topArtists) {
 }
 
 // ======================================================
-// COUNTRY SELECT — Dropdown với custom arrow ▼
+// COUNTRY SELECT — Dropdown với custom arrow
 // ======================================================
 
 /**
@@ -193,7 +153,7 @@ function renderCountrySelect(countries, defaultCode = "GLOBAL") {
 }
 
 // ======================================================
-// FULL CHARTS — Compose H1 + country select + content
+// FULL CHARTS
 // ======================================================
 
 /**
@@ -205,7 +165,12 @@ function renderCountrySelect(countries, defaultCode = "GLOBAL") {
  * @param {string} [defaultCode="GLOBAL"]
  * @returns {string} HTML
  */
-export function renderCharts(countries, topVideos, topArtists, defaultCode = "GLOBAL") {
+export function renderCharts(
+    countries,
+    topVideos,
+    topArtists,
+    defaultCode = "GLOBAL",
+) {
     return `
         <div class="charts-page">
             <h1 class="home__title charts-page__heading">Bảng xếp hạng</h1>
@@ -218,8 +183,4 @@ export function renderCharts(countries, topVideos, topArtists, defaultCode = "GL
 }
 
 // Re-export individual renderers cho testing / extending
-export {
-    renderCountrySelect,
-    renderTopVideosSection,
-    renderVideoItem,
-};
+export { renderCountrySelect, renderTopVideosSection, renderVideoItem };

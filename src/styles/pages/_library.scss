@@ -1,45 +1,3 @@
-// ======================================================
-// LIBRARY PAGE — Style (Phase L-1)
-//
-// Hard Rule #1: KHÔNG đổi dòng SCSS nào đã có — chỉ thêm file mới.
-// Hard Rule #3: KHÔNG dùng Tailwind utility classes.
-//
-// Cấu trúc HTML (render từ src/pages/library/library.render.js):
-//   <div class="library-page">
-//       <div class="library-header">
-//           <h1 class="library-page__heading">Thư viện</h1>
-//           <div class="library-header__tools">
-//               <form class="form form__search library-search-form">[search input]</form>
-//               <div class="library-view-toggle">[grid|list buttons]</div>
-//               <div class="library-sort">[sort dropdown]</div>
-//           </div>
-//       </div>
-//       <div class="library-tabs" role="tablist">
-//           <button class="library-tabs__tab library-tabs__tab--active" role="tab">
-//       </div>
-//       <div class="library-content">
-//           <section class="library-section">
-//               <h2 class="library-section__title">Playlists của bạn</h2>
-//               <div class="library-grid">[cards]</div>
-//           </section>
-//       </div>
-//       <div class="library-empty">[empty state với icon + message + CTA]</div>
-//   </div>
-//
-// Phase L-1 scope:
-//   - Header (title + tabs ngang)
-//   - Tabs active state
-//   - View toggle (grid/list) + Sort dropdown UI (chưa wire logic)
-//   - Empty state
-//   - Library grid (dùng cart-item có sẵn)
-//
-// Phase L-2/L-3 sẽ bổ sung:
-//   - Section title + slider arrows (dùng crt__btn có sẵn)
-//   - Liked Songs hero card
-//   - List view (compact rows)
-//   - Responsive mobile breakpoints
-// ======================================================
-
 .library-page {
     padding: 24px 16px;
     color: var(--text-color);
@@ -49,7 +7,7 @@
     // HEADER — title + tools row
     // ======================================================
     &__heading {
-        font-size: 4.5rem; // 45px (port base.js `ur()`)
+        font-size: 4.5rem;
         font-weight: 700;
         line-height: 1.2;
         margin: 0 0 24px;
@@ -68,14 +26,7 @@
     }
 }
 
-// ======================================================
-// SEARCH INPUT — port nguyên cấu trúc + styles từ header search
-// (`form form__search` + `form__input-search` + `form__close`)
-// Style gốc ở `src/styles/components/_form.scss` → đã đồng bộ UX
-// với search trên header, không cần override.
-// ======================================================
 .library-search-form {
-    // Thu hẹp width cho context library (header form mặc định 470px)
     flex: 1;
     min-width: 200px;
     max-width: 360px;
@@ -190,7 +141,7 @@
 }
 
 // ======================================================
-// TABS — horizontal segmented control
+// TABS
 // ======================================================
 .library-tabs {
     display: flex;
@@ -265,7 +216,7 @@
 }
 
 // ======================================================
-// GRID VIEW — cards (dùng .cart-item có sẵn)
+// GRID VIEW
 // ======================================================
 .library-grid {
     display: grid;
@@ -284,7 +235,7 @@
 }
 
 // ======================================================
-// LIST VIEW — compact rows (dùng .track-list có sẵn)
+// LIST VIEW
 // ======================================================
 .library-list {
     display: flex;
@@ -338,7 +289,9 @@
         font-weight: 500;
         cursor: pointer;
         text-decoration: none;
-        transition: transform 0.15s ease, opacity 0.2s ease;
+        transition:
+            transform 0.15s ease,
+            opacity 0.2s ease;
 
         &:hover {
             transform: scale(1.04);

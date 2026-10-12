@@ -1,15 +1,3 @@
-// ======================================================
-// LIBRARY PAGE — Render functions
-//
-// Cung cấp các function render HTML cho trang Library:
-//   - renderLibraryPage()       → Full page (header + tabs + content)
-//   - renderLibraryHeader()     → Header (title + tools row)
-//   - renderTabContent()        → Content cho từng tab
-//   - renderEmptyState()        → Empty state (icon + message + CTA)
-//   - renderErrorState()        → Error state (icon + message + retry)
-//   - renderLoadingSkeleton()   → Skeleton loading cho từng tab
-// ======================================================
-
 import { escapeHtml } from "@/utils/format.js";
 import { renderTabs, LIBRARY_TABS } from "@/components/library-tabs.js";
 import { renderCards, normalizeCardItem } from "@/components/card-item.js";
@@ -55,7 +43,10 @@ export function renderLibraryPage({
  * @param {string} options.sortBy
  * @returns {string} HTML
  */
-export function renderLibraryHeader({ viewMode = "grid", sortBy = "recent" } = {}) {
+export function renderLibraryHeader({
+    viewMode = "grid",
+    sortBy = "recent",
+} = {}) {
     return `
         <header class="library-header">
             <h1 class="library-page__heading">Thư viện</h1>
@@ -106,8 +97,10 @@ function renderSearchInput() {
  * @returns {string} HTML
  */
 function renderViewToggle(viewMode) {
-    const gridActive = viewMode === "grid" ? " library-view-toggle__btn--active" : "";
-    const listActive = viewMode === "list" ? " library-view-toggle__btn--active" : "";
+    const gridActive =
+        viewMode === "grid" ? " library-view-toggle__btn--active" : "";
+    const listActive =
+        viewMode === "list" ? " library-view-toggle__btn--active" : "";
 
     return `
         <div class="library-view-toggle" role="group" aria-label="Chế độ hiển thị">
@@ -140,8 +133,8 @@ function renderViewToggle(viewMode) {
  */
 function renderSortDropdown(sortBy) {
     const labels = {
-        "recent": "Mới nhất",
-        "name": "A → Z",
+        recent: "Mới nhất",
+        name: "A → Z",
         "name-desc": "Z → A",
     };
     const currentLabel = labels[sortBy] || labels.recent;
@@ -152,9 +145,11 @@ function renderSortDropdown(sortBy) {
         { value: "name-desc", label: "Tên Z → A" },
     ];
 
-    const optionsHtml = options.map((opt) => {
-        const activeClass = opt.value === sortBy ? " library-sort__option--active" : "";
-        return `
+    const optionsHtml = options
+        .map((opt) => {
+            const activeClass =
+                opt.value === sortBy ? " library-sort__option--active" : "";
+            return `
             <button
                 type="button"
                 class="library-sort__option${activeClass}"
@@ -163,7 +158,8 @@ function renderSortDropdown(sortBy) {
                 ${escapeHtml(opt.label)}
             </button>
         `;
-    }).join("");
+        })
+        .join("");
 
     return `
         <div class="library-sort" data-library-sort-root>
@@ -196,7 +192,12 @@ function renderSortDropdown(sortBy) {
  * @param {object|null} options.data - { items, total, error? }
  * @returns {string} HTML
  */
-export function renderTabContent({ tab, viewMode = "grid", sortBy = "recent", data = null }) {
+export function renderTabContent({
+    tab,
+    viewMode = "grid",
+    sortBy = "recent",
+    data = null,
+}) {
     // Phase L-1: chỉ Playlists tab có empty state
     // Phase L-2/L-3: từng tab sẽ có render riêng
 
@@ -225,12 +226,18 @@ export function renderTabContent({ tab, viewMode = "grid", sortBy = "recent", da
  * Render section Playlists (Phase L-1: empty state only).
  * Phase L-2: thêm render cards khi có data.
  */
-function renderPlaylistsSection({ items = [], total = 0, viewMode = "grid", sortBy = "recent" }) {
+function renderPlaylistsSection({
+    items = [],
+    total = 0,
+    viewMode = "grid",
+    sortBy = "recent",
+}) {
     if (items.length === 0) {
         return renderEmptyState({
             icon: "fa-solid fa-list",
             title: "Chưa có playlist nào",
-            message: "Bạn chưa tạo playlist nào. Tạo playlist đầu tiên để sắp xếp những bài hát yêu thích.",
+            message:
+                "Bạn chưa tạo playlist nào. Tạo playlist đầu tiên để sắp xếp những bài hát yêu thích.",
             ctaText: "Tạo playlist mới",
             ctaHref: "/",
             ctaIcon: "fa-solid fa-plus",
@@ -239,9 +246,14 @@ function renderPlaylistsSection({ items = [], total = 0, viewMode = "grid", sort
 
     // Phase L-2: render grid/list
     const sorted = sortItems(items, sortBy);
-    const bodyHtml = viewMode === "grid"
-        ? renderCards(sorted.map((it) => normalizeCardItem(it, "/playlists/details")))
-        : renderPlaylistList(sorted);
+    const bodyHtml =
+        viewMode === "grid"
+            ? renderCards(
+                  sorted.map((it) =>
+                      normalizeCardItem(it, "/playlists/details"),
+                  ),
+              )
+            : renderPlaylistList(sorted);
 
     return `
         <section class="library-section" data-library-section="playlists">
@@ -274,7 +286,7 @@ function renderPlaylistList(playlists) {
             <i class="fa-solid fa-list"></i>
             <span>${escapeHtml(p.title || "Không rõ tên")}</span>
         </a>
-    `
+    `,
         )
         .join("");
 }
@@ -309,9 +321,13 @@ function renderComingSoonTab(tab) {
 function sortItems(items, sortBy) {
     const arr = Array.isArray(items) ? [...items] : [];
     if (sortBy === "name") {
-        arr.sort((a, b) => (a.title || a.name || "").localeCompare(b.title || b.name || ""));
+        arr.sort((a, b) =>
+            (a.title || a.name || "").localeCompare(b.title || b.name || ""),
+        );
     } else if (sortBy === "name-desc") {
-        arr.sort((a, b) => (b.title || b.name || "").localeCompare(a.title || a.name || ""));
+        arr.sort((a, b) =>
+            (b.title || b.name || "").localeCompare(a.title || a.name || ""),
+        );
     }
     // "recent" giữ nguyên thứ tự (backend đã sort DESC)
     return arr;
@@ -340,12 +356,13 @@ export function renderEmptyState({
     ctaHref = null,
     ctaIcon = null,
 } = {}) {
-    const ctaHtml = ctaText && ctaHref
-        ? `<a href="${escapeHtml(ctaHref)}" data-navigo class="library-empty__cta">
+    const ctaHtml =
+        ctaText && ctaHref
+            ? `<a href="${escapeHtml(ctaHref)}" data-navigo class="library-empty__cta">
                ${ctaIcon ? `<i class="${escapeHtml(ctaIcon)}"></i>` : ""}
                <span>${escapeHtml(ctaText)}</span>
            </a>`
-        : "";
+            : "";
 
     return `
         <div class="library-empty" role="status">
@@ -366,7 +383,10 @@ export function renderEmptyState({
  * @param {string} [options.title="Đã xảy ra lỗi"]
  * @returns {string} HTML
  */
-export function renderErrorState({ message = "Đã xảy ra lỗi", title = "Đã xảy ra lỗi" } = {}) {
+export function renderErrorState({
+    message = "Đã xảy ra lỗi",
+    title = "Đã xảy ra lỗi",
+} = {}) {
     return `
         <div class="library-error" role="alert">
             <div class="library-error__icon">
@@ -419,7 +439,7 @@ function renderGridSkeleton(count = 8) {
             <div class="skeleton skeleton--line" style="width:80%;height:14px;margin-top:8px"></div>
             <div class="skeleton skeleton--line" style="width:60%;height:12px;margin-top:4px"></div>
         </div>
-    `
+    `,
     ).join("");
 
     return `
@@ -450,7 +470,7 @@ function renderListSkeleton(count = 10) {
                 <div class="skeleton skeleton--line" style="width:50%;height:12px;margin-top:4px"></div>
             </div>
         </div>
-    `
+    `,
     ).join("");
 
     return `

@@ -1,36 +1,13 @@
-// ======================================================
-// NEW RELEASES PAGE — Render functions
-// ======================================================
-//
-// Port từ `code chức năng gốc/base.js` function `cr()` dòng 4415:
-//
-//   function cr(e, t) {
-//       return !e.length && !t.length ? `<p>Không có dữ liệu</p>` : `
-//         <div class="p-4 text-white">
-//           <h1 class="font-bold text-[45px] -mb-10">Bản phát hành mới</h1>
-//           ${Y(``, e, `/albums/details`)}
-//           ${J(`Video nhạc mới`, t)}
-//         </div>
-//       `
-//   }
-//
-// → 2 sections: Albums slider (no heading — title dùng page title) + Videos slider.
-// → Nếu cả 2 mảng rỗng → fallback "Không có dữ liệu".
-//
-// USAGE:
-//   import { renderNewReleases } from "@/pages/new-releases/new-releases.render.js";
-//   const html = renderNewReleases(albums, videos);
-//
-// ======================================================
-
-import { renderSection as renderSectionComponent, renderSliderSection as renderSliderSectionComponent } from "@/components/section.js";
+import {
+    renderSection as renderSectionComponent,
+    renderSliderSection as renderSliderSectionComponent,
+} from "@/components/section.js";
 import { escapeHtml } from "@/utils/format.js";
 
 // ======================================================
 // SECTION — Albums slider (no title — page title đã có ở H1)
 // ======================================================
 //
-// Port từ `Y(``, e, '/albums/details')` — slider ngang album items.
 // KHÔNG truyền `title` (base.js dùng chuỗi rỗng) → H1 đã ở page.
 // ======================================================
 
@@ -54,28 +31,7 @@ function renderNewReleasesAlbumsSection(albums) {
     });
 }
 
-// ======================================================
-// SECTION — Video slider (port từ J('Video nhạc mới', videos))
-// ======================================================
-//
-// Video dùng `cart-item--large` (landscape thumb) — copy từ discover.render.js
-// để đảm bảo style khớp 100% với slider Video ở Discover.
-// ======================================================
-
 /**
- * Pick href cho video item — port pattern `/videos/details/:slug` (xem base.js
- * 4156 + video-overlay.js:1075).
- *
- * Thứ tự ưu tiên:
- *   1. slug (vd: "nhc-c-in-video-40-39") — chuẩn SEO, dễ đọc
- *   2. _id   (Mongo ID)
- *   3. id    (fallback generic)
- *   4. videoId (YouTube videoId — vd: "Rb0UmrCXxVA", dùng làm identifier cuối cùng)
- *
- * Phase 14.12 fix: `/charts/videos` endpoint trả items CHỈ CÓ `videoId`+`_id`
- * (không có `slug`/`id`) → nếu chỉ fallback `slug || id` → URL = "/videos/details/undefined"
- * → Navigo không match → reload page. Thêm `_id` + `videoId` làm fallback chain.
- *
  * @param {object} video
  * @returns {string} path segment
  */
@@ -84,7 +40,6 @@ function pickVideoHref(video) {
 }
 
 /**
- * Render 1 video cart-item (kích thước lớn — landscape thumb).
  * Tái sử dụng style `.cart-item--large` + `.cart-item__media--large`
  * từ `_cart-item.scss` (shared component).
  *
@@ -95,7 +50,9 @@ function renderVideoItem(video) {
     const id = pickVideoHref(video);
     const href = id ? `/videos/details/${id}` : "#";
     const thumb =
-        video.thumb || video.thumbnails || "https://picsum.photos/seed/video/400/240";
+        video.thumb ||
+        video.thumbnails ||
+        "https://picsum.photos/seed/video/400/240";
     const title = escapeHtml(video.title || video.name || "Untitled");
 
     const artists = Array.isArray(video.artists)
@@ -139,7 +96,6 @@ function renderVideoItem(video) {
 
 /**
  * Render slider videos cho New Releases.
- * Mỗi item là cart-item--large (port từ base.js `J()` dòng 4097).
  *
  * @param {Array<object>} videos
  * @returns {string} HTML
@@ -162,7 +118,6 @@ function renderNewReleasesVideosSection(videos) {
 
 /**
  * Render toàn bộ New Releases page.
- * Page wrapper có class `.new-releases-page` (padding + color).
  *
  * @param {Array<object>} albums - Albums từ `exploreService.getNewReleases()`
  * @param {Array<object>} videos - Videos từ `exploreService.getVideos()`

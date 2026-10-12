@@ -1,20 +1,6 @@
 // ======================================================
 // TOAST — Component styles
 // ======================================================
-//
-// Phase 10.4: Visual styling cho toast (trước đó có JS nhưng không SCSS).
-// Lấy cảm hứng cấu trúc từ `code chức năng gốc/base.js` (line 3389-3416).
-// Nâng cấp: icon FA + close button + stacking + smooth animation.
-//
-// VARIANTS: success | error (warning/info fallback về error ở JS)
-//
-// MARKUP render từ libs/toast.js:
-//   <div class="toast toast--{variant} show/hide" role="status" aria-live="polite">
-//     <i class="toast__icon fa-solid fa-..."></i>
-//     <span class="toast__message">{message}</span>
-//     <button class="toast__close" aria-label="Đóng">×</button>
-//   </div>
-//
 
 // ======================================================
 // VARIANT COLORS

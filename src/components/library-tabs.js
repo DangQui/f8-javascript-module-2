@@ -1,25 +1,3 @@
-// ======================================================
-// LIBRARY TABS — Segmented control component (Phase L-1)
-//
-// API:
-//   renderTabs({ activeTab })            → HTML string cho 5 tabs
-//   bindTabs({ onChange, initialTab })   → attach click + URL hash handlers
-//   getTabFromHash()                     → read active tab from URL hash
-//   setTabToHash(tabId)                  → update URL hash
-//   getStoredTab()                       → read from localStorage
-//
-// TAB DATA:
-//   - "playlists"   → Danh sách phát (default)
-//   - "songs"       → Bài hát đã thích
-//   - "albums"      → Albums đã lưu
-//   - "artists"     → Nghệ sĩ theo dõi
-//   - "recent"      → Nghe gần đây
-//
-// STATE PERSISTENCE:
-//   - URL hash:  `#tab=playlists` (cho shareable link)
-//   - localStorage: `music.library.activeTab` (cho F5 restore)
-// ======================================================
-
 import { escapeHtml } from "@/utils/format.js";
 
 const STORAGE_KEY_ACTIVE_TAB = "music.library.activeTab";
@@ -27,11 +5,15 @@ const STORAGE_KEY_VIEW_MODE = "music.library.viewMode";
 const STORAGE_KEY_SORT_BY = "music.library.sortBy";
 
 export const LIBRARY_TABS = [
-    { id: "playlists", label: "Playlists",        icon: "fa-solid fa-list" },
-    { id: "songs",     label: "Bài hát đã thích",  icon: "fa-solid fa-heart" },
-    { id: "albums",    label: "Albums",            icon: "fa-solid fa-compact-disc" },
-    { id: "artists",   label: "Nghệ sĩ",          icon: "fa-solid fa-microphone" },
-    { id: "recent",    label: "Nghe gần đây",     icon: "fa-solid fa-clock-rotate-left" },
+    { id: "playlists", label: "Playlists", icon: "fa-solid fa-list" },
+    { id: "songs", label: "Bài hát đã thích", icon: "fa-solid fa-heart" },
+    { id: "albums", label: "Albums", icon: "fa-solid fa-compact-disc" },
+    { id: "artists", label: "Nghệ sĩ", icon: "fa-solid fa-microphone" },
+    {
+        id: "recent",
+        label: "Nghe gần đây",
+        icon: "fa-solid fa-clock-rotate-left",
+    },
 ];
 
 export const DEFAULT_TAB = "playlists";
@@ -172,7 +154,9 @@ export function setStoredViewMode(mode) {
 export function getStoredSortBy() {
     try {
         const sort = localStorage.getItem(STORAGE_KEY_SORT_BY);
-        return ["recent", "name", "name-desc"].includes(sort) ? sort : DEFAULT_SORT_BY;
+        return ["recent", "name", "name-desc"].includes(sort)
+            ? sort
+            : DEFAULT_SORT_BY;
     } catch {
         return DEFAULT_SORT_BY;
     }

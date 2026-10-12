@@ -35,7 +35,7 @@ dist-ssr/
 # LEGACY PARTIALS (moved to public/partials/ — vite-plugin-html)
 # ======================================================
 # Vite serve static. Folder gốc giữ ignore để khỏi confuse.
-partials/
+/partials/
 
 # ======================================================
 # IDE / EDITORS

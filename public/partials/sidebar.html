@@ -1,0 +1,91 @@
+<!--
+  Sidebar Partial — Phase 9 Task 9.1
+  Extracted từ src/layout/sidebar.js SIDEBAR_HTML.
+-->
+<aside class="sidebar__inner">
+    <div class="sidebar__top">
+        <a href="/" class="btn sidebar-item icon" data-navigo data-home-link>
+            <i class="fa-regular fa-house icon--xl"></i>
+            <span class="sidebar-item__title">Trang chủ</span>
+        </a>
+        <a href="/discover" class="btn sidebar-item icon" data-navigo>
+            <i class="fa-regular fa-compass icon--xl"></i>
+            <span class="sidebar-item__title">Khám phá</span>
+        </a>
+        <a href="/library" class="btn sidebar-item icon" data-navigo>
+            <i class="fa-regular fa-bookmark icon--xl"></i>
+            <span class="sidebar-item__title">Thư viện</span>
+        </a>
+    </div>
+    <div class="sidebar__act">
+        <!-- Nút Đăng nhập — chỉ hiện khi CHƯA đăng nhập -->
+        <a
+            href="/auth/login"
+            class="btn sidebar-item icon"
+            data-navigo
+            data-show-when="logged-out">
+            <i class="fa-regular fa-user icon--xl"></i>
+            <span class="sidebar-item__title">Đăng nhập</span>
+        </a>
+        <!-- Nút Nâng cấp — chỉ hiện khi ĐÃ đăng nhập -->
+        <a
+            href="#!"
+            class="btn sidebar-item icon"
+            data-show-when="logged-in"
+            data-upgrade-link>
+            <i class="fa-solid fa-crown icon--xl"></i>
+            <span class="sidebar-item__title">Nâng cấp</span>
+        </a>
+    </div>
+</aside>
+
+<aside class="sidebar-slide hide" id="sidebar-slide">
+    <div class="sidebar-slide__top">
+        <button
+            class="btn btn--rounded icon-l js-toggle"
+            toggle-target="#sidebar-slide">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <!-- Logo -->
+        <a href="/" class="logo top-bar__logo" data-navigo>
+            <img
+                src="/images/logo.png"
+                alt="Youtube Music"
+                class="logo__img" />
+            <h1 class="logo__title">Music</h1>
+        </a>
+    </div>
+    <nav class="sidebar-slide__nav">
+        <div class="sidebar-slide__act">
+            <a href="/" class="btn sidebar-slide__item icon" data-navigo>
+                <i class="fa-regular fa-house icon--xl"></i>
+                <span class="sidebar-slide__title">Trang chủ</span>
+            </a>
+            <a href="/discover" class="btn sidebar-slide__item icon" data-navigo>
+                <i class="fa-regular fa-compass icon--xl"></i>
+                <span class="sidebar-slide__title">Khám phá</span>
+            </a>
+            <a href="/library" class="btn sidebar-slide__item icon" data-navigo>
+                <i class="fa-regular fa-bookmark icon--xl"></i>
+                <span class="sidebar-slide__title">Thư viện</span>
+            </a>
+            <a href="#!" class="btn sidebar-slide__item icon">
+                <i class="fa-solid fa-crown icon--xl"></i>
+                <span class="sidebar-slide__title">Nâng cấp</span>
+            </a>
+        </div>
+        <div class="sidebar-slide__bottom">
+            <a
+                href="/auth/login"
+                class="btn btn--rounded sidebar-slide__login"
+                data-navigo
+                data-show-when="logged-out">
+                Đăng nhập
+            </a>
+            <span class="sidebar-slide__desc">
+                Đăng nhập để tạo và chia sẻ danh sách phát, nhận nội dung đề
+                xuất dành riêng cho bạn.
+            </span>
+        </div>
+    </nav>
+</aside>

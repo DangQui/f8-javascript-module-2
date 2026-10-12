@@ -1,0 +1,155 @@
+<!--
+  Header Partial — Logged IN state
+  Phase 9 Task 9.3 — Option C: Single source of truth.
+
+  File này được swap vào <header id="header"> khi user đã đăng nhập.
+  src/layout/header.js fetch() file này và inject innerHTML.
+
+  Default values (sẽ được update runtime bởi authState.js):
+    - data-user-initial = "Q"
+    - data-user-name    = "User"
+    - data-user-email   = "user@example.com"
+
+
+-->
+<nav class="nav-bar">
+    <div class="top-bar">
+        <!-- Mode -->
+        <button
+            class="btn btn--rounded act-btn top-bar__more icon js-toggle"
+            toggle-target="#sidebar-slide">
+            <i class="fa-solid fa-bars top-bar_icon-xl"></i>
+        </button>
+
+        <!-- Logo -->
+        <a href="/" class="logo top-bar__logo" data-home-link data-navigo>
+            <img src="/images/logo.png" alt="Youtube Music" class="logo__img" />
+            <h1 class="logo__title">Music</h1>
+        </a>
+
+        <div class="top-bar__right">
+            <!-- Form Search (Desktop) — Phase 13: id="navbar-search-input" + dropdown + clear -->
+            <form
+                action=""
+                class="form form__search"
+                id="navbar-search-form"
+                onsubmit="return false;">
+                <button
+                    class="btn btn--text form__search--submit icon"
+                    type="submit">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <input
+                    id="navbar-search-input"
+                    type="text"
+                    class="form__input-search"
+                    placeholder="Tìm bài hát, đĩa nhạc, nghệ sĩ"
+                    autocomplete="off" />
+                <button
+                    id="navbar-search-clear"
+                    class="btn btn--text form__close d-none"
+                    type="button"
+                    aria-label="Xóa nội dung tìm kiếm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </form>
+
+            <!-- Search Dropdown (Desktop) — Phase 13 -->
+            <div
+                id="search-dropdown"
+                class="search-dropdown d-none"
+                role="listbox"
+                aria-label="Kết quả tìm kiếm"></div>
+
+            <div class="top-bar__act">
+                <!-- Mobile search trigger -->
+                <button
+                    id="open-search"
+                    class="btn btn--rounded icon top-bar__act--icon top-bar__act--search-mobile d-md-none"
+                    type="button"
+                    aria-label="Mở tìm kiếm">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button class="btn btn--rounded icon top-bar__act--icon">
+                    <i class="fa-brands fa-chromecast"></i>
+                </button>
+                <button class="btn btn--rounded icon top-bar__act--icon">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+
+                <!-- Avatar + Dropdown — chỉ hiện khi ĐÃ đăng nhập -->
+                <div class="dropdown-wrapper" data-dropdown>
+                    <button
+                        class="btn btn--around avatar"
+                        data-dropdown-toggle
+                        data-show-when="logged-in"
+                        title="Tài khoản">
+                        <span data-user-initial>Q</span>
+                    </button>
+                    <div
+                        class="dropdown d-none"
+                        data-dropdown-menu
+                        data-show-when="logged-in">
+                        <div class="dropdown__header">
+                            <p class="dropdown__name" data-user-name>User</p>
+                            <p class="dropdown__email" data-user-email>
+                                user@example.com
+                            </p>
+                        </div>
+                        <hr class="dropdown__divider" />
+                        <a
+                            href="/auth/profile"
+                            class="dropdown__item"
+                            data-navigo
+                            data-dropdown-close>
+                            <i class="fa-solid fa-user"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                        <button
+                            type="button"
+                            class="dropdown__item"
+                            data-logout
+                            data-dropdown-close>
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Đăng xuất</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Search Modal — Phase 13 -->
+    <div
+        id="mobile-search-modal"
+        class="mobile-search-modal d-md-none"
+        aria-hidden="true">
+        <div class="mobile-search-modal__box">
+            <button
+                id="mobile-close-search"
+                class="btn btn--text mobile-search-modal__back"
+                type="button"
+                aria-label="Đóng tìm kiếm">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <input
+                id="mobile-search-input"
+                type="text"
+                class="form__input-search mobile-search-modal__input"
+                placeholder="Tìm bài hát, đĩa nhạc, nghệ sĩ"
+                autocomplete="off" />
+            <button
+                id="mobile-search-clear"
+                class="btn btn--text form__close d-none"
+                type="button"
+                aria-label="Xóa nội dung tìm kiếm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div
+            id="search-modal-results"
+            class="mobile-search-modal__results"
+            role="listbox"
+            aria-label="Kết quả tìm kiếm"></div>
+    </div>
+</nav>

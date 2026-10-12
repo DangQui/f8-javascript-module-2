@@ -1,0 +1,116 @@
+<!--
+  Header Partial — Logged OUT state
+  Phase 9 Task 9.3 — Option C: Single source of truth.
+
+  File này được dùng cho CẢ HAI:
+    1. Build time  → index.html include → dist/index.html có sẵn markup (FCP nhanh)
+    2. Runtime     → src/layout/header.js fetch() → inject vào <header id="header">
+
+  Khi user login, header.js fetch file `header-logged-in.html` để swap state.
+-->
+<nav class="nav-bar">
+    <div class="top-bar">
+        <!-- Mode -->
+        <button
+            class="btn btn--rounded act-btn top-bar__more icon js-toggle"
+            toggle-target="#sidebar-slide">
+            <i class="fa-solid fa-bars top-bar_icon-xl"></i>
+        </button>
+
+        <!-- Logo -->
+        <a href="/" class="logo top-bar__logo" data-home-link data-navigo>
+            <img
+                src="/images/logo.png"
+                alt="Youtube Music"
+                class="logo__img" />
+            <h1 class="logo__title">Music</h1>
+        </a>
+
+        <div class="top-bar__right">
+            <!-- Form Search (desktop) -->
+            <!-- Phase 13: search engine — IDs cho Mr class port từ base.js:5843-6036 -->
+            <form action="" class="form form__search" id="navbar-search-form" onsubmit="return false">
+                <button class="btn btn--text form__search--submit icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <input
+                    type="text"
+                    id="navbar-search-input"
+                    class="form__input-search"
+                    placeholder="Tìm bài hát, đĩa nhạc, nghệ sĩ"
+                    autocomplete="off" />
+                <button
+                    type="button"
+                    id="navbar-search-clear"
+                    class="btn btn--text form__close d-none">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </form>
+            <!-- Dropdown suggestions + results (absolute dưới form) -->
+            <div
+                id="search-dropdown"
+                class="search-dropdown d-none"
+                role="listbox"
+                aria-label="Gợi ý tìm kiếm"></div>
+
+            <!-- Mobile search trigger (chỉ hiện trên mobile) -->
+            <button
+                type="button"
+                id="open-search"
+                class="btn btn--rounded icon top-bar__act--icon top-bar__act--search-mobile"
+                aria-label="Mở tìm kiếm">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+
+            <div class="top-bar__act">
+                <button class="btn btn--rounded icon top-bar__act--icon">
+                    <i class="fa-brands fa-chromecast"></i>
+                </button>
+                <button class="btn btn--rounded icon top-bar__act--icon">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <a
+                    href="/auth/login"
+                    class="btn btn--primary btn--small btn--rounded top-bar__act--login"
+                    data-show-when="logged-out"
+                    data-navigo
+                    >Đăng nhập</a
+                >
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Search Modal — Phase 13 -->
+    <div
+        id="mobile-search-modal"
+        class="mobile-search-modal"
+        aria-hidden="true">
+        <div class="mobile-search-modal__box">
+            <button
+                id="mobile-close-search"
+                class="btn btn--text mobile-search-modal__back"
+                type="button"
+                aria-label="Đóng tìm kiếm">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <input
+                id="mobile-search-input"
+                type="text"
+                class="form__input-search mobile-search-modal__input"
+                placeholder="Tìm bài hát, đĩa nhạc, nghệ sĩ"
+                autocomplete="off" />
+            <button
+                id="mobile-search-clear"
+                class="btn btn--text form__close d-none"
+                type="button"
+                aria-label="Xóa nội dung tìm kiếm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div
+            id="search-modal-results"
+            class="mobile-search-modal__results"
+            role="listbox"
+            aria-label="Kết quả tìm kiếm"></div>
+    </div>
+</nav>

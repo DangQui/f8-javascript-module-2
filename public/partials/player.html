@@ -1,0 +1,121 @@
+<!--
+  Player Partial — Phase 9 Task 9.1
+  Extracted từ src/layout/player.js PLAYER_HTML.
+  Bọc trong <div class="player__inner"> để khớp với cấu trúc SCSS.
+
+  Default cover: /images/album-01.jpg, state: không playing.
+-->
+<div class="player__inner">
+    <!-- Progress -->
+    <div class="player__progress">
+        <input
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+            class="player__progress-bar" />
+    </div>
+
+    <!-- Main player -->
+    <div class="player__main">
+        <!-- Controls -->
+        <div class="player__controls">
+            <button
+                class="btn btn--rounded player__control player__control--prev icon-l"
+                aria-label="Video trước">
+                <i class="fa-solid fa-backward-step"></i>
+            </button>
+
+            <button
+                class="btn btn--rounded icon-l player__control player__control--play"
+                aria-label="Phát/Tạm dừng">
+                <i class="fa-solid fa-play"></i>
+            </button>
+
+            <button
+                class="btn btn--rounded icon-l player__control player__control--next"
+                aria-label="Video tiếp">
+                <i class="fa-solid fa-forward-step"></i>
+            </button>
+
+            <span class="player__time"> 0:00 / 0:00 </span>
+        </div>
+
+        <div class="player__mid">
+            <!-- Current song -->
+            <div class="player__track">
+                <img
+                    class="player__cover"
+                    src="/images/album-01.jpg"
+                    alt="" />
+
+                <div class="player__info">
+                    <h3 class="player__title">Chưa phát</h3>
+
+                    <span class="player__artist"> </span>
+                </div>
+            </div>
+
+            <!-- Track actions -->
+            <div class="player__actions">
+                <button class="btn btn--rounded icon-l player__action" aria-label="Không thích">
+                    <i class="fa-regular fa-thumbs-down"></i>
+                </button>
+
+                <button class="btn btn--rounded icon-l player__action" aria-label="Thích">
+                    <i class="fa-regular fa-thumbs-up"></i>
+                </button>
+
+                <div class="player__menu-wrap">
+                    <button class="btn btn--rounded icon-l player__action player__action--menu"
+                            id="player-menu-btn"
+                            aria-label="Tùy chọn">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+
+                    <!-- Dropdown menu (giống video-overlay menu) -->
+                    <div id="player-menu" class="player__menu" hidden>
+                        <button class="player__menu-item" type="button" data-action="add-playlist">
+                            <i class="fa-solid fa-list-ul"></i>
+                            <span>Thêm vào playlist</span>
+                            <i class="fa-solid fa-chevron-right player__menu-arrow"></i>
+                        </button>
+                        <button class="player__menu-item" type="button" data-action="share">
+                            <i class="fa-solid fa-share-from-square"></i>
+                            <span>Chia sẻ</span>
+                        </button>
+                        <button class="player__menu-item" type="button" data-action="detail">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>Chi tiết bài hát</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Volume / playback -->
+        <div class="player__settings">
+            <!-- Volume slider NGANG bên trái nút volume (giống YouTube Music) -->
+            <div class="player__volume-slider-wrap">
+                <input type="range" min="0" max="100" value="100" class="player__volume-slider" />
+            </div>
+
+            <button class="btn btn--rounded icon-l player__action--volume" aria-label="Âm lượng">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+
+            <button class="btn btn--rounded icon-l player__action--repeat" aria-label="Lặp lại">
+                <i class="fa-solid fa-repeat"></i>
+            </button>
+
+            <button class="btn btn--rounded icon-l player__action--shuffle" aria-label="Trộn bài">
+                <i class="fa-solid fa-shuffle"></i>
+            </button>
+
+            <!-- Close button (Phase 8.5 v10) — eject audio/close video -->
+            <button class="btn btn--rounded icon-l player__action--close" aria-label="Đóng trình phát" title="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+</div>

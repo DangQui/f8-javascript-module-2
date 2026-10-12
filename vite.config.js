@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 const base = process.env.GHPAGES_BASE || "/";
 
 export default defineConfig({
-    base,
+    base: "/",
     plugins: [
         createHtmlPlugin({
             pages: [

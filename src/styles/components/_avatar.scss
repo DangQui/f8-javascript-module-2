@@ -1,15 +1,3 @@
-/**
- * components/_avatar.scss — Avatar circle + profile header styles
- *
- * `.avatar`         — circle với initial, dùng cho dropdown user
- * `.avatar--lg`     — variant 80px, dùng cho profile header card
- * `.profile-header` — wrapper centered cho avatar + name + email + joinedAt
- *
- * Consumed by:
- *   - `@/layout/header.js` (user avatar dropdown)
- *   - `@/pages/profile/profile.render.js` (profile header card)
- */
-
 .avatar {
     width: 40px;
     height: 40px;
@@ -32,6 +20,10 @@
         border-radius: 50%;
     }
 }
+
+// ======================================================
+// PROFILE HEADER CARD
+// ======================================================
 //
 // Layout: avatar centered, name + email + joinedAt xếp dọc.
 // Hiển thị ở đầu trang /auth/profile, trên form update.
@@ -78,6 +70,10 @@
         }
     }
 }
+
+// ======================================================
+// AUTH — Extra modifiers
+// ======================================================
 //
 // Gắn vào `.auth__inner` để có variant cho profile page
 // (cao hơn để chứa header card + form).

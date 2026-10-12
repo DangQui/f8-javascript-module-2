@@ -1,31 +1,25 @@
-/**
- * components/track-item.js — Track item trong track list
- *
- * Render 1 track (anchor click → navigate to song detail). Dùng ở
- * Album Detail, Playlist Detail, Song Detail, Search results, ...
- *
- * Style dùng class `.track-list__item` + `.track-list__*` có sẵn
- * trong SCSS (`src/styles/components/_track-item.scss`).
- * Không thêm SCSS mới.
- *
- * Exports:
- *   - renderTrackItem(track, index?, options?)  → 1 track HTML
- *   - renderTrackItems(tracks, options?)        → nhiều track nối tiếp
- *   - renderTrackList(tracks, options?)         → wrap với empty state
- *   - normalizeTrackItem(track)                 → convert API → render shape
- *
- * Consumed by:
- *   - `@/pages/album-detail/album-detail.render.js`
- *   - `@/pages/playlist-detail/playlist-detail.render.js`
- *   - `@/pages/song-detail/song-detail.render.js` (related)
- *   - `@/pages/search/search.render.js`
- *
- * Shape input `renderTrackItem`:
- *   - track: raw API track { id, title, artists, thumbnails, duration, ... }
- *   - options:
- *     - isActive: boolean — track đang phát (highlight)
- *     - basePath: string — prefix cho href (mặc định "/songs/details")
- */
+// ======================================================
+// TRACK ITEM COMPONENT — Item bài hát trong track list
+// ======================================================
+//
+
+// ở Album Detail, Playlist Detail, Song Detail, Search results, ...
+//
+// Style dùng class `.track-list__item` + `.track-list__*` có sẵn
+// trong SCSS (`src/styles/components/_track-item.scss`).
+// Không thêm SCSS mới — chỉ wrap markup.
+//
+// API:
+//   renderTrackItem({ id, title, artists, thumb, duration, isActive })
+//     → HTML string cho 1 track item
+//
+//   renderTrackList(tracks)
+//     → HTML string cho cả list (kèm empty state)
+//
+// USAGE:
+//   import { renderTrackList } from "@/components/track-item.js";
+//   const html = renderTrackList(album.tracks);
+//
 
 import { escapeHtml, formatDuration } from "@/utils/format.js";
 
@@ -33,8 +27,15 @@ const FALLBACK_THUMB = "/images/quick-picks-01.jpg";
 
 /**
  * Normalize 1 track từ API thành format cho renderTrackItem.
+ *
  * @param {object} track - Raw track từ API
- * @returns {{id: string, title: string, artists: string[], thumb: string, duration: number}}
+ * @returns {{
+ *   id: string,
+ *   title: string,
+ *   artists: string[],
+ *   thumb: string,
+ *   duration: number,
+ * }}
  */
 export function normalizeTrackItem(track) {
     return {
@@ -56,7 +57,7 @@ export function normalizeTrackItem(track) {
  * Render 1 track item (anchor click → navigate to song detail).
  *
  * @param {object} track - Raw track từ API
- * @param {number} [index=0] - Index 0-based (hiển thị số thứ tự)
+ * @param {number} [index=0] - Index 0-based (để hiển thị số thứ tự)
  * @param {object} [options]
  * @param {boolean} [options.isActive=false] - Track đang phát (highlight)
  * @param {string} [options.basePath="/songs/details"] - Prefix cho href
@@ -77,7 +78,9 @@ export function renderTrackItem(track, index = 0, options = {}) {
         : "Không rõ nghệ sĩ";
     const duration = formatDuration(normalized.duration);
     const activeClass = isActive ? " track-list__item--active" : "";
-    const dataAttrs = isActive ? ` data-track-active="true"` : "";
+    const dataAttrs = isActive
+        ? ` data-track-active="true"`
+        : "";
 
     return `
         <a
@@ -111,11 +114,13 @@ export function renderTrackItem(track, index = 0, options = {}) {
  * @param {Array<object>} tracks - Mảng raw tracks từ API
  * @param {object} [options]
  * @param {string} [options.basePath="/songs/details"]
- * @returns {string} HTML
+ * @returns {string} HTML string
  */
 export function renderTrackItems(tracks, options = {}) {
     if (!Array.isArray(tracks) || tracks.length === 0) return "";
-    return tracks.map((t, i) => renderTrackItem(t, i, options)).join("");
+    return tracks
+        .map((t, i) => renderTrackItem(t, i, options))
+        .join("");
 }
 
 /**

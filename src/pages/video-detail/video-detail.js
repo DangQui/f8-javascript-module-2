@@ -1,29 +1,25 @@
-/**
- * pages/video-detail/video-detail.js — Video Detail page handler
- *
- * Flow:
- *   1. Render skeleton ngay (UX: structure trước khi data về)
- *   2. Fetch detailsService.getVideo(id)
- *   3. Gộp current video + related[] → dedupe by id (port từ base.js `Cr()` 5527-5547)
- *   4. Render HTML từ `video-detail.render.js`
- *   5. Inject vào #main
- *   6. Pause audio player (nếu đang phát) + mở video overlay mini
- *
- * Data shape (port từ base.js `Cr()` dòng 5527):
- *   {
- *     id, title, slug, thumbnails[], duration, popularity, videoId,
- *     playlists[], related[] (đã bao gồm current ở cuối)
- *   }
- *
- * Phase L-2.5: mở video overlay ở mini mode + autoplay=0 (KHÔNG tự play)
- * để tránh 2 media cùng chạy. User click play trong mini mới chạy.
- *
- * Exports:
- *   - videoDetailPage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/videos/details/:id")
- */
+// ======================================================
+// VIDEO DETAIL PAGE — Init + render
+// ======================================================
+//
+// Flow:
+//   1. Show loading overlay
+//   2. Fetch detailsService.getVideo(id)
+//   3. Gộp current video + related[] → dedupe by id (port từ base.js `Cr()` dòng 5527-5547)
+//   4. Render HTML từ `video-detail.render.js`
+//   5. Inject vào #main
+//   6. Hide loading overlay
+//
+// Data shape (port từ base.js `Cr()` dòng 5527):
+//   {
+//     id, title, slug, thumbnails[], duration, popularity, videoId,
+//     playlists[], related[] (đã bao gồm current ở cuối)
+//   }
+//
+// Lưu ý:
+//   - Click video trong related list → navigate /videos/details/:id.
+//   - Video player đơn giản dùng YouTube iframe embed (Task 8.6 sẽ port class `Z` đầy đủ).
+//
 
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import { renderVideoDetail } from "@/pages/video-detail/video-detail.render.js";
@@ -34,9 +30,13 @@ import { audioPlayer } from "@/components/audio-player.js";
 import { detailsService } from "@/services/detailsService.js";
 import { toast } from "@/libs/toast.js";
 
+// ======================================================
+// MAIN RENDER
+// ======================================================
+
 /**
  * Render Video Detail page.
- * @param {{params: object, query: object, url: string}} route
+ * @param {{ params: object, query: object, url: string }} route
  */
 export async function videoDetailPage(route = {}) {
     const id = route.params?.id;
@@ -51,8 +51,10 @@ export async function videoDetailPage(route = {}) {
         return;
     }
 
+    // Nếu dùng cả 2 → spinner overlay che skeleton, user không thấy structure.
+
     try {
-        // 0. Render skeleton ngay
+        // 0. Render skeleton ngay (UX: user thấy structure trước khi data về)
         renderPage(SKELETON_VIDEO_DETAIL());
 
         // 1. Fetch video details
@@ -76,17 +78,28 @@ export async function videoDetailPage(route = {}) {
         renderPage(html);
 
         // 5. PAUSE audio player (nếu đang phát) trước khi mở video overlay.
-        //    State của audio (currentTime, queue) giữ nguyên → user back lại
-        //    song-detail vẫn resume được bài đang dở.
+        //
+        //    Bug: Khi user navigate từ song-detail (đang nghe nhạc) sang
+        //    video-detail, audio player vẫn chạy + YouTube IFrame bắt đầu
+        //    chạy → 2 audio chạy song song.
+        //
+        //    Fix: Pause audio trước khi mở video overlay. State của audio
+        //    (currentTime, queue) được giữ nguyên → user back lại song-detail
+        //    vẫn resume được bài đang dở.
+        //
+        //    Lưu ý: `pauseSong()` không destroy audio, không reset queue,
+        //    chỉ gọi `this.audio.pause()` + emit state → #player UI cũng
+        //    update icon fa-pause → fa-play đồng bộ.
         if (!audioPlayer.audio.paused) {
             audioPlayer.pauseSong();
         }
 
-        // 6. Phase L-2.5: mở video overlay ở mini mode + autoplay=0
-        //    (KHÔNG tự play) để tránh 2 media cùng chạy.
-        await videoOverlay.open(video, deduped, { startAsMini: true, autoplay: 0 });
+        // 6. Mở video overlay full (player + related list hiện ngay khi vào trang)
+        //    Click related video → navigate → trang mới render → overlay lại hiện full
+        await videoOverlay.open(video, deduped, { startAsMini: false });
     } catch (err) {
         console.error("[video-detail] Critical error:", err);
+        // Ưu tiên err.message (từ AppError mapApiError) thay vì hardcode
         const fallback = "Không thể tải chi tiết video. Vui lòng thử lại.";
         toast.error(err.message || fallback);
         renderPage(`
@@ -96,7 +109,13 @@ export async function videoDetailPage(route = {}) {
             </section>
         `);
     }
+
 }
+
+// ======================================================
+// HELPERS
+// ======================================================
+
 /**
  * Pick các field cần thiết cho video item (port từ base.js `Cr()` dòng 5529-5542).
  * @param {object} video
@@ -112,5 +131,8 @@ function pickVideoFields(video) {
         popularity: video.popularity,
     };
 }
+
+// pickVideoFields() ở trên vẫn giữ — chỉ dùng cho video-detail (related list).
+
 
 export default videoDetailPage;

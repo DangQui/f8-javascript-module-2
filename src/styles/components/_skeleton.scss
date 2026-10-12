@@ -1,30 +1,32 @@
-/**
- * components/_skeleton.scss — Skeleton loading placeholders
- *
- * Dùng pulse animation (gradient sliding) thay vì spinner để user
- * thấy được structure ngay khi page đang load.
- *
- * Reference design pattern: Facebook, YouTube Music, LinkedIn skeletons.
- * base.js gốc KHÔNG có skeleton (chỉ full overlay) — em design riêng.
- *
- * Pattern: 1 background gradient duy nhất dùng cho cả box/line/circle.
- * Pulse animation: `background-position` slide từ -200% → 200% (1.4s).
- *
- * Class:
- *   .skeleton              — base (gradient + animation)
- *   .skeleton--box         — default (block, height = inline style)
- *   .skeleton--line        — height 16px (text placeholder)
- *   .skeleton--circle      — border-radius 50% (avatar)
- *
- * Consumed by:
- *   - `@/components/skeleton.js` (SKELETON_* exports)
- */
+// ======================================================
+// SKELETON COMPONENT — Pulse animation (Phase 11.2)
+// ======================================================
+//
+// Skeleton loading placeholders. Dùng pulse animation (gradient sliding)
+// thay vì spinner để user thấy được structure ngay khi page đang load.
+//
+// Reference design pattern: Facebook, YouTube Music, LinkedIn skeletons.
+// Base.js gốc KHÔNG có skeleton (chỉ full overlay) — em design riêng.
+//
+// Pattern: 1 background gradient duy nhất dùng cho cả box/line/circle.
+// Pulse animation: `background-position` slide từ -200% → 200% (1.4s).
+//
+// Class:
+//   .skeleton              — base (gradient + animation)
+//   .skeleton--box         — default (block, height = inline style)
+//   .skeleton--line        — height 16px (text placeholder)
+//   .skeleton--circle      — border-radius 50% (avatar)
 //   .skeleton-row          — flex row (cards in section)
 //   .skeleton-card         — match .cart-item structure
 //   .skeleton-track        — match .track-list__item structure
 //   .skeleton-quickpick    — match .quick-picks structure
 //   .skeleton-col          — match .quick-picks-col structure
 //
+
+// ======================================================
+// KEYFRAMES
+// ======================================================
+
 @keyframes skeleton-pulse {
     0% {
         background-position: 200% 0;
@@ -33,6 +35,11 @@
         background-position: -200% 0;
     }
 }
+
+// ======================================================
+// BASE
+// ======================================================
+
 .skeleton {
     display: block;
     background: linear-gradient(
@@ -57,12 +64,22 @@
         border-radius: 50%;
     }
 }
+
+// ======================================================
+// ROW — flex container cho card grid
+// ======================================================
+
 .skeleton-row {
     display: flex;
     gap: 16px;
     overflow: hidden;
     padding: 8px 0;
 }
+
+// ======================================================
+// CARD — match .cart-item structure
+// ======================================================
+
 .skeleton-card {
     pointer-events: none;
 
@@ -73,6 +90,11 @@
         gap: 8px;
     }
 }
+
+// ======================================================
+// TRACK — match .track-list__item structure
+// ======================================================
+
 .skeleton-track {
     display: flex;
     align-items: center;
@@ -88,6 +110,11 @@
         gap: 6px;
     }
 }
+
+// ======================================================
+// QUICK PICKS — match .quick-picks structure
+// ======================================================
+
 .skeleton-quickpick {
     display: flex;
     align-items: center;
@@ -111,6 +138,11 @@
     flex-direction: column;
     gap: 4px;
 }
+
+// ======================================================
+// RESPONSIVE
+// ======================================================
+
 @media (max-width: 768px) {
     .skeleton-col {
         width: 280px;

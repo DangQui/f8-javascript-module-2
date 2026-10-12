@@ -1,33 +1,30 @@
-/**
- * pages/song-detail/song-detail.render.js — Song Detail page render
- *
- * Layout (2 columns) — port từ `song-detail.html` gốc + `br()` trong base.js:
- *
- *   ┌──────────────────────┬─────────────────────────┐
- *   │   .info-detail       │     .track-list         │
- *   │   (img + title       │     (scrollable list    │
- *   │    + meta)           │      of related songs)  │
- *   └──────────────────────┴─────────────────────────┘
- *
- * Data flow (port từ base.js dòng 4961):
- *   1. Main song info: id, audioUrl, thumbnails, title, duration, popularity
- *   2. Tracks: dedupe([...album.tracks, ...playlists.flatMap(tracks)]) | related
- *
- * Lưu ý:
- *   - Track item link → /songs/details/:id (Navigo) — khi click sẽ navigate.
- *   - Empty data → fallback `<p class="track-list__empty">`.
- *
- * Exports:
- *   - renderInfoDetail(song)       → left column HTML
- *   - renderSongTrackList(song)    → right column HTML
- *   - renderSongDetail(song)       → full page HTML
- *
- * Consumed by:
- *   - `@/pages/song-detail/song-detail.js`
- */
+// ======================================================
+// SONG DETAIL PAGE — Render functions
+// ======================================================
+//
+// Layout (2 columns) — port từ `song-detail.html` gốc + `br()` trong base.js:
+//
+//   ┌──────────────────────┬─────────────────────────┐
+//   │   .info-detail       │     .track-list         │
+//   │   (img + title       │     (scrollable list    │
+//   │    + meta)           │      of related songs)  │
+//   └──────────────────────┴─────────────────────────┘
+//
+// Data flow (port từ base.js dòng 4961):
+//   1. Main song info: id, audioUrl, thumbnails, title, duration, popularity
+//   2. Tracks: dedupe([...album.tracks, ...playlists.flatMap(tracks)]) | related
+//
+// Lưu ý:
+//   - Track item link → /songs/details/:id (Navigo) — khi click sẽ navigate.
+//   - Empty data → fallback `<p class="track-list__empty">`.
+//
 
 import { escapeHtml, formatDuration, formatViews } from "@/utils/format.js";
 import { renderTrackList as renderTrackItemComponent } from "@/components/track-item.js";
+
+// ======================================================
+// INFO DETAIL — left column
+// ======================================================
 
 /**
  * Render info-detail box (left column).
@@ -76,10 +73,12 @@ export function renderInfoDetail(song) {
     `;
 }
 
+// ======================================================
+// TRACK LIST — right column (scrollable list of related tracks)
+// ======================================================
+
 /**
  * Render track-list box (right column).
- * Combine tracks từ album + playlists, dedupe by id, fallback to related.
- *
  * @param {object} song - Song object (chứa album.tracks, playlists, related)
  * @returns {string} HTML
  */
@@ -105,6 +104,10 @@ export function renderSongTrackList(song) {
         emptyMessage: "Không có bài hát liên quan.",
     });
 }
+
+// ======================================================
+// FULL PAGE RENDER
+// ======================================================
 
 /**
  * Render toàn bộ Song Detail page (info-detail + track-list).

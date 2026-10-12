@@ -4,12 +4,11 @@
  * Pure functions (no side-effects, no DOM) để format dữ liệu hiển thị.
  *
  * Exports:
- *   - formatDuration(s)  → "mm:ss" hoặc "h:mm:ss"
- *   - formatViews(n)     → compact "1.2K", "3.4M" (1 decimal, EN-style)
- *   - formatViewsVN(n)   → Vietnamese "1 N", "2 Tr", "3 T" (no decimal)
- *   - escapeHtml(str)    → escape để chèn an toàn vào innerHTML
- *   - escapeAttr(str)    → alias cho escapeHtml (cho HTML attribute context)
- *   - debounce(fn, ms)   → delay invocation cho đến khi ngừng gọi `wait` ms
+ *   - formatDuration(s) → "mm:ss" hoặc "h:mm:ss"
+ *   - formatViews(n)    → compact "1.2K", "3.4M" (1 decimal, EN-style)
+ *   - formatViewsVN(n)  → Vietnamese "1 N", "2 Tr", "3 T" (no decimal)
+ *   - escapeHtml(str)   → escape để chèn an toàn vào innerHTML
+ *   - debounce(fn, ms)  → delay invocation cho đến khi ngừng gọi `wait` ms
  *
  * Consumed by:
  *   - `@/components/track-item.js` dùng formatDuration
@@ -75,15 +74,6 @@ export function escapeHtml(str) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
 }
-
-/**
- * Escape text cho HTML attribute context.
- * Hiện tại escapeHtml đã handle cả ", ', <, >, & nên dùng chung được.
- * Tách riêng để call site rõ ràng ý định (vs body text).
- * @param {string} str
- * @returns {string}
- */
-export const escapeAttr = escapeHtml;
 
 /**
  * Format số view theo locale Việt Nam (port từ base.js `Qn()` dòng 4054).

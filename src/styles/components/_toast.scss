@@ -1,20 +1,24 @@
-/**
- * components/_toast.scss — Toast notification styles
- *
- * Visual styling cho toast (icon FA + close button + stacking + smooth animation).
- *
- * Variants: success | error (warning/info fallback về error ở JS).
- *
- * Markup render từ libs/toast.js:
- *   <div class="toast toast--{variant} show/hide" role="status" aria-live="polite">
- *     <i class="toast__icon fa-solid fa-..."></i>
- *     <span class="toast__message">{message}</span>
- *     <button class="toast__close" aria-label="Đóng">×</button>
- *   </div>
- *
- * Consumed by:
- *   - `@/libs/toast.js` (show/hide toasts)
- */
+// ======================================================
+// TOAST — Component styles
+// ======================================================
+//
+// Phase 10.4: Visual styling cho toast (trước đó có JS nhưng không SCSS).
+// Lấy cảm hứng cấu trúc từ `code chức năng gốc/base.js` (line 3389-3416).
+// Nâng cấp: icon FA + close button + stacking + smooth animation.
+//
+// VARIANTS: success | error (warning/info fallback về error ở JS)
+//
+// MARKUP render từ libs/toast.js:
+//   <div class="toast toast--{variant} show/hide" role="status" aria-live="polite">
+//     <i class="toast__icon fa-solid fa-..."></i>
+//     <span class="toast__message">{message}</span>
+//     <button class="toast__close" aria-label="Đóng">×</button>
+//   </div>
+//
+
+// ======================================================
+// VARIANT COLORS
+// ======================================================
 
 $toast-success: #10b981; // emerald-500
 $toast-error: #ef4444; // red-500
@@ -24,6 +28,11 @@ $toast-text: #ffffff;
 $toast-icon-size: 1.75rem; // to hơn 1.5rem
 $toast-close-size: 2rem; // to hơn 1.75rem
 $toast-font-size: 1.1875rem; // to hơn 1.0625rem (19px)
+
+// ======================================================
+// CONTAINER
+// ======================================================
+
 .toast-container {
     position: fixed;
     top: 80px; // dưới header (~64px) + gap
@@ -42,6 +51,11 @@ $toast-font-size: 1.1875rem; // to hơn 1.0625rem (19px)
         max-width: none;
     }
 }
+
+// ======================================================
+// TOAST ITEM
+// ======================================================
+
 .toast {
     display: flex;
     align-items: center;
@@ -93,6 +107,11 @@ $toast-font-size: 1.1875rem; // to hơn 1.0625rem (19px)
         }
     }
 }
+
+// ======================================================
+// TOAST INNER ELEMENTS
+// ======================================================
+
 .toast__icon {
     flex-shrink: 0;
     font-size: $toast-icon-size;

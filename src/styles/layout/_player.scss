@@ -1,24 +1,21 @@
-/**
- * layout/_player.scss — Bottom audio player bar styles
- *
- * QUAN TRỌNG — Cấu trúc lồng file (matched với template gốc):
- *
- *   <footer class="player" id="player">      ← placeholder trong index.html
- *     <div class="player__inner">            ← template inject vào ĐÂY
- *       <div class="player__progress">...</div>
- *       <div class="player__main">...</div>
- *     </div>
- *   </footer>
- *
- * Lưu ý CSS: KHÔNG dùng nested `.player { &__progress { ... } }` selector
- * vì rule `.player` sẽ match CẢ wrapper (placeholder) lẫn inner div.
- * → Phải dùng selector flat `.player__xxx` để tránh xung đột với wrapper.
- * → Wrapper `.player` chỉ nhận animation/hide/show từ _loading.scss.
- *
- * Consumed by:
- *   - `@/layout/player.js` (renderPlayer)
- *   - `@/components/audio-player.js` (play/pause/seek UI)
- */
+// ======================================================
+// PLAYER LAYOUT
+// ======================================================
+//
+// QUAN TRỌNG — Cấu trúc lồng file (matched với template gốc):
+//
+//   <footer class="player" id="player">      ← placeholder trong index.html
+//     <div class="player__inner">            ← template inject vào ĐÂY
+//       <div class="player__progress">...</div>
+//       <div class="player__main">...</div>
+//     </div>
+//   </footer>
+//
+// Lưu ý CSS: KHÔNG dùng nested `.player { &__progress { ... } }` selector
+// vì rule `.player` sẽ match CẢ wrapper (placeholder) lẫn inner div.
+// → Phải dùng selector flat `.player__xxx` để tránh xung đột với wrapper.
+// → Wrapper `.player` chỉ nhận animation/hide/show từ _loading.scss.
+//
 // VISIBILITY:
 //   - Mặc định: player bị ẨN (translateY(100%) + visibility hidden).
 //   - Khi playSong() được gọi → thêm class `.is-visible` → slide-up từ dưới.
@@ -160,6 +157,11 @@
     position: relative;
     gap: 12px;
 }
+
+// ======================================================
+// PLAYER STATE (sync với video-overlay)
+// ======================================================
+
 // Shuffle / Repeat / Volume: khi active hoặc muted → đổi màu icon (giống overlay)
 .player__action--shuffle,
 .player__action--repeat,
@@ -276,6 +278,11 @@
     visibility: visible;
     transform: scaleX(1);
 }
+
+// ======================================================
+// 3 CHẤM MENU (dropdown từ #player)
+// ======================================================
+
 .player__menu-wrap {
     position: relative;
     display: flex;

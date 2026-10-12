@@ -1,21 +1,16 @@
-/**
- * pages/change-password/change-password.render.js — Change Password page render
- *
- * Form fields:
- *   - oldPassword        (Mật khẩu hiện tại)
- *   - password           (Mật khẩu mới)
- *   - confirmPassword    (Xác nhận mật khẩu mới)
- *
- * UI structure port từ base.js `Tr()` dòng 5610-5652.
- * Style dùng class `.auth` (modal centered + background image) +
- * `.form` (input + error) — đã có sẵn trong SCSS 7-1.
- *
- * Exports:
- *   - renderChangePasswordPage()  → HTML string
- *
- * Consumed by:
- *   - `@/pages/change-password/change-password.js`
- */
+// ======================================================
+// CHANGE PASSWORD PAGE — Render HTML
+// ======================================================
+//
+
+//   - Mật khẩu hiện tại (oldPassword)
+//   - Mật khẩu mới (password)
+//   - Xác nhận mật khẩu mới (confirmPassword)
+//
+// UI structure port từ base.js `Tr()` dòng 5610-5652.
+// Style dùng class `.auth` (modal centered + background image) +
+// `.form` (input + error) — đã có sẵn trong SCSS 7-1.
+//
 
 /**
  * Render trang đổi mật khẩu.

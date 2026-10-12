@@ -33,6 +33,11 @@
 const STORAGE_KEY = "music.listenHistory.v1";
 const SCHEMA_VERSION = 1;
 const MAX_ITEMS = 20; // chỉ dùng cho "Nghe gần đây" + tiết kiệm quota
+
+// ======================================================
+// VALIDATE
+// ======================================================
+
 /** @param {object} item @returns {boolean} */
 function isValidItem(item) {
     if (!item || typeof item !== "object") return false;
@@ -41,6 +46,11 @@ function isValidItem(item) {
     if (!["song", "album", "playlist", "video"].includes(item.type)) return false;
     return true;
 }
+
+// ======================================================
+// INTERNAL HELPERS
+// ======================================================
+
 /** @returns {Array<object>} Raw items từ localStorage (có thể invalid). */
 function _read() {
     try {
@@ -72,6 +82,11 @@ function _write(items) {
         console.warn("[listenHistory] Lỗi khi write:", err);
     }
 }
+
+// ======================================================
+// PUBLIC API
+// ======================================================
+
 /**
  * Ghi nhận 1 lượt nghe (audio hoặc video).
  * Dedup theo id — nếu đã có trong history thì update playedAt + đưa lên đầu.

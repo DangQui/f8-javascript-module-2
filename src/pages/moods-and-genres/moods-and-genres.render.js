@@ -1,39 +1,33 @@
-/**
- * pages/moods-and-genres/moods-and-genres.render.js — Moods and Genres page render
- *
- * Port từ `code chức năng gốc/base.js`:
- *   - `ur(e, t)`    dòng 4449 → render moods-and-genres page
- *   - `ir(e, t, n)` dòng 4246 → render color-bar section (4 cols)
- *   - `Zn(e)`       dòng 4050 → chunk array theo N
- *
- * Flow (port base.js `ur()` 1:1):
- *   1. Filter `e` (categories) → genre (ir "Dành cho bạn")
- *   2. Filter `e` (categories) → mood/other (ir "Tâm trạng và khoảnh khắc")
- *   3. `t` (lines) → ir "Dòng nhạc" với basePath /lines
- *
- * Phase 17 update:
- *   - Đổi sang cấu trúc giống Discover page section "Tâm trạng và thể loại":
- *     `home__container` + `home__row` (h2 + crt prev/next) +
- *     `home__body discover-mood-genre home-album__list` (data-slider).
- *   - Cols đổi class từ `moods-genres-page__color-col` → `discover-mood-genre__col`
- *     để responsive width (160/192/208/244px) khớp discover 1:1.
- *
- * Phase 18.5 cleanup: bỏ slider-progress (không dùng tính năng này).
- *
- * Lưu ý:
- *   - "ir" render color-bar items, KHÔNG dùng renderMoodGenreItem vì base
- *     path khác nhau (/categories vs /lines).
- *   - Tái sử dụng `renderMoodGenreItems()` từ mood-chip.js — đã match 1:1
- *     với `r()` trong `ir()` (base.js dòng 4247).
- *   - Hard Rule #3: KHÔNG Tailwind utility class — dùng SCSS class riêng
- *     trong `src/styles/pages/_moods-genres-page.scss`.
- *
- * Exports:
- *   - renderMoodsAndGenres(categories, lines) → full page HTML
- *
- * Consumed by:
- *   - `@/pages/moods-and-genres/moods-and-genres.js`
- */
+// ======================================================
+// MOODS-AND-GENRES PAGE — Render functions
+// ======================================================
+//
+// Port từ `code chức năng gốc/base.js`:
+//   - ur(e, t)    dòng 4449 → render moods-and-genres page
+//   - ir(e, t, n) dòng 4246 → render color-bar section (4 cols)
+//   - Zn(e)       dòng 4050 → chunk array theo N
+//
+// Flow (port base.js ur() 1:1):
+//   1. Filter e (categories) → genre (ir "Dành cho bạn")
+//   2. Filter e (categories) → mood/other (ir "Tâm trạng và khoảnh khắc")
+//   3. t (lines) → ir "Dòng nhạc" với basePath /lines
+//
+// Phase 17 update:
+//   - Đổi sang cấu trúc giống Discover page section "Tâm trạng và thể loại":
+//     `home__container` + `home__row` (h2 + crt prev/next) + `home__body discover-mood-genre home-album__list` (data-slider).
+//   - Cols đổi class từ `moods-genres-page__color-col` → `discover-mood-genre__col`
+//     để responsive width (160/192/208/244px) khớp discover 1:1.
+//
+// Phase 18.5 cleanup: bỏ slider-progress (anh không dùng tính năng này).
+//
+// Lưu ý:
+//   - "ir" render color-bar items, KHÔNG dùng renderMoodGenreItem vì base
+//     path khác nhau (/categories vs /lines).
+//   - Tái sử dụng `renderMoodGenreItems()` từ mood-chip.js — đã match 1:1
+//     với `r()` trong `ir()` (base.js dòng 4247).
+//   - Hard Rule #3: KHÔNG Tailwind utility class — dùng SCSS class riêng
+//     trong `src/styles/pages/_moods-genres-page.scss`.
+//
 
 import { escapeHtml } from "@/utils/format.js";
 import { renderMoodGenreItems } from "@/components/mood-chip.js";

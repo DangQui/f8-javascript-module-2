@@ -40,6 +40,15 @@
  *   - before: show loading overlay (safety net — page tự show/hide trong try/finally)
  *   - after: hide loading overlay + scroll to top
  *
+ * Phase 13.1: AWAIT pageFn (async) rồi mới re-bind Navigo links.
+ *   - Lý do: Navigo 8.x fire-and-forget handler. Nếu không await, page render
+ *     chưa xong thì `updatePageLinks()` đã chạy → track-items mới chưa có
+ *     data-navigo handler → click → browser reload.
+ *   - Fix: wrap pageFn → await → updatePageLinks() (idempotent).
+ *
+ * Phase 13.2: Close video overlay (nếu đang mở) trước khi render page mới
+ *   - Lý do: tránh 2 audio chạy song song khi navigate từ video-detail
+ *     (YouTube IFrame vẫn phát khi page đã đổi).
  */
 
 import Navigo from "navigo";
@@ -114,10 +123,9 @@ function registerRoutes() {
                 if (videoOverlay.isOpenNow()) {
                     videoOverlay.closeFull();
                 }
-                await withErrorBoundary(
-                    pageFn,
-                    "Đã xảy ra lỗi không xác định",
-                )(route);
+                await withErrorBoundary(pageFn, "Đã xảy ra lỗi không xác định")(
+                    route
+                );
             } finally {
                 // Bind Navigo link handler cho DOM mới (track-items, buttons, ...)
                 // để click `<a href data-navigo>` → SPA navigate (không reload).

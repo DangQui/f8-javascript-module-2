@@ -1,24 +1,22 @@
-/**
- * pages/moods-and-genres/moods-and-genres.js — Moods & Genres page handler
- *
- * Flow:
- *   1. Render skeleton ngay
- *   2. Fetch parallel: categories + lines
- *   3. Render HTML từ `moods-and-genres.render.js`
- *   4. Inject + re-init sliders
- *
- * Port từ `code chức năng gốc/base.js` route handler dòng 5773-5776:
- *   "/moods-and-genres": async () => {
- *       let[e,t] = await Promise.all([G.Categories.getAll(), G.Lines.getAll()]);
- *       await Q( () => ur(e, t))
- *   }
- *
- * Exports:
- *   - moodsAndGenresPage()  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/moods-and-genres")
- */
+// ======================================================
+// MOODS-AND-GENRES PAGE — Init + render
+// ======================================================
+//
+// Flow:
+//   1. Show loading overlay
+//   2. Fetch parallel: categories + lines
+//   3. Render HTML từ `moods-and-genres.render.js`
+//   4. Inject + re-init sliders
+//
+// Port từ `code chức năng gốc/base.js` route handler dòng 5773-5776:
+//   "/moods-and-genres": async () => {
+//       let[e,t] = await Promise.all([G.Categories.getAll(), G.Lines.getAll()]);
+//       await Q( () => ur(e, t))
+//   }
+//
+// Lưu ý:
+//   - Mỗi fetch fail → fallback `[]` để page vẫn render (1 phần data).
+//
 
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import { renderMoodsAndGenres } from "@/pages/moods-and-genres/moods-and-genres.render.js";
@@ -43,7 +41,9 @@ function SKELETON_MOODS_AND_GENRES() {
     `;
 }
 
-/** Render Moods-and-Genres page. */
+/**
+ * Render Moods-and-Genres page.
+ */
 export async function moodsAndGenresPage() {
     // 0. Render skeleton ngay
     renderPage(SKELETON_MOODS_AND_GENRES());

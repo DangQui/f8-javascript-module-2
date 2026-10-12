@@ -39,6 +39,11 @@
 const STORAGE_KEY = "music.userPlaylists.v1";
 const SCHEMA_VERSION = 1;
 const MAX_PLAYLISTS = 50;
+
+// ======================================================
+// VALIDATE
+// ======================================================
+
 /** @param {object} pl @returns {boolean} */
 function isValidPlaylist(pl) {
     if (!pl || typeof pl !== "object") return false;
@@ -55,6 +60,11 @@ function isValidVideo(v) {
     if (!v.title) return false;
     return true;
 }
+
+// ======================================================
+// READ / WRITE
+// ======================================================
+
 /** @returns {{version: number, playlists: Array}} */
 function readRaw() {
     try {
@@ -102,6 +112,11 @@ function generateSlug(title) {
     const suffix = Math.random().toString(36).substring(2, 8);
     return (base || "playlist") + "-" + suffix;
 }
+
+// ======================================================
+// PUBLIC API
+// ======================================================
+
 /**
  * Lấy tất cả user playlists (sort theo createdAt DESC).
  * @returns {Array<{slug, title, videos, createdAt}>}

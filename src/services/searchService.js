@@ -1,23 +1,21 @@
-/**
- * services/searchService.js — Search API endpoints
- *
- * Endpoints (theo docs F8):
- *   GET /search/suggestions?q=...       — dropdown autocomplete (≤ 8 items mỗi loại)
- *   GET /search?q=...&limit=&page=      — trang kết quả đầy đủ (pagination)
- *
- * Phân biệt:
- *   - `getSuggestions(q)`         → dropdown ở header search
- *   - `getResults(q, {page, limit})` → /search route page
- *
- * Exports:
- *   - searchService.getSuggestions(query) → dropdown autocomplete
- *   - searchService.getResults(query, options) → search page results
- *   - searchService.search(query)         → backward-compat alias of getSuggestions
- *
- * Consumed by:
- *   - `@/components/search.js` (getSuggestions - dropdown)
- *   - `@/pages/search/search.js` (getResults - page results)
- */
+// ======================================================
+// SEARCH SERVICE — api.Search.* (Phase 4 port từ base.js G.Search)
+// ======================================================
+//
+// Phase 20: Wrap mapApiError để throw AppError {code, message, field, status}
+// → search page (Phase 13) hiển thị đúng message backend.
+//
+// Theo docs F8 (https://youtube-music.f8team.dev/):
+//   GET /search/suggestions?q=...     — dropdown autocomplete (≤ 8 items mỗi loại)
+//   GET /search?q=...&limit=&page=    — trang kết quả đầy đủ (pagination)
+//
+// Lưu ý phân biệt:
+//   - `getSuggestions(q)`   → gọi `/search/suggestions` (CHO HEADER SEARCH DROPDOWN)
+//   - `getResults(q, page)` → gọi `/search`             (CHO /search ROUTE PAGE)
+//
+// Phase 13 page handler đang gọi `searchService.search(q)` — sau refactor
+// đổi thành `searchService.getResults(q, { page, limit })` cho khớp docs.
+//
 
 import { api } from "@/libs/api.js";
 import { mapApiError } from "@/libs/api-error.js";
@@ -26,9 +24,11 @@ import { MESSAGES } from "@/utils/messages.js";
 export const searchService = {
     /**
      * Gợi ý tìm kiếm (cho dropdown autocomplete ở header).
+     * GET /search/suggestions?q=...
      * @param {string} query
-     * @returns {Promise<object>} Backend trả về dạng {songs, albums, artists, videos, playlists}
-     *                           hoặc {items: [...]}. Caller tự normalize.
+     * @returns {Promise<object>} — shape backend tự do (suggestions có thể trả về
+     *                              dạng phẳng {songs, albums, artists, videos, playlists}
+     *                              hoặc dạng items[] — caller tự normalize).
      */
     async getSuggestions(query) {
         if (!query || !query.trim()) return {};
@@ -44,10 +44,11 @@ export const searchService = {
     },
 
     /**
-     * Kết quả tìm kiếm đầy đủ (cho /search route page), có pagination.
+     * Kết quả tìm kiếm đầy đủ (cho /search route page).
+     * GET /search?q=...&limit=20&page=1
      * @param {string} query
-     * @param {{limit?: number, page?: number}} [options]
-     * @returns {Promise<{items: Array, page: number, total: number, hasMore?: boolean}>}
+     * @param {{ limit?: number, page?: number }} [options]
+     * @returns {Promise<object>} — { items: [...], page, total, hasMore, ... }
      */
     async getResults(query, { limit = 20, page = 1 } = {}) {
         if (!query || !query.trim()) return { items: [], page: 1, total: 0 };
@@ -67,7 +68,13 @@ export const searchService = {
         }
     },
 
-    /** @deprecated Backward-compat alias of `getSuggestions`. Dùng getSuggestions hoặc getResults. */
+    /**
+     * Backward-compat alias.
+     * Phase 13 code cũ gọi `searchService.search(q)` — map sang `getSuggestions`
+     * để giữ dropdown hoạt động đúng.
+     * @deprecated Use `getSuggestions()` hoặc `getResults()` thay thế.
+     * @param {string} query
+     */
     async search(query) {
         return this.getSuggestions(query);
     },

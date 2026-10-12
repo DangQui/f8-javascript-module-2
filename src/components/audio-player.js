@@ -1,43 +1,44 @@
-/**
- * components/audio-player.js — Core audio playback + queue
- *
- * Port từ class `yr` trong `code chức năng gốc/base.js` (dòng 4633+).
- * Modern ES module, clean API, dùng state `playerState` để show/hide UI
- * `#player` (player.html đã có sẵn ở Phase 5).
- *
- * Features:
- *   - Queue management (setQueue, next, prev, playRandom)
- *   - Play / pause / togglePlay
- *   - Volume + mute (toggleMute, remember lastVolume)
- *   - Progress / time updates (dispatch event → UI update)
- *   - Shuffle / Repeat (mutual exclusive — bật cái này tắt cái kia)
- *   - Track click → load + play
- *   - Highlight active track (`.track-list__item--active`)
- *
- * UI selectors (player.html — layout/player.js):
- *   - .player__title / .player__cover / .player__artist / .player__time
- *   - .player__progress-bar / .player__volume-slider
- *   - .player__control--play / --prev / --next
- *   - .player__action--shuffle / --repeat / --volume
- *
- * Event API:
- *   - Emit `audio:state-changed` (state = { playing, currentTime, duration,
- *     volume, shuffle, repeat, currentSong, queue })
- *   - Phase 8.5 v8: Mutual exclusion via `media:active-changed`
- *     (khi video active → audio eject sạch, KHÔNG pause thuần — tránh
- *     "bài ma" resume lại)
- *
- * Exports:
- *   - audioPlayer → singleton instance
- *   - getAudioPlayer()
- *   - bindAudioPlayerUI()
- *
- * Consumed by:
- *   - `@/layout/player.js` (central dispatch player buttons)
- *   - `@/layout/init.js` (init flow)
- *   - `@/pages/song-detail/song-detail.js` (setQueue + playSongById)
- *   - `@/pages/album-detail/...` + `@/pages/playlist-detail/...`
- */
+// ======================================================
+// AUDIO PLAYER — Core audio playback + queue
+// ======================================================
+//
+
+// dòng 4633+ → modern ES module, clean API, dùng state playerState
+// để show/hide UI player.html đã có sẵn ở Phase 5.
+//
+// API export:
+//   import { audioPlayer, getAudioPlayer, onAudioStateChange } from "@/components/audio-player.js";
+//   audioPlayer.playSong(song);
+//   audioPlayer.togglePlay();
+//   audioPlayer.setVolume(80);
+//   audioPlayer.setQueue(album.tracks);
+//   audioPlayer.next(); audioPlayer.prev();
+//
+// FEATURES (port đầy đủ từ class `yr`):
+//   - Queue management (setQueue, next, prev, playRandom)
+//   - Play / pause / togglePlay
+//   - Volume + mute (toggleMute, remember lastVolume)
+//   - Progress / time updates (dispatch event → UI update)
+//   - Shuffle / Repeat (mutual exclusive — bật cái này tắt cái kia)
+//   - Track click → load + play
+//   - Highlight active track (.playing class)
+//   - Wire với player.html UI (Phase 5)
+//
+// UI SELECTORS (player.html — layout/player.js):
+//   - .player__title / .player__cover / .player__artist / .player__time
+//   - .player__progress-bar
+//   - .player__volume-slider
+//   - .player__control--play / --prev / --next
+//   - .player__action--shuffle / --repeat / --volume
+//
+// EVENT API (broadcast qua `audio:state-changed`):
+//   { playing, currentTime, duration, volume,
+//     shuffle, repeat, currentSong, queue }
+//
+// Tích hợp với video-overlay (Phase 7): audio-player emit event
+// `audio:state-changed` với shape tương tự `video-overlay:state-changed`
+// để #player cập nhật UI (xem bindPlayerEvents trong layout/player.js).
+//
 
 import { formatDuration, escapeHtml } from "@/utils/format.js";
 import { showLoading, hideLoading } from "@/libs/loading.js";
@@ -50,13 +51,19 @@ import {
 import { toast } from "@/libs/toast.js";
 import { navigate } from "@/libs/router.js";
 // Phase 14.9: Wire listen history (lưu localStorage khi user thực sự load bài).
-// KHÔNG ghi khi restoreFromState (chỉ ghi khi user CHỦ ĐỘNG load bài mới).
+// Lưu ý: KHÔNG ghi khi restoreFromPersist (chỉ ghi khi user CHỦ ĐỘNG load bài mới).
 import { recordListen } from "@/state/listenHistory.js";
 
 const DEBUG = false;
+
 function log(...args) {
     if (DEBUG) console.log("[audioPlayer]", ...args);
 }
+
+// ======================================================
+// CLASS
+// ======================================================
+
 class AudioPlayer {
     constructor() {
         this.queue = [];
@@ -79,8 +86,11 @@ class AudioPlayer {
         this._onTimeUpdate = this._handleTimeUpdate.bind(this);
         this._onAudioEnded = this._handleSongEnd.bind(this);
         // Phase 8.5 v5: khi audio play/pause (không qua API togglePlay),
-        // vẫn phải emit state để #player UI update icon. Thêm 2 listener
-        // này để bắn `audio:state-changed` cho mọi thay đổi playing/paused.
+        // vẫn phải emit state để #player UI update icon. Trước đó chỉ có
+        // `timeupdate` + `ended` + `error` → khi user click play button của
+        // #player, audio toggle nhưng UI KHÔNG đổi (icon vẫn fa-play dù
+        // audio đang chạy). Thêm 2 listener này để bắn `audio:state-changed`
+        // cho mọi thay đổi trạng thái playing/paused.
         this._onAudioPlay = () => this._emitState();
         this._onAudioPause = () => this._emitState();
 
@@ -95,6 +105,11 @@ class AudioPlayer {
         // Volume default 100%
         this.audio.volume = 1.0;
     }
+
+    // ==================================================
+    // SUBSCRIBE (custom event API)
+    // ==================================================
+
     /**
      * Subscribe state changes.
      * @param {(state: object) => void} callback
@@ -106,14 +121,6 @@ class AudioPlayer {
         return () => this._listeners.delete(callback);
     }
 
-    /**
-     * Emit state tới tất cả listeners + auto-save (throttled 5s) vào localStorage.
-     *
-     * QUAN TRỌNG: Skip save khi đang restore (`this._isRestored === true`):
-     * audio chưa load xong → currentTime/duration = 0 → sẽ GHI ĐÈ persisted
-     * state. Unblock khi audio.duration > 0 hoặc user tương tác (playSong,
-     * setVolume, togglePlay, toggleShuffle/Repeat).
-     */
     _emitState() {
         const state = this.getState();
         this._listeners.forEach((cb) => {
@@ -124,8 +131,18 @@ class AudioPlayer {
             }
         });
 
+        // Phase 14: Auto-save state vào localStorage (throttled 5s)
+        // Lưu currentSong + currentTime + volume + shuffle + repeat
+        // để khôi phục sau F5 / đóng tab / mất điện.
+        //
+        // QUAN TRỌNG: Skip save khi đang restore (this._isRestored === true)
+        // vì audio chưa load xong → currentTime/duration = 0 → sẽ GHI ĐÈ
+        // persisted state. Unblock khi user thực sự playSong() / pauseSong()
+        // hoặc khi state đã stable (có audio.duration > 0).
         if (this._isRestored) {
-            // Chỉ unblock save khi audio đã load metadata hoặc user tương tác
+            // Chỉ unblock save khi audio đã load metadata (duration > 0)
+            // HOẶC khi user togglePlay (sẽ gọi _emitState qua playSong)
+            // HOẶC khi user tương tác volume/shuffle/repeat (state stable).
             const hasStableAudio = this.audio.duration > 0;
             const hasUserInteraction = !!this.audio.src && !!this.currentSong?.audioUrl;
             if (hasStableAudio || hasUserInteraction) {
@@ -163,7 +180,15 @@ class AudioPlayer {
             queue: this.queue,
         };
     }
-    /** @param {Array<object>} songs */
+
+    // ==================================================
+    // QUEUE
+    // ==================================================
+
+    /**
+     * Set queue (danh sách bài hát).
+     * @param {Array<object>} songs
+     */
     setQueue(songs) {
         this.queue = Array.isArray(songs) ? songs : [];
         this.currentIndex = 0;
@@ -171,7 +196,10 @@ class AudioPlayer {
         this._emitState();
     }
 
-    /** @param {object} song */
+    /**
+     * Thêm 1 bài vào queue.
+     * @param {object} song
+     */
     addToQueue(song) {
         if (!song || !song.id) return;
         if (this.queue.find((s) => s.id === song.id)) return;
@@ -182,6 +210,11 @@ class AudioPlayer {
     getQueue() {
         return this.queue;
     }
+
+    // ==================================================
+    // LOAD SONG
+    // ==================================================
+
     /**
      * Load 1 bài (không play) — cập nhật UI.
      * @param {object} song - { id, title, audioUrl, thumbnails[], artists[], duration }
@@ -193,8 +226,11 @@ class AudioPlayer {
             this.isLoading = true;
             showLoading();
 
+            // Pause bài trước nếu đang phát
             if (this.playPromise) {
-                try { this.audio.pause(); } catch {}
+                try {
+                    this.audio.pause();
+                } catch {}
                 this.playPromise = null;
             }
 
@@ -215,7 +251,9 @@ class AudioPlayer {
                     onLoaded();
                     return;
                 }
-                this.audio.addEventListener("loadedmetadata", onLoaded, { once: true });
+                this.audio.addEventListener("loadedmetadata", onLoaded, {
+                    once: true,
+                });
             });
 
             this._highlightActiveSong(song.id);
@@ -229,8 +267,12 @@ class AudioPlayer {
 
     /**
      * Load + ghi nhận lịch sử nghe (chỉ dành cho user action).
+     * Khác `loadSong()` ở chỗ: gọi thêm `recordListen()` để lưu localStorage.
      * Dùng cho: track-item click ở page, playSongById, addToQueue + play ngay.
-     * KHÔNG dùng cho restoreFromState (user chỉ refresh tab, không tính "nghe mới").
+     *
+     * KHÔNG dùng cho: restoreFromState (user chỉ refresh tab, không tính là "nghe mới").
+     *
+     * Phase 14.9 — workaround backend chưa track /home/personalized user-specific.
      *
      * @param {object} song
      */
@@ -244,29 +286,43 @@ class AudioPlayer {
             artists: song.artists,
         });
     }
+
+    // ==================================================
+    // PLAY / PAUSE / TOGGLE
+    // ==================================================
+
     async playSong() {
         if (this.isLoading) return;
         if (!this.currentSong) {
-            // Empty state (sau khi eject) → hiện toast, KHÔNG resume bài cũ
+            // Phase 8.5 v8: User click play khi đang empty state (sau khi eject) →
+            // Hiện toast, KHÔNG resume bài cũ (vì currentSong = null rồi).
             toast.info("Vui lòng chọn bài để phát");
             return;
         }
 
+        // Phase 14 fix: Unblock save khi user thực sự play (clear _isRestored).
+        // Nếu audio chưa load xong (duration = 0), vẫn cho phép play —
+        // _emitState sẽ skip save cho đến khi audio.duration > 0.
         this._isRestored = false;
 
-        // Nếu audio chưa có src (chưa load xong từ restore) → load lại
+        // Phase 14 fix: Nếu audio chưa có src (chưa load xong từ restore) →
+        // Load lại từ currentSong.audioUrl trước khi play.
         if (!this.audio.src && this.currentSong.audioUrl) {
             this.audio.src = this.currentSong.audioUrl;
             this.audio.load();
         }
 
+        // Phase 14 fix: Nếu đang ở "restored" state (chưa unblock save) mà
+        // audio chưa có src → không thể play → hiện toast warning.
         if (!this.audio.src) {
             toast.warn("Không thể phát — bài hát chưa sẵn sàng");
             console.warn("[audioPlayer] playSong: audio.src rỗng, currentSong:", this.currentSong);
             return;
         }
 
-        // Nếu video đang active → PHẢI pause video trước (tránh 2 audio chạy song song)
+        // Phase 8.5 v7: Nếu video đang active → KHÔNG play audio.
+        // Tránh 2 audio chạy song song (user vừa nghe video vừa click play
+        // trên #player). Pause video overlay trước.
         if (getActive() === "video") {
             document.dispatchEvent(new CustomEvent("media:audio-takeover"));
         }
@@ -282,9 +338,14 @@ class AudioPlayer {
             this.playPromise = this.audio.play();
             await this.playPromise;
 
+            // Show player
             showPlayer();
+
+            // Broadcast: mình đang là active player
             setActive("audio");
 
+            // Phase 14 fix: Force unblock save + emit state ngay để UI
+            // update play/pause icon. Sau đó throttled save sẽ tự save.
             this._isRestored = false;
             this._emitState();
         } catch (err) {
@@ -296,11 +357,21 @@ class AudioPlayer {
         this.audio.pause();
         this.playPromise = null;
 
-        // KHÔNG setActive(null) khi pause — pause chỉ dừng audio playback,
-        // KHÔNG deactive player. Nếu setActive(null) thì user click play lần 2
-        // ở #player → central dispatch emit `player:play-toggle` cho
-        // videoOverlay listen → videoOverlay skip (no video active) → NO-OP.
-        // ĐÚNG: chỉ ejectSong() + closeFull mới nên setActive(null).
+        // Phase 14.4 fix: KHÔNG setActive(null) khi pause — pause chỉ dừng
+        // audio playback, KHÔNG deactive player. Nếu setActive(null) thì
+        // user click play lần 2 ở #player → central dispatch ở
+        // layout/player.js:397-404 emit `player:play-toggle` cho
+        // videoOverlay listen → videoOverlay skip (no video active) →
+        // NO-OP → user thấy "click play không phát".
+        //
+        // ĐÚNG behavior: chỉ ejectSong() (audio-player.js:386-392) + closeFull
+        // (video-overlay.js:1397) mới nên setActive(null). Pause giữ
+        // active = "audio" để user click play lần nữa vẫn route đúng.
+        //
+        // Mutual exclusion listener (audio-player.js:956-962) chỉ eject
+        // khi active = "video" (player khác play) — KHÔNG bị ảnh hưởng
+        // vì active vẫn = "audio" sau pause.
+
         this._emitState();
     }
 
@@ -311,22 +382,33 @@ class AudioPlayer {
             this.pauseSong();
         }
     }
+
+    // ==================================================
+    // EJECT — Phase 8.5 v8: Replace media, not update
+    // ==================================================
     //
-    // Port pattern từ code gốc `base.js:4931-4934` (class `yr.destroy()`).
+    // Port pattern từ code gốc `base.js:4931-4934` (class `yr.destroy()`):
+    //   this.audio?.pause(),
+    //   this.currentSong = null,
+    //   document.querySelector(`#player-wrapper`)?.classList.add(`hidden`),
+    //
     // Khi user chuyển sang media khác (audio ↔ video) hoặc load media mới,
-    // PHẢI eject sạch state của media cũ. KHÔNG pause-thuần (giữ currentTime/queue
-    // → "bài ma" resume lại).
+    // PHẢI eject sạch state của media cũ. KHÔNG pause-thuì giữ currentTime/queue
+    // (tránh "bài ma" resume lại).
     //
     // Flow:
     //   1. Pause + reset currentTime = 0
     //   2. Clear currentSong / queue / currentIndex
-    //   3. Clear active (nếu mình đang active) → trigger `media:active-changed`
+    //   3. Clear active → trigger `media:active-changed`
     //   4. Ẩn #player (hidePlayer)
-    //   5. Reset UI #player
-    //   6. Emit state để UI sync
+    //   5. Emit state để UI sync (title/cover sẽ reset về "Chưa phát")
     //
-    // KHÔNG destroy `this.audio` (giữ lại để load bài mới).
-    // KHÔNG reset volume / shuffle / repeat (giữ setting user).
+    // KHÔNG destroy `this.audio` element (giữ lại để load bài mới).
+    // KHÔNG reset volume / shuffle / repeat (giữ setting user đã chọn).
+    //
+    // Sau khi eject → player ở "empty state", sẵn sàng nhận song mới
+    // qua `loadSong()`. User click play btn lúc này sẽ thấy toast
+    // "Vui lòng chọn bài để phát" (vì currentSong === null).
     //
     ejectSong() {
         log("ejectSong()");
@@ -342,32 +424,36 @@ class AudioPlayer {
         this.currentIndex = 0;
         this.queue = [];
 
-        // 3. Clear active (chỉ nếu mình đang active — tránh overwrite player khác)
+        // 3. Clear active (sẽ trigger `media:active-changed` → player khác eject)
+        //    Chỉ clear nếu mình đang active (tránh overwrite player khác)
         if (getActive() === "audio") {
             setActive(null);
         }
 
-        // 4. Ẩn #player
+        // 4. Ẩn #player (vì không còn track nào)
         hidePlayer();
 
-        // 5. Reset UI #player
+        // 5. Reset UI #player (title/cover/time → trống)
         this._resetPlayerUI();
 
-        // 6. Emit state → listeners sync
+        // 6. Emit state → listeners sync (sẽ tự ẩn #player qua applyAudioState)
         this._emitState();
 
-        // 7. Clear audio slot (giữ nguyên video nếu có)
+        // 7. Phase 14: Clear audio slot (giữ nguyên video nếu có)
         clearPlayerState({ audio: true });
     }
 
     /**
      * Phase 14: Khôi phục state từ localStorage.
      *
-     * Hiển thị ở #player minimized dạng "stopped" (không auto-play):
-     *   - currentSong → fetch details (nếu thiếu audioUrl) → set + show track info
+     * Được gọi bởi `initLayout()` (sau khi render player.html) khi phát hiện
+     * có persisted state. Hiển thị ở #player minimized dạng "stopped" (không auto-play):
+     *   - currentSong → fetch details từ API (nếu thiếu audioUrl) → set + show track info
      *   - volume → set slider
      *   - shuffle/repeat → set toggle UI
      *   - currentTime → set nhưng KHÔNG play (paused)
+     *
+     * User click play → sẽ resume từ currentTime đã lưu.
      *
      * @param {object} persisted - { currentSong, currentTime, volume, shuffle, repeat }
      */
@@ -379,30 +465,33 @@ class AudioPlayer {
 
         log("restoreFromState()", persisted);
 
-        // 1. Set queue + currentSong
+        // 1. Set queue + currentSong (state ban đầu — chưa có audioUrl)
         this.currentSong = persisted.currentSong;
         this.queue = [persisted.currentSong];
         this.currentIndex = 0;
 
-        // 2. Set volume + shuffle + repeat TRƯỚC (UI update ngay)
+        // 2. Set volume + shuffle + repeat TRƯỚC (UI update ngay lập tức)
         const vol = Math.max(0, Math.min(100, Number(persisted.volume) || 100));
         this.audio.volume = vol / 100;
         this.isShuffle = !!persisted.shuffle;
         this.isRepeat = !!persisted.repeat;
 
-        // 3. Update toggle UI
+        // 3. Update toggle UI (shuffle/repeat buttons)
         this._updateToggleUI();
 
-        // 4. Show #player (KHÔNG _emitState ở đây — tránh save ngay khi
-        //    audio chưa load được, sẽ ghi đè currentTime = 0)
+        // 4. Show #player (KHÔNG gọi _emitState ở đây — tránh save lại state
+        //    khi audio chưa load được, sẽ ghi đè currentTime = 0).
+        //    Apply UI thủ công để hiển thị track info + volume + toggles.
         showPlayer();
         this._applyRestoredUI(persisted);
 
         // 5. Mark as "restored" — block save cho đến khi audio load xong
+        //    (tránh state cũ ghi đè state mới).
         this._isRestored = true;
 
-        // 5b. Set active = "audio" để central dispatch route click play
-        //     tới audioPlayer.togglePlay() thay vì emit event cho video overlay
+        // 5b. Phase 14 fix: Set active = "audio" để central dispatch ở
+        //     layout/player.js route click play tới audioPlayer.togglePlay()
+        //     thay vì emit event cho video overlay (no-op).
         setActive("audio");
 
         // 6. Fetch song details từ API để có audioUrl (background, không block UI)
@@ -427,9 +516,10 @@ class AudioPlayer {
             this.audio.src = songWithUrl.audioUrl || "";
             this.audio.load();
             this.audio.currentTime = persisted.currentTime || 0;
-            // KHÔNG pause() — chỉ set paused = true. playSong() tự handle.
+            // KHÔNG gọi pause() ở đây — chỉ set paused = true, vì pause() có thể
+            // reset currentTime khi audio chưa load xong. Để playSong() tự handle.
 
-            // 8. Wait loadedmetadata
+            // 8. Wait loadedmetadata để có duration
             await new Promise((resolve) => {
                 const onLoaded = () => {
                     this._updatePlayerDuration();
@@ -439,7 +529,9 @@ class AudioPlayer {
                     onLoaded();
                     return;
                 }
-                this.audio.addEventListener("loadedmetadata", onLoaded, { once: true });
+                this.audio.addEventListener("loadedmetadata", onLoaded, {
+                    once: true,
+                });
             });
 
             // 9. Re-apply UI với audio loaded
@@ -451,8 +543,10 @@ class AudioPlayer {
     }
 
     /**
-     * Apply UI state sau khi restore (KHÔNG gọi _emitState vì sẽ trigger
-     * save state ngay → ghi đè persisted state).
+     * Phase 14 fix: Apply UI state sau khi restore (KHÔNG gọi _emitState
+     * vì sẽ trigger save state ngay → ghi đè persisted state).
+     *
+     * Sync thủ công: title, cover, time, progress, volume, toggles.
      */
     _applyRestoredUI(persisted) {
         const song = this.currentSong;
@@ -502,7 +596,9 @@ class AudioPlayer {
         this._updateToggleUI();
     }
 
-    /** Format seconds → m:ss */
+    /**
+     * Helper: format seconds → m:ss
+     */
     _fmt(seconds) {
         const total = Math.max(0, Math.floor(Number(seconds) || 0));
         const m = Math.floor(total / 60);
@@ -511,7 +607,9 @@ class AudioPlayer {
     }
 
     /**
-     * Reset #player UI về empty state. Internal — dùng trong ejectSong().
+     * Reset #player UI về empty state (title "Chưa phát", cover mặc định,
+     * time "0:00 / 0:00", progress 0%).
+     * Internal — dùng trong ejectSong().
      */
     _resetPlayerUI() {
         const titleEl = document.querySelector(".player__title");
@@ -530,10 +628,16 @@ class AudioPlayer {
             progressBar.style.setProperty("--progress-fill", "0%");
         }
     }
+
+    // ==================================================
+    // NEXT / PREV / RANDOM
+    // ==================================================
+
     async next() {
         if (this.queue.length === 0) return;
         this.currentIndex = (this.currentIndex + 1) % this.queue.length;
         const song = this.queue[this.currentIndex];
+        // Phase 14.9: Ghi nhận lịch sử nghe khi user click next.
         await this.loadSongByUser(song);
         await this.playSong();
     }
@@ -543,6 +647,7 @@ class AudioPlayer {
         this.currentIndex =
             (this.currentIndex - 1 + this.queue.length) % this.queue.length;
         const song = this.queue[this.currentIndex];
+        // Phase 14.9: Ghi nhận lịch sử nghe khi user click prev.
         await this.loadSongByUser(song);
         await this.playSong();
     }
@@ -555,16 +660,23 @@ class AudioPlayer {
         } while (idx === this.currentIndex && this.queue.length > 1);
         this.currentIndex = idx;
         const song = this.queue[idx];
+        // Phase 14.9: Ghi nhận lịch sử nghe khi shuffle play.
         await this.loadSongByUser(song);
         await this.playSong();
     }
+
+    // ==================================================
+    // VOLUME / MUTE
+    // ==================================================
+
     setVolume(percent) {
         const v = Math.max(0, Math.min(100, Number(percent) || 0));
         this.audio.volume = v / 100;
         this.isMuted = v === 0;
         if (v > 0) this.lastVolume = v;
         this._updateVolumeUI(v);
-        // Phase 14.1 fix: Unblock save khi user tương tác volume
+        // Phase 14.1 fix: Unblock save khi user tương tác volume.
+        // Volume thay đổi là dấu hiệu user đang dùng app, không phải restore state.
         this._isRestored = false;
         this._emitState();
     }
@@ -580,14 +692,25 @@ class AudioPlayer {
             this.isMuted = false;
         }
         this._updateVolumeUI(this.audio.volume * 100);
+        // Phase 14.1 fix: Unblock save khi user click mute/unmute.
         this._isRestored = false;
         this._emitState();
     }
+
+    // ==================================================
+    // PROGRESS / SEEK
+    // ==================================================
+
     seekToPercent(percent) {
         const duration = this.audio.duration;
         if (!duration || Number.isNaN(duration)) return;
         this.audio.currentTime = (Math.max(0, Math.min(100, percent)) / 100) * duration;
     }
+
+    // ==================================================
+    // SHUFFLE / REPEAT
+    // ==================================================
+
     toggleShuffle() {
         this.isShuffle = !this.isShuffle;
         if (this.isShuffle) this.isRepeat = false;
@@ -601,6 +724,11 @@ class AudioPlayer {
         this._updateToggleUI();
         this._emitState();
     }
+
+    // ==================================================
+    // INTERNAL HANDLERS
+    // ==================================================
+
     _handleTimeUpdate() {
         this._updateTimeUI();
         this._emitState();
@@ -615,6 +743,11 @@ class AudioPlayer {
             this.next();
         }
     }
+
+    // ==================================================
+    // UI SYNC (write to player.html)
+    // ==================================================
+
     _updatePlayerInfo(song) {
         const titleEl = document.querySelector(".player__title");
         const coverEl = document.querySelector(".player__cover");
@@ -687,17 +820,23 @@ class AudioPlayer {
         if (repeatBtn) repeatBtn.classList.toggle("is-active", this.isRepeat);
     }
 
-    /**
-     * Highlight active track (`.track-list__item--active`) + scrollIntoView.
-     * Phase 14.7: dùng class `track-list__item--active` (match track-item.js)
-     * thay vì `.playing` cũ.
-     *
-     * Selector dùng `[data-track-id]` (thuộc tính chung cho mọi track-item
-     * render bởi track-item.js) → cover album/playlist/song/search/quick picks.
-     */
     _highlightActiveSong(songId) {
         if (!songId) return;
-
+        // Phase 14.7 fix: Đổi class từ `.playing` (cũ) → `.track-list__item--active`
+        // (match với class mà track-item.js render).
+        //
+        // BUG cũ: code này dùng `.playing` nhưng track-item.js (Phase 8+) render
+        // class `track-list__item` + modifier `--active` → querySelector ở đây
+        // không match, highlight không hoạt động.
+        //
+        // Selector dùng `[data-track-id]` (thuộc tính chung cho mọi track-item
+        // render bởi track-item.js) để cover cả:
+        //   - Album detail
+        //   - Playlist detail
+        //   - Song detail (album.tracks + playlists[].tracks + related)
+        //   - Search results
+        //   - Quick picks
+        //
         // Remove .track-list__item--active khỏi tất cả track trước
         document
             .querySelectorAll(".track-list__item--active, [data-track-id].track-list__item--active")
@@ -713,28 +852,48 @@ class AudioPlayer {
                 }, 200);
             });
     }
+
+    // ==================================================
+    // CLICK BINDING — global click → play track
+    // ==================================================
+
     /**
-     * Bind 1 lần global click trên `[data-track-id]`. Khi user click → load + play.
+     * Bind 1 lần global click trên `.track-item` / `[data-track-id]`.
+     * Khi user click → load + play (giống base.js `setupListEvents` dòng 4832-4845).
      *
-     * Lưu ý navigation:
+     * Logic port từ base.js (line 4830-4845):
+     *   - `e.target.closest(".track-item")` → check có data-track-id không
+     *   - Tìm song trong queue (`this.songs` = `this.queue` trong class em)
+     *   - `await loadSong(song)` → `await playSong()` → show player + highlight
+     *
+     * Lưu ý navigation (so với code gốc):
      *   - Code gốc `<a href="/songs/details/:id" data-navigo>` + global click play.
-     *     Em KHÔNG `preventDefault()` → để Navigo link navigate sang detail page,
-     *     ĐỒNG THỜI gọi `playSongById(id)` NGAY TRƯỚC → nhạc phát ngay
-     *     (không phải đợi fetch xong).
-     *
-     * Modifier keys (Cmd/Ctrl/Shift/Alt hoặc middle-click) → bỏ qua để browser
-     * mở tab mới hoặc download link track.
+     *     Vì là Navigo link, browser cũng navigate đồng thời → URL đổi sang
+     *     /songs/details/:id → route handler chạy → render info-detail mới + play lại.
+     *   - Em KHÔNG `preventDefault()` để giữ Navigo navigate → URL đổi đúng,
+     *     info-detail update, page render đúng bài mới.
+     *   - ĐỒNG THỜI em vẫn gọi `playSongById(id)` NGAY TRƯỚC khi navigate
+     *     → nhạc phát ngay (không phải đợi fetch xong). Khi song-detail page
+     *     load xong sẽ gọi lại `playSongById(id)` ở handler → setQueue +
+     *     playSongById → ensure currentSong đúng + play tiếp nếu cần.
      */
     bindTrackClicks() {
         if (this._trackClickBound) return;
         this._trackClickBound = true;
 
         document.addEventListener("click", async (e) => {
+            // Track-item: bất kỳ element nào có data-track-id (track-list__item, .track-item, ...)
             const trackEl = e.target.closest("[data-track-id]");
             if (!trackEl) return;
 
+            // Bỏ qua nếu user giữ modifier key (Cmd/Ctrl/middle-click) → để browser
+            // mở tab mới hoặc download link track
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-            if (e.button !== 0) return;
+            if (e.button !== 0) return; // chỉ left-click
+
+            // KHÔNG preventDefault → để Navigo link `<a href data-navigo>`
+            // navigate sang /songs/details/:id như bình thường.
+            // Song-detail page sẽ tự fetch + render info-detail mới + auto-play.
 
             const id = trackEl.dataset.trackId;
             if (!id) return;
@@ -745,10 +904,12 @@ class AudioPlayer {
 
     /**
      * Play 1 bài theo ID.
+     *
      * Flow:
      *   1. Tìm trong `queue` (đã set từ detail page).
-     *   2. Nếu KHÔNG có → gọi `getSong(id)` API (cần audioUrl).
-     *   3. Load + play + highlight.
+     *   2. Nếu KHÔNG có trong queue → gọi `getSong(id)` API lấy chi tiết + audioUrl
+     *      (port pattern `yr.playSongFromDetail` từ base.js:4847 — cần song có audioUrl).
+     *   3. Nếu có → loadSong + playSong + show player + highlight.
      *
      * @param {string} songId
      */
@@ -764,6 +925,7 @@ class AudioPlayer {
             try {
                 const { detailsService } = await import("@/services/detailsService.js");
                 const fetched = await detailsService.getSong(songId);
+                // Chuẩn hoá shape giống track trong queue (cần audioUrl)
                 song = {
                     id: fetched.id,
                     title: fetched.title || "Chưa rõ tên",
@@ -774,6 +936,7 @@ class AudioPlayer {
                     duration: fetched.duration || 0,
                     audioUrl: fetched.audioUrl,
                 };
+                // Thêm vào queue (không thay currentIndex)
                 this.queue.push(song);
             } catch (err) {
                 console.warn("[audioPlayer] playSongById fetch failed:", err);
@@ -781,8 +944,11 @@ class AudioPlayer {
             }
         }
 
+        // 3. Nếu có audioUrl → load + play
         if (!song.audioUrl) {
-            console.warn(`[audioPlayer] Song "${song.title || songId}" không có audioUrl`);
+            console.warn(
+                `[audioPlayer] Song "${song.title || songId}" không có audioUrl`
+            );
             return;
         }
 
@@ -790,13 +956,22 @@ class AudioPlayer {
         const idx = this.queue.findIndex((s) => s.id === song.id);
         if (idx >= 0) this.currentIndex = idx;
 
+        // Phase 14.9: Dùng loadSongByUser (ghi nhận lịch sử nghe).
         await this.loadSongByUser(song);
         await this.playSong();
     }
 }
+
+// ======================================================
+// SINGLETON + EVENT BRIDGE
+// ======================================================
+
 let _instance = null;
 
-/** @returns {AudioPlayer} */
+/**
+ * Get singleton instance.
+ * @returns {AudioPlayer}
+ */
 export function getAudioPlayer() {
     if (!_instance) {
         _instance = new AudioPlayer();
@@ -804,59 +979,86 @@ export function getAudioPlayer() {
     return _instance;
 }
 
-/** Default export — singleton. */
+/**
+ * Default export — singleton.
+ */
 export const audioPlayer = getAudioPlayer();
 
 /**
- * Bridge: emit `audio:state-changed` event cho #player / video-overlay listen.
+ * Bridge: khi state thay đổi → emit `audio:state-changed` event
+ * để #player / video-overlay listen.
  */
 audioPlayer.onStateChange((state) => {
     document.dispatchEvent(
         new CustomEvent("audio:state-changed", { detail: state })
     );
 });
+
+// ======================================================
+// PHASE 8.5 v8: MUTUAL EXCLUSION LISTENER (EJECT thay vì PAUSE)
+// ======================================================
 //
-// Khi player khác setActive() → PHẢI eject sạch state (KHÔNG pause thuần
-// — sẽ giữ currentTime/queue → "bài ma" resume lại).
+// Khi player khác setActive() → mình PHẢI eject sạch state
+// (KHÔNG pause thuần — sẽ giữ currentTime/queue, gây "bài ma" resume).
 //
 // Flow:
-//   1. setActive("video") → broadcast `media:active-changed`
+//   1. setActive("video") / setActive("audio") → broadcast event này
 //   2. Audio listen: nếu active = video → ejectSong() (clear toàn bộ state)
-//   3. Video listen: nếu active = audio → ejectVideo() (destroy YT.Player)
+//   3. Video listen: nếu active = audio → ejectVideo() (destroy YT.Player + clear state)
 //
-// Listen qua document event (không import video-overlay) → tránh circular dep.
+// Trước Phase 8.5 v8: chỉ pause → state cũ vẫn còn → user click play lại sẽ
+// resume bài cũ (BUG).
+//
+// Listen qua document event (không import trực tiếp video-overlay) → tránh
+// circular dependency.
 document.addEventListener("media:active-changed", (e) => {
     const active = e.detail?.active;
+
+    // Nếu active = video (và KHÔNG phải audio) → eject audio sạch
     if (active === "video") {
         audioPlayer.ejectSong();
     }
+
     // KHÔNG làm gì khi active = null (pause bình thường không cần eject)
 });
+
+// ======================================================
+// Phase 14.2: Handle player:expand-request + player:menu-action cho SONG
+// ======================================================
 //
 // Vấn đề: video-overlay listen `player:expand-request` và `player:menu-action`
 // nhưng check `isPlayerActive()` — chỉ true khi video đang phát. Khi SONG
 // đang phát → event bị ignore → click track (cover/title) hoặc click menu
 // "Chi tiết bài hát" ở #player KHÔNG navigate đến /songs/details/{id}.
 //
-// Fix: audio-player cũng listen 2 event này.
+// Fix: audio-player cũng listen 2 event này. Nếu đang phát song → navigate
+// đến song detail. Video overlay vẫn handle như cũ (giữ nguyên behavior
+// expand overlay full).
+//
+// KHÔNG check getActive() ở đây — để video overlay tự skip khi không phải
+// video của nó. Audio listen sẽ skip khi không phải song (currentSong null).
 document.addEventListener("player:expand-request", () => {
+    // Chỉ navigate khi đang phát SONG
     if (getActive() !== "audio") return;
     if (!audioPlayer.currentSong) return;
 
     const id = audioPlayer.currentSong.id;
     if (id) {
+        // Đóng menu 3 chấm nếu đang mở
         document.querySelector("#player-menu")?.setAttribute("hidden", "");
         navigate(`/songs/details/${id}`);
     }
 });
 
 document.addEventListener("player:menu-action", (e) => {
+    // Chỉ xử lý khi đang phát SONG
     if (getActive() !== "audio") return;
     if (!audioPlayer.currentSong) return;
 
     const action = e.detail?.action;
     if (!action) return;
 
+    // Đóng menu 3 chấm (cả audio và video)
     document.querySelector("#player-menu")?.setAttribute("hidden", "");
 
     if (action === "detail") {
@@ -869,12 +1071,25 @@ document.addEventListener("player:menu-action", (e) => {
 });
 
 /**
- * Wire với player.html UI (auto-bind 1 lần).
+ * Wire với player.html UI ở layout/player.js (auto-bind 1 lần).
  *
- * Phase 8.5 v9 (Central Dispatch): click handlers cho buttons ở #player CHUYỂN VỀ
- * `layout/player.js` (single source of truth). Hàm này chỉ còn:
- *   - bindTrackClicks() — global click handler (click track ở page → play audio)
- *   - Init UI ban đầu (toggle icon + volume slider value)
+ * Phase 8.5 v9 (Central Dispatch):
+ *   - Click handlers cho buttons ở #player CHUYỂN VỀ `layout/player.js`
+ *     (single source of truth). Handler ở dựa check `getActive()` rồi route
+ *     đến audioPlayer hoặc videoOverlay.
+ *   - Hàm này chỉ còn:
+ *     + `bindTrackClicks()` — global click handler (click track ở page → play audio)
+ *     + Init UI ban đầu (toggle icon + volume slider value)
+ *
+ * Lý do: Trước đó CẢ `audio-player.js` VÀ `layout/player.js` đều attach listener
+ * vào `.player__control--play`. Khi user click:
+ *   - Listener 1 (audioPlayer.togglePlay) → playSong() → check !currentSong
+ *     → toast "Vui lòng chọn bài để phát" (BUG)
+ *   - Listener 2 (emit player:play-toggle) → videoOverlay.togglePlay()
+ *
+ * BUG: Khi video đang active + audio chưa load → toast spam + UI flicker.
+ * Fix: Chỉ giữ 1 listener ở `layout/player.js`. Handler sẽ check `getActive()`
+ * rồi quyết định route (audioPlayer hoặc emit event cho videoOverlay).
  */
 let _uiBound = false;
 export function bindAudioPlayerUI() {
@@ -883,12 +1098,15 @@ export function bindAudioPlayerUI() {
 
     const player = audioPlayer;
 
-    // Global click → play track
+    // Global click → play track (click vào [data-track-id] ở page → play audio)
     player.bindTrackClicks();
 
     // Update toggle UI on init
+    // Phase 14.1 fix: KHÔNG hardcode volume = 100 ở đây — nếu có persisted
+    // state, restoreFromState (gọi từ initLayout) đã set đúng volume.
+    // Chỉ set 100 khi chưa có persisted state (volume mặc định 100).
     player._updateToggleUI();
-    if (!document.querySelector("[data-volume-restored]")) {
+    if (!document.querySelector('[data-volume-restored]')) {
         player._updateVolumeUI(player.getState().volume);
     }
 }

@@ -1,12 +1,10 @@
-/**
- * pages/_placeholder.scss — Page placeholder styles
- *
- * Style cho placeholder render bởi `pages/_shared.js#renderPlaceholder()`.
- * Hiển thị ở các page chưa implement (empty state, error state).
- *
- * Consumed by:
- *   - `@/pages/_shared.js` (renderPlaceholder, renderError)
- */
+// ======================================================
+// PAGE PLACEHOLDER — Phase 6
+// ======================================================
+//
+// Style cho placeholder render bởi `pages/_shared.js#renderPlaceholder()`.
+// Hiển thị ở các page chưa implement (chờ Phase 7+).
+//
 
 .page-placeholder {
     display: flex;

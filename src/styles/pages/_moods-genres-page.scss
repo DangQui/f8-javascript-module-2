@@ -1,18 +1,34 @@
-/**
- * pages/_moods-genres-page.scss — Moods and Genres page styles
- *
- * Port từ base.js `ur()` dòng 4449 + `ir()` dòng 4246.
- * KHÔNG dùng Tailwind utility classes (Hard Rule #3).
- *
- * Cấu trúc HTML (render từ src/pages/moods-and-genres/moods-and-genres.render.js):
- *   <div class="moods-genres-page">
- *       <h1 class="moods-genres-page__heading">Tâm trạng và thể loại</h1>
- *       <section class="home__container">…</section>
- *   </div>
- *
- * Phase 16.5 update: dùng `.discover-mood-genre__col` từ `_discover.scss`
- * để responsive width khớp discover 1:1.
- */
+// ======================================================
+// MOODS-AND-GENRES PAGE — Style (Phase 16.5)
+// ======================================================
+//
+// Hard Rule #3: KHÔNG dùng Tailwind utility classes.
+// Port từ base.js `ur()` dòng 4449 + `ir()` dòng 4246.
+//
+// Cấu trúc HTML (render từ src/pages/moods-and-genres/moods-and-genres.render.js):
+//   <div class="moods-genres-page">
+//       <h1 class="moods-genres-page__heading">Tâm trạng và thể loại</h1>
+//       <section class="home__container">
+//           <div class="home__row">
+//               <h2 class="home__title">Dành cho bạn</h2>
+//               <div class="crt">
+//                   <button class="crt__btn crt__prev">‹</button>
+//                   <button class="crt__btn crt__next">›</button>
+//               </div>
+//           </div>
+//           <div class="home__body discover-mood-genre home-album__list" data-slider>
+//               <div class="discover-mood-genre__col" data-slider-item>…</div>
+//           </div>
+//       </section>
+//   </div>
+//
+// Phase 16.5 update: Bỏ `.moods-genres-page__color-col` (giờ dùng
+// `.discover-mood-genre__col` từ `_discover.scss` để responsive width
+// khớp discover 1:1).
+//
+// Phase 18.5 cleanup: Xóa `.slider-progress` + `.slider-progress__fill`
+// (feature này đã bỏ khỏi codebase — anh không cần dùng).
+// ======================================================
 
 .moods-genres-page {
     padding: 16px;
@@ -26,16 +42,20 @@
         margin-bottom: 40px;
     }
 
+    // Empty state cho mỗi color section
     &__empty {
         color: var(--picks-meta-color);
         padding: 16px;
     }
 
+    // Container scroll ngang của các cols — fallback khi data rỗng
+    // (Bình thường dùng `.discover-mood-genre` từ _discover.scss)
     &__colors {
         display: flex;
         gap: 16px;
     }
 
+    // Wrapper cho empty state chính giữa (port base.js dòng 4450-4451)
     &__no-data {
         color: var(--text-color);
         padding: 16px;

@@ -1,40 +1,49 @@
-/**
- * components/video-slider.js — Landscape video slider (Phase 18.5)
- *
- * Tách landscape video slider (port `J()` từ base.js dòng 4097) thành
- * component độc lập để dùng ở Line Detail (và bất kỳ page nào cần
- * slider video 16:9 ngang).
- *
- * Phase 18.5 refactor:
- *   - Trước: class riêng `.video-slider__list` + `.video-slider__item`
- *     (custom markup + custom SCSS) → slider progress không hoạt động.
- *   - Sau: dùng `cart-item cart-item--large` (giống Discover page
- *     `renderVideoItem`) + `listClass: "album__list home-album__list"`
- *     + `modifierClass: "home-album"` → 100% đồng bộ Discover page.
- *
- * Reference:
- *   - `code chức năng gốc/base.js` J(e, t) dòng 4097
- *   - `discover.render.js` renderVideoItem
- *   - `section.js` renderSection
- *
- * Style: REUSE `.cart-item` + `.cart-item--large` + `.home-album__list`
- * đã có sẵn ở `_cart-item.scss` + `_home.scss`. File `_video-slider.scss`
- * cũ đã xóa (Phase 18.5 cleanup).
- *
- * Exports:
- *   - renderVideoSlider({title, videos})   → 1 section hoàn chỉnh
- *   - renderVideoSliderItem(video)         → 1 landscape card
- *   - pickVideoHref(video)                 → fallback chain id/_id/slug/videoId
- *
- * Consumed by:
- *   - `@/pages/line-detail/line-detail.render.js` (Video section)
- *   - `@/pages/charts/charts.render.js` (Top Videos)
- */
+// ======================================================
+// VIDEO SLIDER COMPONENT — Landscape video slider (Phase 17 → 18.5 refactor)
+// ======================================================
+//
+// Mục tiêu: Tách landscape video slider (port `J()` từ base.js dòng 4097)
+// thành component độc lập để dùng ở Line Detail (và bất kỳ page nào cần
+// slider video 16:9 ngang).
+//
+// Phase 18.5 refactor:
+//   - TRƯỚC: dùng class riêng `.video-slider__list` + `.video-slider__item`
+//     (custom markup + custom SCSS). Khác với pattern chuẩn của Discover
+//     page → slider progress không hoạt động, scrollbar khác, padding-bottom lệch.
+//   - SAU: dùng class `cart-item cart-item--large` (giống Discover page
+//     `renderVideoItem`) + `listClass: "album__list home-album__list"`
+//     + `modifierClass: "home-album"` → 100% đồng bộ với Discover page,
+//     có scrollbar styling giống các slider khác (Home, Discover, Search).
+//
+// Reference: `code chức năng gốc/base.js`
+//   - J(e, t) dòng 4097 → render 1 video slider
+//   - discover.render.js `renderVideoItem` → cart-item--large pattern
+//   - section.js `renderSection` → wrapper section (Phase 17)
+//
+// API:
+//   renderVideoSliderItem(video)
+//     → 1 landscape card `.cart-item.cart-item--large` (giống Discover)
+//
+//   renderVideoSlider({ title, videos })
+//     → 1 section hoàn chỉnh với title + slider (album-list pattern) + progress
+//
+//   pickVideoHref(video)
+//     → fallback chain id/_id/slug/videoId (Phase 14.12 pattern, dùng chung)
+//
+// Style: REUSE class `.cart-item` + `.cart-item--large` + `.home-album__list`
+// đã có sẵn ở `_cart-item.scss` + `_home.scss`. KHÔNG cần SCSS mới.
+// File `_video-slider.scss` cũ đã xóa (Phase 18.5 cleanup) — không còn dùng.
+//
 
 import { escapeHtml, formatViews } from "@/utils/format.js";
 import { renderSection } from "@/components/section.js";
+
+// ======================================================
+// HELPERS
+// ======================================================
+
 /**
- * Fallback chain cho video href (port từ Phase 14.12 helper).
+ * Fallback chain cho video href — port từ Phase 14.12 helper.
  *
  * Backend khác nhau giữa các endpoint:
  *   - `/explore/videos`  → có `slug` + `id`
@@ -51,7 +60,12 @@ export function pickVideoHref(video) {
 /**
  * Normalize 1 video item từ API về format dùng cho slider.
  * @param {object} video
- * @returns {{href: string, thumb: string, title: string, views: number}}
+ * @returns {{
+ *   href: string,
+ *   thumb: string,
+ *   title: string,
+ *   views: number,
+ * }}
  */
 function normalizeVideoSliderItem(video) {
     const id = pickVideoHref(video);
@@ -69,9 +83,14 @@ function normalizeVideoSliderItem(video) {
         views: Number(video.views) || 0,
     };
 }
+
+// ======================================================
+// RENDER FUNCTIONS
+// ======================================================
+
 /**
- * Render 1 landscape video card (dùng `cart-item cart-item--large` giống
- * Discover page `renderVideoItem`).
+ * Render 1 landscape video card (Phase 18.5: dùng `cart-item cart-item--large`
+ * giống Discover page `renderVideoItem` thay vì class riêng cũ).
  *
  * @param {object} video - raw video từ API
  * @returns {string} HTML
@@ -81,6 +100,11 @@ export function renderVideoSliderItem(video) {
     const titleEsc = escapeHtml(title);
     const thumbEsc = escapeHtml(thumb);
 
+    // Phase 18.5: đổi từ `.video-slider__*` → `.cart-item.cart-item--large`
+    // để đồng bộ với Discover page (line 117-145 discover.render.js).
+    // Markup giống hệt `renderVideoItem` ở discover — chỉ khác:
+    //   - Bỏ `cart-item__brand` (meta) vì phase 14.12 đã đơn giản hoá
+    //     views thành text phụ dưới title.
     return `
         <a
             href="${escapeHtml(href)}"
@@ -107,12 +131,18 @@ export function renderVideoSliderItem(video) {
 
 /**
  * Render 1 video slider section hoàn chỉnh (port `J()` từ base.js dòng 4097).
- * Dùng cùng pattern với Discover `renderVideosSection`:
- * `listClass: "album__list home-album__list"` + `modifierClass: "home-album"`.
+ *
+ * Phase 18.5 refactor: dùng cùng pattern với Discover `renderVideosSection`
+ * → `listClass: "album__list home-album__list"` + `modifierClass: "home-album"`
+ * → đồng bộ với Discover page.
+ *
+ * Slider dùng `home__container` + `home__row` + `home__body[data-slider]`
+ * giống các slider khác (Home, Discover, Mood detail) → auto-detected bởi
+ * `libs/slider.js` + có prev/next controls.
  *
  * @param {object} options
- * @param {string} [options.title]
- * @param {Array<object>} [options.videos=[]]
+ * @param {string} [options.title] - Tiêu đề section (vd: "Video nhạc")
+ * @param {Array<object>} [options.videos=[]] - Mảng video items
  * @returns {string} HTML
  */
 export function renderVideoSlider({ title = "", videos = [] } = {}) {

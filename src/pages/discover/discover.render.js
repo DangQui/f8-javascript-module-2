@@ -1,31 +1,26 @@
-/**
- * pages/discover/discover.render.js — Discover page render
- *
- * Sections (theo base.js `ar()` function):
- *   1. Discover Navigation   ← 3 nav cards (Bản phát hành mới / Bảng xếp hạng / Tâm trạng & thể loại)
- *   2. Albums mới            ← exploreService.getAlbums()
- *   3. Tâm trạng & thể loại  ← exploreService.getMoodsGenres() (gộp categories + lines)
- *   4. Video nhạc mới        ← exploreService.getVideos()
- *
- * Lưu ý kỹ thuật:
- *   - Mood/Genre items dùng `--mood-color` CSS variable → API trả color hex trực tiếp
- *     → set `style="--mood-color: <hex>"` inline (không cần đổi SCSS).
- *   - Slider cho Mood/Genre dùng structure 2-level: outer `data-slider` chứa `data-slider-item` cols.
- *   - Cart item cho Albums/Videos tái sử dụng style của home (`renderCartItem`).
- *
- * Base.js reference:
- *   - ar()  dòng 4272 → full explore page
- *   - Y()   dòng 4203 → albums slider
- *   - J()   dòng 4097 → videos slider (large cart-item)
- *   - ir()  dòng 4246 → mood/genre grid (columns × 4 items)
- *   - Zn()  dòng 4050 → chunk array theo N
- *
- * Exports:
- *   - renderDiscover(data)   → full page HTML
- *
- * Consumed by:
- *   - `@/pages/discover/discover.js`
- */
+// ======================================================
+// DISCOVER PAGE — Render functions
+// ======================================================
+//
+// Sections (theo base.js `ar()` function):
+//   1. Discover Navigation   ← 3 nav cards (Bản phát hành mới / Bảng xếp hạng / Tâm trạng & thể loại)
+//   2. Albums mới           ← exploreService.getAlbums()
+//   3. Tâm trạng & thể loại ← exploreService.getMoodsGenres() (gộp categories + lines)
+//   4. Video nhạc mới       ← exploreService.getVideos()
+//
+// Lưu ý kỹ thuật:
+//   - Mood/Genre items dùng `--mood-color` CSS variable → API trả color hex trực tiếp
+//     → set `style="--mood-color: <hex>"` inline (không cần đổi SCSS).
+//   - Slider cho Mood/Genre dùng structure 2-level: outer `data-slider` chứa `data-slider-item` cols.
+//   - Cart item cho Albums/Videos tái sử dụng style của home (`renderCartItem`).
+//
+// Base.js reference:
+//   - ar()      dòng 4272 → full explore page
+//   - Y()       dòng 4203 → albums slider (gần giống home.renderSliderSection)
+//   - J()       dòng 4097 → videos slider (large cart-item)
+//   - ir()      dòng 4246 → mood/genre grid (columns × 4 items)
+//   - Zn()      dòng 4050 → chunk array theo N
+//
 
 import { escapeHtml } from "@/utils/format.js";
 import { renderMoodGenreItem as renderMoodGenreItemComponent } from "@/components/mood-chip.js";
@@ -34,9 +29,17 @@ import {
     renderSliderSection as renderSliderSectionComponent,
 } from "@/components/section.js";
 
+// ======================================================
+// HELPERS — Cart item renderers (album / video)
+// ======================================================
+
 /**
  * Render 1 album cart-item (kích thước tiêu chuẩn).
  * Tái sử dụng style `.cart-item` từ `_home.scss` (shared).
+ *
+ * @param {object} album
+ * @param {string} [basePath="/albums/details"]
+ * @returns {string}
  */
 function renderAlbumItem(album, basePath = "/albums/details") {
     const href = `${basePath}/${album.slug || album.id}`;
@@ -86,6 +89,10 @@ function renderAlbumItem(album, basePath = "/albums/details") {
 /**
  * Render 1 video cart-item (kích thước lớn — landscape thumb).
  * Tái sử dụng style `.cart-item--large` + `.cart-item__media--large`.
+ *
+ * @param {object} video
+ * @param {string} [basePath="/videos/details"]
+ * @returns {string}
  */
 function renderVideoItem(video, basePath = "/videos/details") {
     const href = `${basePath}/${video.slug || video.id}`;
@@ -132,11 +139,17 @@ function renderVideoItem(video, basePath = "/videos/details") {
     `;
 }
 
+// ======================================================
+// DISCOVER NAVIGATION — 3 cards top
+// ======================================================
+
 /**
  * Render navigation bar đầu trang với 3 cards:
- *   - Bản phát hành mới     → /new-releases
- *   - Bảng xếp hạng        → /charts
- *   - Tâm trạng & thể loại → /moods-and-genres
+ *   - Bản phát hành mới → /new-releases (Phase 14 — đã có charts/new-releases page)
+ *   - Bảng xếp hạng    → /charts (Phase 14 — đã có)
+ *   - Tâm trạng & thể loại → /moods-and-genres (Phase 16 — đã có moods-and-genres page)
+ *
+ * @returns {string}
  */
 function renderDiscoverNav() {
     return `
@@ -154,7 +167,7 @@ function renderDiscoverNav() {
                     <a href="/charts" data-navigo class="btn discover-item">
                         <i class="fa-solid fa-chart-line icon--xl"></i>
                         <span class="discover-item__title">
-                            Bảng xếp hạng
+                            Bản xếp hạng
                         </span>
                     </a>
                 </div>
@@ -171,9 +184,16 @@ function renderDiscoverNav() {
     `;
 }
 
+// ======================================================
+// SECTION — Albums mới
+// ======================================================
+
 /**
  * Render section "Khám phá Albums mới".
  * Slider ngang, mỗi item là 1 album.
+ *
+ * @param {Array} albums
+ * @returns {string}
  */
 function renderAlbumsSection(albums) {
     return renderSliderSectionComponent({
@@ -185,9 +205,16 @@ function renderAlbumsSection(albums) {
     });
 }
 
+// ======================================================
+// SECTION — Tâm trạng và thể loại
+// ======================================================
+
 /**
  * Render 1 mood/genre item với color từ API (hex inline).
  * Dùng `mood-chip` component.
+ *
+ * @param {object} item - { name, slug, color, path }
+ * @returns {string}
  */
 function renderMoodGenreItem(item) {
     return renderMoodGenreItemComponent(item);
@@ -196,6 +223,9 @@ function renderMoodGenreItem(item) {
 /**
  * Render section "Tâm trạng và thể loại".
  * Chia items thành columns × 4 items/column (giống base.js `ir()` + `Zn()`).
+ *
+ * @param {Array} items - merged từ categories + lines
+ * @returns {string}
  */
 function renderMoodGenresSection(items) {
     if (!Array.isArray(items) || items.length === 0) return "";
@@ -224,9 +254,16 @@ function renderMoodGenresSection(items) {
     });
 }
 
+// ======================================================
+// SECTION — Video nhạc mới
+// ======================================================
+
 /**
  * Render section "Video nhạc mới".
  * Slider ngang với cart-item--large (landscape thumb).
+ *
+ * @param {Array} videos
+ * @returns {string}
  */
 function renderVideosSection(videos) {
     if (!Array.isArray(videos) || videos.length === 0) return "";
@@ -241,10 +278,18 @@ function renderVideosSection(videos) {
     });
 }
 
+// ======================================================
+// FULL DISCOVER — Compose all sections
+// ======================================================
+
 /**
  * Render toàn bộ Discover page.
  *
- * @param {{ albums: Array, moodsGenres: Array, videos: Array }} data
+ * @param {{
+ *   albums: Array,
+ *   moodsGenres: Array,
+ *   videos: Array,
+ * }} data
  * @returns {string} HTML
  */
 export function renderDiscover(data) {
@@ -258,6 +303,7 @@ export function renderDiscover(data) {
     `;
 }
 
+// Re-export individual renderers cho testing / extending
 export {
     renderDiscoverNav,
     renderAlbumsSection,

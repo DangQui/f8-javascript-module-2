@@ -1,40 +1,37 @@
-/**
- * pages/playlist-detail/playlist-detail.render.js — Playlist Detail page render
- *
- * Layout (2 columns) — port từ `_r()` trong base.js (dòng 4593):
- *
- *   ┌──────────────────────┬─────────────────────────┐
- *   │   .info-detail       │     .track-list         │
- *   │   (img + title       │     (scrollable list    │
- *   │    + desc + meta)    │      of playlist tracks)│
- *   └──────────────────────┴─────────────────────────┘
- *
- * Data flow (port từ `mr()` dòng 4498 + `_r()` dòng 4593, áp dụng cho playlist):
- *   - Playlist KHÔNG có `albumType` / `releaseDate` (chỉ album có).
- *   - Playlist có `description` → show nếu không có `songCount` (theo logic `n`).
- *   - Info-detail meta:
- *       * songCount + duration → flex row có dot `•` ở giữa (giống album).
- *       * popularity → show "X lượt nghe".
- *       * description → show (nếu không có songCount).
- *       * artists → show "Các nghệ sĩ: ...".
- *   - Track-list: render `playlist.tracks[]` trực tiếp.
- *   - Mỗi track link → /songs/details/:id (Navigo).
- *
- * Lưu ý:
- *   - Tracks có `artists[]` rỗng → fallback "Không rõ nghệ sĩ".
- *   - Track item dùng `<a href="/songs/details/...">` (giống album-detail).
- *
- * Exports:
- *   - renderInfoDetail(playlist)    → left column HTML
- *   - renderTrackList(tracks)       → right column HTML
- *   - renderPlaylistDetail(playlist) → full page HTML
- *
- * Consumed by:
- *   - `@/pages/playlist-detail/playlist-detail.js`
- */
+// ======================================================
+// PLAYLIST DETAIL PAGE — Render functions
+// ======================================================
+//
+// Layout (2 columns) — port từ `_r()` trong base.js (dòng 4593):
+//
+//   ┌──────────────────────┬─────────────────────────┐
+//   │   .info-detail       │     .track-list         │
+//   │   (img + title       │     (scrollable list    │
+//   │    + desc + meta)    │      of playlist tracks)│
+//   └──────────────────────┴─────────────────────────┘
+//
+// Data flow (port từ `mr()` dòng 4498 + `_r()` dòng 4593, áp dụng cho playlist):
+//   - Playlist KHÔNG có `albumType` / `releaseDate` (chỉ album có).
+//   - Playlist có `description` → show nếu không có `songCount` (theo logic `n`).
+//   - Info-detail meta:
+//       * songCount + duration → flex row có dot `•` ở giữa (giống album).
+//       * popularity → show "X lượt nghe".
+//       * description → show (nếu không có songCount).
+//       * artists → show "Các nghệ sĩ: ...".
+//   - Track-list: render `playlist.tracks[]` trực tiếp.
+//   - Mỗi track link → /songs/details/:id (Navigo).
+//
+// Lưu ý:
+//   - Tracks có `artists[]` rỗng → fallback "Không rõ nghệ sĩ".
+//   - Track item dùng `<a href="/songs/details/...">` (giống album-detail).
+//
 
-import { escapeHtml, formatViews } from "@/utils/format.js";
+import { escapeHtml, formatDuration, formatViews } from "@/utils/format.js";
 import { renderTrackList as renderTrackItemComponent } from "@/components/track-item.js";
+
+// ======================================================
+// INFO DETAIL — left column
+// ======================================================
 
 /**
  * Render info-detail box (left column) cho playlist.
@@ -57,6 +54,7 @@ export function renderInfoDetail(playlist) {
         ? playlist.artists.map((a) => escapeHtml(a)).join(", ")
         : null;
 
+    // Tính giờ/phút nếu có totalDuration
     const hours = totalDuration > 0 ? Math.floor(totalDuration / 3600) : null;
     const minutes = totalDuration > 0 ? Math.floor((totalDuration % 3600) / 60) : null;
 
@@ -109,8 +107,19 @@ export function renderInfoDetail(playlist) {
     `;
 }
 
+// ======================================================
+// TRACK LIST — right column
+// ======================================================
+
 /**
- * Render track-list box (right column) bằng `track-item` component.
+ * Render một track item trong list.
+ * @param {object} track - { id, title, thumbnails, duration, artists }
+ * @param {number} index - Index (0-based) để hiển thị số thứ tự
+ * @returns {string} HTML
+ */
+/**
+ * Render track-list box (right column).
+ * Dùng `track-item` component.
  * @param {object[]} tracks - Playlist.tracks[]
  * @returns {string} HTML
  */
@@ -119,6 +128,10 @@ export function renderTrackList(tracks) {
         emptyMessage: "Playlist này chưa có bài hát.",
     });
 }
+
+// ======================================================
+// FULL PAGE RENDER
+// ======================================================
 
 /**
  * Render toàn bộ Playlist Detail page (info-detail + track-list).

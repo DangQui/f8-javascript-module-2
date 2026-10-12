@@ -1,42 +1,49 @@
-/**
- * components/section.js — Section layout wrapper (heading + slider + body)
- *
- * Wrap pattern heading + slider controls + body thành component độc lập
- * để dùng ở Home, Discover, Search, Mood detail, ...
- *
- * Structure:
- *   <section class="home__container [modifierClass]">
- *       <div class="home__row">
- *           <h2 class="home__title">{title?}</h2>
- *           <div class="crt">
- *               <button class="crt__prev">‹</button>
- *               <button class="crt__next">›</button>
- *           </div>
- *       </div>
- *       <div class="home__body [listClass]" data-slider>
- *           {bodyHtml}
- *       </div>
- *   </section>
- *
- * Slider lib (`libs/slider.js`) auto-detect `[data-slider]` + tìm
- * `.crt__prev/next` trong `closest('.home__container')` → render khớp
- * 100% với logic slider cũ.
- *
- * Style dùng class `.home__container` + `.home__row` + `.home__title`
- * + `.home__body` + `.crt` (từ `src/styles/pages/_home.scss`).
- * Không thêm SCSS mới.
- *
- * Exports:
- *   - renderSection(options)            → 1 section hoàn chỉnh
- *   - renderSliderSection(options)      → section + render cards từ items
- *   - renderGridSection(options)        → section grid (no controls)
- *
- * Consumed by:
- *   - `@/pages/home/home.render.js`
- *   - `@/pages/discover/discover.render.js`
- *   - `@/pages/search/search.render.js`
- *   - `@/pages/mood-detail/mood-detail.render.js`
- */
+// ======================================================
+// SECTION COMPONENT — Section layout wrapper
+// ======================================================
+//
+
+// + body) thành component độc lập để dùng ở Home, Discover, Search,
+// Mood detail, và bất kỳ page nào có slider ngang.
+//
+// Structure (port từ `home.render.js` & `discover.render.js`):
+//
+//   <section class="home__container [modifierClass]">
+//       <div class="home__row">
+//           <h2 class="home__title">{title?}</h2>
+//           <div class="crt">
+//               <button class="crt__prev">‹</button>
+//               <button class="crt__next">›</button>
+//           </div>
+//       </div>
+//       <div class="home__body [listClass]" data-slider>
+//           {bodyHtml}
+//       </div>
+//   </section>
+//
+// Slider lib (`libs/slider.js`) auto-detect `[data-slider]` + tìm
+// `.crt__prev/next` trong `closest('.home__container')` → render
+// khớp 100% với logic slider đã có sẵn.
+//
+// Style dùng class `.home__container` + `.home__row` + `.home__title`
+// + `.home__body` + `.crt` (từ `src/styles/pages/_home.scss`).
+// Không thêm SCSS mới.
+//
+// API:
+//   renderSection({ title, bodyHtml, listClass, modifierClass, showControls })
+//     → HTML cho 1 section hoàn chỉnh
+//
+//   renderSliderSection({ title, items, listClass, basePath, ... })
+//     → tiện ích: render section với body là card items (dùng card-item)
+//
+// USAGE:
+//   import { renderSection, renderSliderSection } from "@/components/section.js";
+//   const html = renderSection({
+//       title: "Album gợi ý cho bạn",
+//       bodyHtml: renderCards(albums, { basePath: "/albums/details" }),
+//       listClass: "album__list home-album__list",
+//   });
+//
 
 import { escapeHtml } from "@/utils/format.js";
 import { renderCards, normalizeCardItem } from "@/components/card-item.js";
@@ -45,14 +52,16 @@ import { renderCards, normalizeCardItem } from "@/components/card-item.js";
  * Render 1 section hoàn chỉnh (heading + slider controls + body).
  *
  * @param {object} options
- * @param {string} [options.title] - Tiêu đề (nếu rỗng → không render h2)
- * @param {string} [options.bodyHtml=""] - HTML body
- * @param {string} [options.listClass=""] - Class cho list container
- *   (vd: "album__list home-album__list", "quick-picks__list hscroll")
+ * @param {string} [options.title] - Tiêu đề section (optional — nếu rỗng sẽ không render h2)
+ * @param {string} [options.bodyHtml=""] - HTML cho phần body (items)
+ * @param {string} [options.listClass=""] - Class thêm cho list container
+ *   (vd: "album__list home-album__list", "quick-picks__list hscroll",
+ *   "home__cate", "discover-mood-genre", ...).
+ *   Nếu không có `data-slider` trong class, sẽ tự thêm attribute.
  * @param {string} [options.modifierClass=""] - Class thêm cho `<section>`
- *   (vd: "home-album", "discover-mood-genre")
- * @param {boolean} [options.showControls=true] - Có hiện prev/next không
- * @param {boolean} [options.slider=true] - Có gắn data-slider không
+ *   (vd: "home-album", "discover-mood-genre", ...).
+ * @param {boolean} [options.showControls=true] - Có hiện prev/next buttons không
+ * @param {boolean} [options.slider=true] - Có gắn `data-slider` để slider.js hook vào không
  * @returns {string} HTML
  */
 export function renderSection(options = {}) {
@@ -104,13 +113,13 @@ export function renderSection(options = {}) {
  * Tiện ích — gọi `renderSection` + `renderCards`.
  *
  * @param {object} options
- * @param {string} [options.title] - Tiêu đề
+ * @param {string} [options.title] - Tiêu đề section
  * @param {Array<object>} [options.items=[]] - Mảng raw items
  * @param {string} [options.listClass="album__list home-album__list"] - Class cho list
  * @param {string} [options.basePath="/songs/details"] - Prefix cho href card
  * @param {string} [options.modifierClass=""] - Class thêm cho section
  * @param {(item: object) => string} [options.renderItem] - Custom item renderer.
- *   Không truyền sẽ dùng `renderCards()` mặc định (album/playlist).
+ *   Nếu không truyền sẽ dùng `renderCards()` mặc định (cho album/playlist).
  *   Truyền vào khi cần markup khác (vd: video card có duration overlay).
  * @returns {string} HTML
  */
@@ -142,11 +151,12 @@ export function renderSliderSection(options = {}) {
 
 /**
  * Render 1 section dạng grid (no slider controls).
+ *
  * @param {object} options
- * @param {string} [options.title]
- * @param {string} [options.bodyHtml=""]
- * @param {string} [options.listClass=""]
- * @param {string} [options.modifierClass=""]
+ * @param {string} [options.title] - Tiêu đề
+ * @param {string} [options.bodyHtml=""] - HTML body
+ * @param {string} [options.listClass=""] - Class cho list
+ * @param {string} [options.modifierClass=""] - Class thêm cho section
  * @returns {string} HTML
  */
 export function renderGridSection(options = {}) {

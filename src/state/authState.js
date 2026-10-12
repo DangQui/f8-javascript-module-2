@@ -52,6 +52,11 @@ export function notify(data) {
         try { cb(data); } catch (err) { console.error("auth listener error:", err); }
     });
 }
+
+// ======================================================
+// CORE HELPERS
+// ======================================================
+
 /** Lấy chữ cái đầu của name (uppercase) làm avatar fallback. */
 function getInitialFromName(name) {
     if (!name) return "?";
@@ -77,6 +82,11 @@ function snapshot() {
         user: user || null,
     };
 }
+
+// ======================================================
+// PUBLIC API
+// ======================================================
+
 /** @returns {{isLoggedIn: boolean, user: object|null}} Snapshot auth state hiện tại. */
 export function getAuth() {
     return snapshot();
@@ -164,6 +174,11 @@ export function onAuthChange(callback) {
     listeners.add(callback);
     return () => listeners.delete(callback);
 }
+
+// ======================================================
+// UI HELPER — applyAuthVisibility
+// ======================================================
+
 /**
  * Sync DOM với auth state.
  *   1. data-show-when="logged-in/out" → show/hide element

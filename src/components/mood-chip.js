@@ -1,29 +1,37 @@
-/**
- * components/mood-chip.js — Mood & Genre chips
- *
- * 2 variant:
- *   1. `renderMoodChip` — chip nhỏ dạng pill (`.cate-btn`) — Home/Mood detail
- *      (port `tr()` dòng 4139 base.js).
- *   2. `renderMoodGenreItem` — chip lớn có color bar (`.mood-genre-item`) —
- *      Discover page (port `r()` trong `ir()` dòng 4247 base.js).
- *
- * Style dùng class có sẵn trong SCSS
- * (`src/styles/pages/_home.scss` + `src/styles/pages/_discover.scss`).
- * Không thêm SCSS mới.
- *
- * Exports:
- *   - renderMoodChip(mood, options?)              → 1 chip pill
- *   - renderMoodChips(moods, options?)            → nhiều chip pill
- *   - renderMoodGenreItem(item, options?)         → 1 chip có color bar
- *   - renderMoodGenreItems(items, options?)       → nhiều chip color bar
- *   - normalizeMoodChip(mood)                     → convert API → render
- *   - normalizeMoodGenreItem(item)                → convert API → render
- *
- * Consumed by:
- *   - `@/pages/home/home.render.js` (mood chips)
- *   - `@/pages/discover/discover.render.js` (mood-genre items)
- *   - `@/pages/mood-detail/mood-detail.render.js` (mood chips)
- */
+// ======================================================
+// MOOD CHIP COMPONENT — Mood & Genre chips
+// ======================================================
+//
+
+// độc lập để dùng ở Home, Discover, Mood detail, Moods-and-genres.
+//
+// Có 2 variant:
+//   1. `renderMoodChip` — chip nhỏ dạng pill (`.cate-btn`), dùng cho
+//      mood filter ở Home và Mood Detail (port `tr()` dòng 4139 base.js).
+//   2. `renderMoodGenreItem` — chip lớn có color bar (`.mood-genre-item`),
+//      dùng cho Discover page (port `r()` trong `ir()` dòng 4247 base.js).
+//
+// Style dùng class `.cate-btn` + `.mood-genre-item` có sẵn trong SCSS
+// (`src/styles/pages/_home.scss` + `src/styles/pages/_discover.scss`).
+// Không thêm SCSS mới — chỉ wrap markup.
+//
+// API:
+//   renderMoodChip({ slug, name, href, isActive })
+//     → HTML 1 chip pill
+//
+//   renderMoodChips(moods, { activeSlug, basePath })
+//     → HTML string nhiều chip pill
+//
+//   renderMoodGenreItem({ slug, name, color, path, basePath })
+//     → HTML 1 mood/genre item có color bar
+//
+//   renderMoodGenreItems(items, { basePath })
+//     → HTML string nhiều mood/genre item
+//
+// USAGE:
+//   import { renderMoodChips } from "@/components/mood-chip.js";
+//   const html = renderMoodChips(moods, { activeSlug: currentMood });
+//
 
 import { escapeHtml } from "@/utils/format.js";
 
@@ -33,8 +41,9 @@ const DEFAULT_GENRE_BASE_PATH = "/categories";
 
 /**
  * Normalize 1 mood từ API thành format cho renderMoodChip.
- * @param {object} mood
- * @returns {{slug: string, name: string, href: string|null, isActive: boolean}}
+ *
+ * @param {object} mood - Raw mood từ API
+ * @returns {{ slug: string, name: string, href: string|null, isActive: boolean }}
  */
 export function normalizeMoodChip(mood) {
     return {
@@ -46,10 +55,15 @@ export function normalizeMoodChip(mood) {
 }
 
 /**
- * Render 1 mood chip pill (`.cate-btn`).
+ * Render 1 mood chip pill (kiểu `.cate-btn`).
+ *
+ * Có 2 style:
+ *   - Active: `bg-white text-black font-semibold`
+ *   - Inactive: `bg-white/10 text-white hover:bg-white/20`
+ *
  * @param {object} mood - { slug, name, href?, isActive? }
  * @param {object} [options]
- * @param {string} [options.basePath="/moods"] - Prefix nếu mood không có href riêng
+ * @param {string} [options.basePath="/moods"] - Prefix cho href nếu mood không có href riêng
  * @returns {string} HTML
  */
 export function renderMoodChip(mood, options = {}) {
@@ -60,7 +74,9 @@ export function renderMoodChip(mood, options = {}) {
     const { basePath = DEFAULT_MOOD_BASE_PATH } = options;
     const href = normalized.href || `${basePath}/${encodeURIComponent(normalized.slug)}`;
     const isActive = normalized.isActive || Boolean(mood.active);
-    const stateClass = isActive ? "cate-btn--active" : "cate-btn--inactive";
+    const stateClass = isActive
+        ? "cate-btn--active"
+        : "cate-btn--inactive";
     const dataActive = isActive ? ` data-active="true"` : "";
 
     return `
@@ -74,11 +90,12 @@ export function renderMoodChip(mood, options = {}) {
 
 /**
  * Render nhiều mood chip pill cùng lúc.
- * @param {Array<object>} moods
+ *
+ * @param {Array<object>} moods - Mảng raw mood từ API
  * @param {object} [options]
  * @param {string} [options.basePath="/moods"]
- * @param {string} [options.activeSlug=""] - Slug đang active (highlight)
- * @returns {string} HTML
+ * @param {string} [options.activeSlug=""] - Slug của mood đang active (highlight)
+ * @returns {string} HTML string
  */
 export function renderMoodChips(moods, options = {}) {
     if (!Array.isArray(moods) || moods.length === 0) return "";
@@ -97,9 +114,10 @@ export function renderMoodChips(moods, options = {}) {
 }
 
 /**
- * Normalize 1 mood/genre item từ API.
- * @param {object} item
- * @returns {{slug: string, name: string, color: string, path: string|null}}
+ * Normalize 1 mood/genre item từ API thành format cho renderMoodGenreItem.
+ *
+ * @param {object} item - Raw mood/genre từ API
+ * @returns {{ slug: string, name: string, color: string, path: string|null }}
  */
 export function normalizeMoodGenreItem(item) {
     return {
@@ -111,7 +129,10 @@ export function normalizeMoodGenreItem(item) {
 }
 
 /**
- * Render 1 mood/genre item có color bar (`.mood-genre-item`).
+ * Render 1 mood/genre item có color bar (kiểu `.mood-genre-item`).
+ *
+ * Dùng cho Discover page — port logic từ `r()` trong `ir()` (base.js dòng 4247).
+ *
  * @param {object} item - { slug, name, color, path? }
  * @param {object} [options]
  * @param {string} [options.basePath="/categories"] - Prefix khi item.path rỗng
@@ -143,14 +164,17 @@ export function renderMoodGenreItem(item, options = {}) {
 
 /**
  * Render nhiều mood/genre item cùng lúc.
- * @param {Array<object>} items
+ *
+ * @param {Array<object>} items - Mảng raw mood/genre từ API
  * @param {object} [options]
  * @param {string} [options.basePath="/categories"]
- * @returns {string} HTML
+ * @returns {string} HTML string
  */
 export function renderMoodGenreItems(items, options = {}) {
     if (!Array.isArray(items) || items.length === 0) return "";
-    return items.map((it) => renderMoodGenreItem(it, options)).join("");
+    return items
+        .map((it) => renderMoodGenreItem(it, options))
+        .join("");
 }
 
 export default renderMoodChip;

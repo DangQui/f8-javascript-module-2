@@ -1,41 +1,40 @@
-/**
- * pages/mood-detail/mood-detail.render.js — Mood Detail page render
- *
- * Port từ `code chức năng gốc/base.js`:
- *   - `dr(e, t, n)` dòng 4463 → render mood detail
- *   - `tr(e, t)`    dòng 4139 → mood chip tabs
- *   - `Y(e, t, n)`  dòng 4203 → dynamic section slider
- *
- * Flow:
- *   1. Mood chip tabs (active = current slug) — port `tr()`
- *   2. H1 mood.hero.title (45px bold) + p mood.hero.subtitle — port `dr()`
- *   3. "Quick Picks" track list — REUSE `renderQuickPicksSection` từ
- *      `pages/home/home.render.js` (Phase 18.5).
- *      Lý do: cấu trúc 4 cols × 4 items + slider prev/next + progress bar
- *      GIỐNG "Nghe gần đây" ở Home. `nr()` base.js gốc CHIA 3 cột × N/3 rows,
- *      không slider — không match.
- *   4. Dynamic sections từ mood.sections — port `Y()`
- *
- * Lưu ý:
- *   - Slider cho dynamic sections → dùng `renderSliderSection()` helper.
- *   - KHÔNG còn helper riêng `normalizeQuickPickItem`, `renderQuickPickRow`,
- *     `chunkArray`, `renderQuickPicksSection` (đã xóa Phase 18.5).
- *   - Class CSS `.mood-page__quick-pick*` cũng đã xóa khỏi `_mood-page.scss`
- *     (Phase 18.5) — dùng chung `.quick-picks` / `.quick-picks-col` từ
- *     `_quick-picks-item.scss` + `_home.scss`.
- *
- * Exports:
- *   - renderMoodDetail(mood, quickPicks, activeSlug) → full page HTML (async)
- *
- * Consumed by:
- *   - `@/pages/mood-detail/mood-detail.js`
- */
+// ======================================================
+// MOOD DETAIL PAGE — Render functions
+// ======================================================
+//
+// Port từ `code chức năng gốc/base.js`:
+//   - dr(e, t, n)         dòng 4463 → render mood detail
+//   - tr(e, t)            dòng 4139 → mood chip tabs
+//   - Y(e, t, n)          dòng 4203 → dynamic section slider
+//
+// Flow:
+//   1. Mood chip tabs (active = current slug) — port `tr()`
+//   2. H1 mood.hero.title (45px bold) + p mood.hero.subtitle — port `dr()`
+//   3. "Quick Picks" track list — REUSE `renderQuickPicksSection` từ
+//      `pages/home/home.render.js` (Phase 18.5) thay vì port `nr()` riêng.
+//      Lý do: anh muốn cấu trúc 4 cols × 4 items + slider prev/next +
+//      progress bar GIỐNG "Nghe gần đây" ở Home (yêu cầu Phase 18).
+//      `nr()` base.js gốc CHIA 3 cột × N/3 rows, không slider — không match.
+//   4. Dynamic sections từ mood.sections — port `Y()`
+//
+// Lưu ý:
+//   - Slider cho dynamic sections → dùng `renderSliderSection()` helper.
+//   - KHÔNG còn helper riêng `normalizeQuickPickItem`, `renderQuickPickRow`,
+//     `chunkArray`, `renderQuickPicksSection` (đã xóa Phase 18.5).
+//   - Class CSS `.mood-page__quick-pick*` cũng đã xóa khỏi `_mood-page.scss`
+//     (Phase 18.5) — dùng chung `.quick-picks` / `.quick-picks-col` từ
+//     `_quick-picks-item.scss` + `_home.scss`.
+//
 
 import { escapeHtml } from "@/utils/format.js";
 import { renderMoodChips } from "@/components/mood-chip.js";
 import { renderSliderSection } from "@/components/section.js";
 import { renderQuickPicksSection } from "@/pages/home/home.render.js";
 import { homeService } from "@/services/homeService.js";
+
+// ======================================================
+// MAIN RENDER
+// ======================================================
 
 /**
  * Render Mood Detail page HTML.

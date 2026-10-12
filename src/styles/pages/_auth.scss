@@ -2,8 +2,7 @@
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: url("../../assets/images/sign-in/bg-primary.jpg") no-repeat
-        center/cover;
+    background: url("/images/sign-in/bg-primary.jpg") no-repeat center/cover;
 
     &__inner {
         display: flex;

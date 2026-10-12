@@ -1,37 +1,30 @@
-/**
- * pages/library/library.render.js — Library page render
- *
- * Cung cấp các function render HTML cho trang Library:
- *   - renderLibraryPage()       → Full page (header + tabs + content)
- *   - renderLibraryHeader()     → Header (title + tools row)
- *   - renderTabContent()        → Content cho từng tab
- *   - renderEmptyState()        → Empty state (icon + message + CTA)
- *   - renderErrorState()        → Error state (icon + message + retry)
- *   - renderLoadingSkeleton()   → Skeleton loading cho từng tab
- *
- * Exports:
- *   - renderLibraryPage(opts)
- *   - renderLibraryHeader(opts)
- *   - renderTabContent(opts)
- *   - renderEmptyState(opts)
- *   - renderErrorState(opts)
- *   - renderLoadingSkeleton(tab, viewMode)
- *
- * Consumed by:
- *   - `@/pages/library/library.js`
- */
+// ======================================================
+// LIBRARY PAGE — Render functions
+//
+// Cung cấp các function render HTML cho trang Library:
+//   - renderLibraryPage()       → Full page (header + tabs + content)
+//   - renderLibraryHeader()     → Header (title + tools row)
+//   - renderTabContent()        → Content cho từng tab
+//   - renderEmptyState()        → Empty state (icon + message + CTA)
+//   - renderErrorState()        → Error state (icon + message + retry)
+//   - renderLoadingSkeleton()   → Skeleton loading cho từng tab
+// ======================================================
 
 import { escapeHtml } from "@/utils/format.js";
 import { renderTabs, LIBRARY_TABS } from "@/components/library-tabs.js";
 import { renderCards, normalizeCardItem } from "@/components/card-item.js";
 
+// ======================================================
+// MAIN RENDER
+// ======================================================
+
 /**
  * Render full Library page.
  * @param {object} [options]
- * @param {string} [options.activeTab="playlists"]
+ * @param {string} [options.activeTab="playlists"] - Tab đang active
  * @param {string} [options.viewMode="grid"] - "grid" | "list"
  * @param {string} [options.sortBy="recent"] - "recent" | "name" | "name-desc"
- * @param {object} [options.data={}]
+ * @param {object} [options.data={}] - Data cho tab hiện tại (sẽ truyền ở Phase L-2)
  * @returns {string} HTML
  */
 export function renderLibraryPage({
@@ -51,8 +44,16 @@ export function renderLibraryPage({
     `;
 }
 
+// ======================================================
+// HEADER
+// ======================================================
+
 /**
  * Render header (title + search + view toggle + sort).
+ * @param {object} options
+ * @param {string} options.viewMode
+ * @param {string} options.sortBy
+ * @returns {string} HTML
  */
 export function renderLibraryHeader({ viewMode = "grid", sortBy = "recent" } = {}) {
     return `
@@ -73,6 +74,8 @@ export function renderLibraryHeader({ viewMode = "grid", sortBy = "recent" } = {
  *
  * Reuse styles có sẵn ở `src/styles/components/_form.scss` để đồng bộ UX
  * với search trên header (border-radius, padding, font-size, close button).
+ *
+ * @returns {string} HTML
  */
 function renderSearchInput() {
     return `
@@ -99,6 +102,8 @@ function renderSearchInput() {
 
 /**
  * Render view toggle (Grid | List).
+ * @param {string} viewMode
+ * @returns {string} HTML
  */
 function renderViewToggle(viewMode) {
     const gridActive = viewMode === "grid" ? " library-view-toggle__btn--active" : "";
@@ -130,6 +135,8 @@ function renderViewToggle(viewMode) {
 
 /**
  * Render sort dropdown.
+ * @param {string} sortBy
+ * @returns {string} HTML
  */
 function renderSortDropdown(sortBy) {
     const labels = {
@@ -176,10 +183,23 @@ function renderSortDropdown(sortBy) {
     `;
 }
 
+// ======================================================
+// TAB CONTENT
+// ======================================================
+
 /**
  * Render content cho 1 tab.
+ * @param {object} options
+ * @param {string} options.tab - Tab ID
+ * @param {string} options.viewMode
+ * @param {string} options.sortBy
+ * @param {object|null} options.data - { items, total, error? }
+ * @returns {string} HTML
  */
 export function renderTabContent({ tab, viewMode = "grid", sortBy = "recent", data = null }) {
+    // Phase L-1: chỉ Playlists tab có empty state
+    // Phase L-2/L-3: từng tab sẽ có render riêng
+
     if (data?.error) {
         return renderErrorState({
             message: data.error.message || "Đã xảy ra lỗi khi tải dữ liệu.",
@@ -202,7 +222,8 @@ export function renderTabContent({ tab, viewMode = "grid", sortBy = "recent", da
 }
 
 /**
- * Render section Playlists.
+ * Render section Playlists (Phase L-1: empty state only).
+ * Phase L-2: thêm render cards khi có data.
  */
 function renderPlaylistsSection({ items = [], total = 0, viewMode = "grid", sortBy = "recent" }) {
     if (items.length === 0) {
@@ -216,6 +237,7 @@ function renderPlaylistsSection({ items = [], total = 0, viewMode = "grid", sort
         });
     }
 
+    // Phase L-2: render grid/list
     const sorted = sortItems(items, sortBy);
     const bodyHtml = viewMode === "grid"
         ? renderCards(sorted.map((it) => normalizeCardItem(it, "/playlists/details")))
@@ -240,7 +262,7 @@ function renderPlaylistsSection({ items = [], total = 0, viewMode = "grid", sort
 }
 
 /**
- * Render list view cho playlists.
+ * Render list view cho playlists (Phase L-2).
  */
 function renderPlaylistList(playlists) {
     return playlists
@@ -258,7 +280,7 @@ function renderPlaylistList(playlists) {
 }
 
 /**
- * Render tab "coming soon" cho 4 tab còn lại.
+ * Render tab "coming soon" cho 4 tab còn lại (Phase L-3).
  */
 function renderComingSoonTab(tab) {
     const tabConfig = LIBRARY_TABS.find((t) => t.id === tab);
@@ -273,6 +295,10 @@ function renderComingSoonTab(tab) {
         ctaIcon: "fa-solid fa-arrow-left",
     });
 }
+
+// ======================================================
+// SORT HELPER
+// ======================================================
 
 /**
  * Sort items theo sortBy.
@@ -291,8 +317,20 @@ function sortItems(items, sortBy) {
     return arr;
 }
 
+// ======================================================
+// STATES (Empty / Error / Loading)
+// ======================================================
+
 /**
  * Render empty state.
+ * @param {object} options
+ * @param {string} options.icon - FontAwesome class (VD "fa-solid fa-list")
+ * @param {string} options.title
+ * @param {string} options.message
+ * @param {string} [options.ctaText] - CTA button label
+ * @param {string} [options.ctaHref] - CTA button href
+ * @param {string} [options.ctaIcon] - CTA button icon
+ * @returns {string} HTML
  */
 export function renderEmptyState({
     icon = "fa-solid fa-music",
@@ -323,6 +361,10 @@ export function renderEmptyState({
 
 /**
  * Render error state.
+ * @param {object} options
+ * @param {string} options.message
+ * @param {string} [options.title="Đã xảy ra lỗi"]
+ * @returns {string} HTML
  */
 export function renderErrorState({ message = "Đã xảy ra lỗi", title = "Đã xảy ra lỗi" } = {}) {
     return `
@@ -343,8 +385,15 @@ export function renderErrorState({ message = "Đã xảy ra lỗi", title = "Đ�
     `;
 }
 
+// ======================================================
+// LOADING SKELETONS
+// ======================================================
+
 /**
  * Render loading skeleton cho 1 tab.
+ * @param {string} tab
+ * @param {string} [viewMode="grid"]
+ * @returns {string} HTML
  */
 export function renderLoadingSkeleton(tab, viewMode = "grid") {
     if (tab === "playlists") {
@@ -352,16 +401,19 @@ export function renderLoadingSkeleton(tab, viewMode = "grid") {
             ? renderGridSkeleton(8)
             : renderListSkeleton(10);
     }
+    // Default: grid 8 items
     return renderGridSkeleton(8);
 }
 
 /**
  * Render grid skeleton (8 card placeholders).
+ * @param {number} count
+ * @returns {string} HTML
  */
 function renderGridSkeleton(count = 8) {
     const items = Array.from(
         { length: count },
-        () => `
+        (_, i) => `
         <div class="library-grid-skeleton-item" aria-hidden="true">
             <div class="skeleton skeleton--box" style="width:100%;aspect-ratio:1/1;border-radius:8px"></div>
             <div class="skeleton skeleton--line" style="width:80%;height:14px;margin-top:8px"></div>
@@ -384,11 +436,13 @@ function renderGridSkeleton(count = 8) {
 
 /**
  * Render list skeleton (10 row placeholders).
+ * @param {number} count
+ * @returns {string} HTML
  */
 function renderListSkeleton(count = 10) {
     const items = Array.from(
         { length: count },
-        () => `
+        (_, i) => `
         <div class="library-list-skeleton-item" aria-hidden="true">
             <div class="skeleton skeleton--box" style="width:48px;height:48px;border-radius:6px;flex-shrink:0"></div>
             <div style="flex:1">

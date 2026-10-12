@@ -1,41 +1,45 @@
-/**
- * pages/new-releases/new-releases.render.js — New Releases page render
- *
- * Port từ `code chức năng gốc/base.js` function `cr()` dòng 4415:
- *
- *   function cr(e, t) {
- *       return !e.length && !t.length ? `<p>Không có dữ liệu</p>` : `
- *         <div class="p-4 text-white">
- *           <h1 class="font-bold text-[45px] -mb-10">Bản phát hành mới</h1>
- *           ${Y(``, e, `/albums/details`)}
- *           ${J(`Video nhạc mới`, t)}
- *         </div>
- *       `
- *   }
- *
- * → 2 sections: Albums slider (no heading — title dùng page title) + Videos slider.
- * → Nếu cả 2 mảng rỗng → fallback "Không có dữ liệu".
- *
- * Gốc dùng Tailwind utility (`p-4 text-white`, `font-bold text-[45px] -mb-10`);
- * Phase 17 convert sang SCSS class `.new-releases-page` + `&__heading`.
- *
- * Exports:
- *   - renderNewReleases(albums, videos) → full page HTML
- *
- * Consumed by:
- *   - `@/pages/new-releases/new-releases.js`
- */
+// ======================================================
+// NEW RELEASES PAGE — Render functions
+// ======================================================
+//
+// Port từ `code chức năng gốc/base.js` function `cr()` dòng 4415:
+//
+//   function cr(e, t) {
+//       return !e.length && !t.length ? `<p>Không có dữ liệu</p>` : `
+//         <div class="p-4 text-white">
+//           <h1 class="font-bold text-[45px] -mb-10">Bản phát hành mới</h1>
+//           ${Y(``, e, `/albums/details`)}
+//           ${J(`Video nhạc mới`, t)}
+//         </div>
+//       `
+//   }
+//
+// → 2 sections: Albums slider (no heading — title dùng page title) + Videos slider.
+// → Nếu cả 2 mảng rỗng → fallback "Không có dữ liệu".
+//
+// USAGE:
+//   import { renderNewReleases } from "@/pages/new-releases/new-releases.render.js";
+//   const html = renderNewReleases(albums, videos);
+//
+// ======================================================
 
-import {
-    renderSection as renderSectionComponent,
-    renderSliderSection as renderSliderSectionComponent,
-} from "@/components/section.js";
+import { renderSection as renderSectionComponent, renderSliderSection as renderSliderSectionComponent } from "@/components/section.js";
 import { escapeHtml } from "@/utils/format.js";
+
+// ======================================================
+// SECTION — Albums slider (no title — page title đã có ở H1)
+// ======================================================
+//
+// Port từ `Y(``, e, '/albums/details')` — slider ngang album items.
+// KHÔNG truyền `title` (base.js dùng chuỗi rỗng) → H1 đã ở page.
+// ======================================================
 
 /**
  * Render slider albums cho New Releases.
- * Port từ `Y('', e, '/albums/details')` — slider ngang album items.
- * KHÔNG truyền `title` (base.js dùng chuỗi rỗng) → H1 đã ở page.
+ * Tái sử dụng helper `renderSliderSection` từ section.js với title rỗng.
+ *
+ * @param {Array<object>} albums - Albums từ `exploreService.getNewReleases()`
+ * @returns {string} HTML
  */
 function renderNewReleasesAlbumsSection(albums) {
     if (!Array.isArray(albums) || albums.length === 0) return "";
@@ -50,19 +54,30 @@ function renderNewReleasesAlbumsSection(albums) {
     });
 }
 
+// ======================================================
+// SECTION — Video slider (port từ J('Video nhạc mới', videos))
+// ======================================================
+//
+// Video dùng `cart-item--large` (landscape thumb) — copy từ discover.render.js
+// để đảm bảo style khớp 100% với slider Video ở Discover.
+// ======================================================
+
 /**
- * Pick href cho video item — port pattern `/videos/details/:slug`.
+ * Pick href cho video item — port pattern `/videos/details/:slug` (xem base.js
+ * 4156 + video-overlay.js:1075).
  *
  * Thứ tự ưu tiên:
- *   1. slug      (chuẩn SEO)
- *   2. _id       (Mongo ID)
- *   3. id        (fallback generic)
- *   4. videoId   (YouTube videoId — identifier cuối cùng)
+ *   1. slug (vd: "nhc-c-in-video-40-39") — chuẩn SEO, dễ đọc
+ *   2. _id   (Mongo ID)
+ *   3. id    (fallback generic)
+ *   4. videoId (YouTube videoId — vd: "Rb0UmrCXxVA", dùng làm identifier cuối cùng)
  *
- * Note: `/charts/videos` endpoint trả items CHỈ CÓ `videoId`+`_id`
- * (không có `slug`/`id`) → nếu chỉ fallback `slug || id` → URL =
- * "/videos/details/undefined" → Navigo không match → reload page.
- * Thêm `_id` + `videoId` làm fallback chain.
+ * Phase 14.12 fix: `/charts/videos` endpoint trả items CHỈ CÓ `videoId`+`_id`
+ * (không có `slug`/`id`) → nếu chỉ fallback `slug || id` → URL = "/videos/details/undefined"
+ * → Navigo không match → reload page. Thêm `_id` + `videoId` làm fallback chain.
+ *
+ * @param {object} video
+ * @returns {string} path segment
  */
 function pickVideoHref(video) {
     return video.slug || video._id || video.id || video.videoId || "";
@@ -72,6 +87,9 @@ function pickVideoHref(video) {
  * Render 1 video cart-item (kích thước lớn — landscape thumb).
  * Tái sử dụng style `.cart-item--large` + `.cart-item__media--large`
  * từ `_cart-item.scss` (shared component).
+ *
+ * @param {object} video
+ * @returns {string}
  */
 function renderVideoItem(video) {
     const id = pickVideoHref(video);
@@ -122,6 +140,9 @@ function renderVideoItem(video) {
 /**
  * Render slider videos cho New Releases.
  * Mỗi item là cart-item--large (port từ base.js `J()` dòng 4097).
+ *
+ * @param {Array<object>} videos
+ * @returns {string} HTML
  */
 function renderNewReleasesVideosSection(videos) {
     if (!Array.isArray(videos) || videos.length === 0) return "";
@@ -134,6 +155,10 @@ function renderNewReleasesVideosSection(videos) {
         slider: true,
     });
 }
+
+// ======================================================
+// FULL NEW RELEASES — Compose H1 + 2 sections
+// ======================================================
 
 /**
  * Render toàn bộ New Releases page.
@@ -167,6 +192,7 @@ export function renderNewReleases(albums, videos) {
     `;
 }
 
+// Re-export individual renderers cho testing / extending
 export {
     renderNewReleasesAlbumsSection,
     renderNewReleasesVideosSection,

@@ -1,39 +1,36 @@
-/**
- * pages/library/library.js — Library page handler
- *
- * Tabs: playlists | songs | albums | artists | recent
- * Dùng `localStorage` để render user playlists (khi backend `/me/*` chưa có)
- * + listen history.
- *
- * Auth guard: chưa login → navigate /auth/login + toast.
- *
- * Exports:
- *   - libraryPage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/library" + tab hash)
- */
+// ======================================================
+// LIBRARY PAGE — Placeholder (chờ backend có API /library/*)
+// ======================================================
+//
+// base.js gốc (`or()` function, dòng 4300) cũng chỉ là placeholder đơn giản.
+// Khi backend implement API /library/* → fetch + render sections:
+//   - playlists/albums/artists/songs đã lưu của user.
+//
+// Auth guard: nếu chưa login → navigate /auth/login + toast.
 
-import { renderPage, loading } from "@/pages/_shared.js";
+import { renderPage, renderPlaceholder, loading } from "@/pages/_shared.js";
 import { requireAuth } from "@/state/authState.js";
 import { MESSAGES } from "@/utils/messages.js";
-import { renderLibraryPage } from "@/pages/library/library.render.js";
 
 /**
  * Render Library page.
- * @param {{params: object, query: object, url: string}} route
+ * @param {{ params: object, query: object, url: string }} route
  */
 export async function libraryPage(route = {}) {
+    void route;
     loading.show();
     try {
-        // 1. Auth guard
+        // 1. Auth guard (port từ base.js:5748 — `Ar() && await Q(or)`)
         if (!requireAuth("/auth/login", MESSAGES.AUTH.LIBRARY_GUARD)) {
-            // Chưa login → helper đã navigate + toast → return
+            // Chưa login → helper đã navigate /auth/login + toast → return
             return;
         }
 
-        // 2. Render (5 tabs, mỗi tab có handler riêng)
-        renderPage(renderLibraryPage());
+        // 2. Render
+        renderPage(renderPlaceholder(
+            "Thư viện",
+            "Danh sách phát, album đã lưu, nghệ sĩ theo dõi,… Sẽ implement khi backend có API riêng."
+        ));
     } finally {
         loading.hide();
     }

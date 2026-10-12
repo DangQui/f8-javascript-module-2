@@ -39,6 +39,11 @@
 const STORAGE_KEY = "music.playerState.v2";
 const SCHEMA_VERSION = 2;
 const THROTTLE_MS = 5000; // 5 giây
+
+// ======================================================
+// SAVE
+// ======================================================
+
 /** @type {object|null} Pending save (chưa flush xuống localStorage). */
 let _pendingSave = null;
 /** @type {number} Last successful save timestamp (ms). */
@@ -154,6 +159,11 @@ function _flush() {
 export function flushPlayerState() {
     _flush();
 }
+
+// ======================================================
+// LOAD
+// ======================================================
+
 /**
  * Load state từ localStorage (đã validate).
  * @returns {{ audio: object|null, video: object|null, savedAt: number } | null}
@@ -216,6 +226,11 @@ function _readRaw() {
         return null;
     }
 }
+
+// ======================================================
+// CLEAR
+// ======================================================
+
 /**
  * Clear state khỏi localStorage.
  *
@@ -275,6 +290,11 @@ export function clearPlayerState(options) {
     _pendingSave = current;
     _flush();
 }
+
+// ======================================================
+// LISTENERS
+// ======================================================
+
 let _beforeUnloadBound = false;
 
 /** Bind `beforeunload` để force save trước khi user F5/đóng tab. Idempotent. */

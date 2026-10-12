@@ -1,17 +1,32 @@
-/**
- * components/_search.scss — Search dropdown + mobile modal
- *
- * Port từ base.js class `Mr` dòng 5843-6036.
- * base.js gốc dùng Tailwind utility class → em port sang SCSS module
- * theo hard rule #3 (NO Tailwind).
- *
- * Class `d-none` đã có sẵn trong base/_utils.scss (display:none utility).
- * Class `d-md-none` được define ở đây (Tailwind-like breakpoint).
- *
- * Consumed by:
- *   - `@/components/search.js` (initSearch, render dropdown + mobile modal)
- */
+// ======================================================
+// SEARCH COMPONENT — Desktop dropdown + Mobile modal
+// ======================================================
+//
 
+// class Mr dòng 5843-6036). base.js gốc dùng Tailwind utility
+// class — em port sang SCSS module theo hard rule #3 (NO Tailwind).
+//
+// KHÔNG đổi bất kỳ SCSS nào đã có — chỉ THÊM class mới:
+//   - .search-dropdown       : dropdown desktop dưới form search
+//   - .search-dropdown__item : 1 row trong dropdown
+//   - .mobile-search-modal   : full-screen overlay mobile
+//   - .top-bar__act--search-mobile : trigger mở modal trên mobile
+//
+// Class `d-none` đã có sẵn trong base/_utils.scss (display:none utility).
+// Class `d-md-none` được define ở đây (Tailwind-like breakpoint).
+//
+
+// ===================
+// Desktop Dropdown
+// ===================
+
+// Container absolute bên dưới form search
+//   - Width: bằng `.form__search` (form search) — form đã `position: relative`
+//     nhưng dropdown là sibling nên ta cần set width explicit.
+//   - Position: absolute → `left: 0` so với form search (đã relative).
+//     Tuy nhiên dropdown lại là sibling của form, nên ta cần wrapper relative.
+//     Phase 13 fix: đặt dropdown `left: 0` relative tới top-bar__right (đã
+//     position: relative ở _header.scss).
 .search-dropdown {
     position: absolute;
     top: 100%;
@@ -136,9 +151,11 @@
     }
 }
 
-/**
- * Full-screen search modal trên mobile.
- */
+// ===================
+// Mobile Modal
+// ===================
+
+// Full-screen overlay trên mobile
 .mobile-search-modal {
     position: fixed;
     inset: 0;
@@ -210,6 +227,9 @@
     }
 }
 
+// ===================
+// Mobile trigger (chỉ hiện trên mobile)
+// ===================
 .top-bar__act--search-mobile {
     display: none;
 
@@ -229,6 +249,10 @@
 .form__close:not(.d-none) {
     display: inline-block;
 }
+
+// ===================
+// Search Results Page (route /search)
+// ===================
 
 .search-results {
     padding: 32px 0 80px;

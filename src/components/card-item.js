@@ -1,39 +1,42 @@
-/**
- * components/card-item.js — Reusable album/playlist card component
- *
- * Wrap lại `renderCartItem()` cũ trong `home.render.js` để dùng lại ở
- * Discover, Library, Album Detail, ...
- *
- * Style dùng class `.cart-item` có sẵn trong SCSS
- * (`src/styles/components/_cart-item.scss`). Không thêm SCSS mới.
- *
- * Exports:
- *   - renderCard(item)              → 1 card HTML string
- *   - renderCards(items)            → nhiều card nối tiếp
- *   - normalizeThumb(thumbs)        → handle string/array shape
- *   - normalizeCardItem(item, basePath) → convert API item → card props
- *
- * Consumed by:
- *   - `@/pages/home/home.render.js` (albums-for-you, today's hits, ...)
- *   - `@/pages/discover/discover.render.js` (albums grid)
- *   - `@/pages/category-detail/category-detail.render.js`
- *   - `@/pages/line-detail/line-detail.render.js`
- *
- * Shape input `renderCard`:
- *   {
- *     title: string  (required) — Tên album/playlist
- *     subtitle?: string         — VD: "Various Artists • Album"
- *     thumb: string  (required) — URL ảnh
- *     href: string  (required)  — URL navigate
- *     type?: "album"|"playlist"|"song"
- *     size?: "default"|"large"  — large = 400px cho featured card
- *   }
- */
+// ======================================================
+// CARD ITEM COMPONENT — Album / Playlist card
+// ======================================================
+//
+
+// Component này wrap lại `renderCartItem()` cũ trong `home.render.js`
+// để có thể dùng lại ở Discover, Library, Album Detail, ...
+//
+// Style dùng class `.cart-item` có sẵn trong SCSS
+// (`src/styles/components/_cart-item.scss`).
+// Không thêm SCSS mới — chỉ wrap markup.
+//
+// API:
+//   renderCard({ title, subtitle, thumb, href, type, size })
+//     - title:   string  (required) — Tên album/playlist
+//     - subtitle: string (optional) — VD: "Various Artists • Album"
+//     - thumb:   string  (required) — URL ảnh
+//     - href:    string  (required) — URL navigate (VD "/albums/details/slug")
+//     - type:    string  (optional) — "album" | "playlist" | "song" (cho data)
+//     - size:    string  (optional) — "default" | "large" (default = 220px,
+//                  large = 400px dùng cho featured card)
+//
+// Returns: HTML string
+//
+// USAGE:
+//   import { renderCard } from "@/components/card-item.js";
+//   const cardHtml = renderCard({
+//       title: "Nhạc Lofi Mới",
+//       subtitle: "Various Artists • Album",
+//       thumb: "https://...",
+//       href: "/albums/details/lofi-moi",
+//   });
+//
 
 import { escapeHtml } from "@/utils/format.js";
 
 /**
  * Render 1 card (album/playlist/song).
+ *
  * @param {{
  *   title: string,
  *   subtitle?: string,
@@ -88,7 +91,7 @@ export function renderCard(item) {
 }
 
 /**
- * Normalize thumb từ nhiều format:
+ * Normalize thumb từ nhiều format khác nhau:
  *   - Array `thumbnails[0]`
  *   - String `thumb`
  *   - Fallback "" nếu không có
@@ -106,8 +109,13 @@ export function normalizeThumb(thumbs) {
  * Normalize 1 item (album/playlist) từ API thành format cho renderCard.
  *
  * @param {object} item - Raw item từ API
- * @param {string} basePath - Base path để build href (vd "/albums/details")
- * @returns {{title: string, subtitle: string, thumb: string, href: string, type: string}}
+ * @returns {{
+ *   title: string,
+ *   subtitle: string,
+ *   thumb: string,
+ *   href: string,
+ *   type: string
+ * }}
  */
 export function normalizeCardItem(item, basePath) {
     const title = item.title || item.name || "Untitled";
@@ -132,8 +140,9 @@ export function normalizeCardItem(item, basePath) {
 
 /**
  * Render nhiều card cùng lúc.
- * @param {Array<object>} items
- * @returns {string} HTML string nhiều card nối tiếp (hoặc "" nếu rỗng)
+ *
+ * @param {Array<object>} items - Mảng các item đầu vào của renderCard
+ * @returns {string} HTML string nhiều card nối tiếp nhau (hoặc "" nếu rỗng)
  */
 export function renderCards(items) {
     if (!Array.isArray(items) || items.length === 0) return "";

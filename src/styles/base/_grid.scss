@@ -1,5 +1,9 @@
 @use "sass:math";
 @use "sass:map";
+
+// ======================================================
+// BREAKPOINTS
+// ======================================================
 //
 // Project gốc sử dụng breakpoint mobile-first:
 //
@@ -24,6 +28,10 @@ $grid-breakpoints: (
     xl: 1280px,
     2xl: 1536px,
 );
+
+// ======================================================
+// CONTAINER
+// ======================================================
 //
 // Container của project gốc:
 //
@@ -45,6 +53,11 @@ $container-max-widths: (
     xl: 1280px,
     2xl: 1536px,
 );
+
+// ======================================================
+// GRID CONFIGURATION
+// ======================================================
+
 $grid-columns: 12;
 
 $grid-gutter-width: 30px;
@@ -57,6 +70,11 @@ $gutters: (
     4: 1.5,
     5: 3,
 );
+
+// ======================================================
+// PROJECT GỐC - LAYOUT DIMENSIONS
+// ======================================================
+
 // Navbar:
 // h-18 = 18 × 4px = 72px
 $navbar-height: 72px;
@@ -80,6 +98,10 @@ $mobile-sidebar-width: 224px;
 //
 $main-left-offset: 150px;
 $main-right-margin: 40px;
+
+// ======================================================
+// GUTTER PLACEHOLDER
+// ======================================================
 //
 // Dùng placeholder để không tạo CSS selector riêng.
 //
@@ -88,6 +110,10 @@ $main-right-margin: 40px;
     padding-left: calc(var(--grid-gutter-x) * 0.5);
     padding-right: calc(var(--grid-gutter-x) * 0.5);
 }
+
+// ======================================================
+// CONTAINER FLUID
+// ======================================================
 //
 // container-fluid chỉ chịu trách nhiệm:
 //
@@ -112,10 +138,19 @@ $main-right-margin: 40px;
     width: 100%;
     @extend %gutter-padding;
 }
+
+// ======================================================
+// CONTAINER
+// ======================================================
+
 .container {
     @extend .container-fluid;
     width: 100%;
 }
+
+// ======================================================
+// MAIN LAYOUT
+// ======================================================
 //
 // Đây là layout thực tế của project gốc.
 //
@@ -149,6 +184,10 @@ $main-right-margin: 40px;
         margin-right: 40px;
     }
 }
+
+// ======================================================
+// MAIN LAYOUT MIXIN
+// ======================================================
 //
 // Có thể dùng:
 //
@@ -169,6 +208,11 @@ $main-right-margin: 40px;
         margin-right: 40px;
     }
 }
+
+// ======================================================
+// ROW
+// ======================================================
+
 .row {
     display: flex;
     flex-wrap: wrap;
@@ -188,11 +232,20 @@ $main-right-margin: 40px;
         margin-top: var(--grid-gutter-y);
     }
 }
+
+// ======================================================
+// COL
+// ======================================================
+
 .col {
     flex: 1 0;
 
     @extend %gutter-padding;
 }
+
+// ======================================================
+// MEDIA QUERY
+// ======================================================
 //
 // Project gốc dùng mobile-first:
 //
@@ -206,6 +259,11 @@ $main-right-margin: 40px;
         @content;
     }
 }
+
+// ======================================================
+// ROW COLUMNS
+// ======================================================
+
 @mixin make-row-columns($infix: null) {
     @for $i from 1 through math.div($grid-columns, 2) {
         .row-cols#{$infix}-#{$i} > * {
@@ -213,6 +271,11 @@ $main-right-margin: 40px;
         }
     }
 }
+
+// ======================================================
+// COLUMNS
+// ======================================================
+
 @mixin make-columns($infix: null) {
     @for $i from 1 through $grid-columns {
         .col#{$infix}-#{$i} {
@@ -220,6 +283,11 @@ $main-right-margin: 40px;
         }
     }
 }
+
+// ======================================================
+// OFFSETS
+// ======================================================
+
 @mixin make-offsets($infix: null) {
     @for $i from 0 to $grid-columns {
         .offset#{$infix}-#{$i} {
@@ -227,6 +295,11 @@ $main-right-margin: 40px;
         }
     }
 }
+
+// ======================================================
+// GUTTERS
+// ======================================================
+
 @mixin make-gutters($infix: null) {
     @each $i, $ratio in $gutters {
         .g#{$infix}-#{$i},
@@ -240,6 +313,11 @@ $main-right-margin: 40px;
         }
     }
 }
+
+// ======================================================
+// BASE GRID
+// ======================================================
+
 @include make-row-columns();
 
 @include make-columns();
@@ -247,6 +325,10 @@ $main-right-margin: 40px;
 @include make-offsets();
 
 @include make-gutters();
+
+// ======================================================
+// RESPONSIVE GRID
+// ======================================================
 //
 // Mobile-first.
 //
@@ -263,12 +345,36 @@ $main-right-margin: 40px;
     $infix: "-#{$breakpoint}";
 
     @include make-media-query($dimension) {
+        // ----------------------------------------------
+        // Container
+        // ----------------------------------------------
+
         .container {
             max-width: $max-width;
         }
+
+        // ----------------------------------------------
+        // Row columns
+        // ----------------------------------------------
+
         @include make-row-columns($infix);
+
+        // ----------------------------------------------
+        // Columns
+        // ----------------------------------------------
+
         @include make-columns($infix);
+
+        // ----------------------------------------------
+        // Offsets
+        // ----------------------------------------------
+
         @include make-offsets($infix);
+
+        // ----------------------------------------------
+        // Gutters
+        // ----------------------------------------------
+
         @include make-gutters($infix);
     }
 }

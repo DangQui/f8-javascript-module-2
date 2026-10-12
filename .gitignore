@@ -3,7 +3,7 @@
 # ======================================================
 
 # ======================================================
-# ENV FILES 
+# ENV FILES (Phase 10.1)
 # ======================================================
 # Default values (.env) + template (.env.example) → commit
 # Local secrets (.env.local) → gitignored
@@ -34,8 +34,9 @@ dist-ssr/
 # ======================================================
 # LEGACY PARTIALS (moved to public/partials/ — vite-plugin-html)
 # ======================================================
+# Phase 9: chuyển từ `partials/` (root) sang `public/partials/` để
 # Vite serve static. Folder gốc giữ ignore để khỏi confuse.
-/partials/
+partials/
 
 # ======================================================
 # IDE / EDITORS

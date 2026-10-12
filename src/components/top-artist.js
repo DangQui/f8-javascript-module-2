@@ -1,31 +1,33 @@
-/**
- * components/top-artist.js — Top artists section (Phase 14.2)
- *
- * Port từ `code chức năng gốc/base.js`:
- *   - `$n()` dòng 4059: render section
- *   - `Zn()` dòng 4050: chunked 4 items per col
- *   - `Qn()` dòng 4054: format views tiếng Việt
- *
- * Layout: 4 cols × 4 items (chunked qua chunkArray(artists, 4)).
- * Mỗi item: rank + trend (flex row) | name + views (col).
- *
- * Trend arrow: "up" → ▲ xanh, "down" → ▼ đỏ, khác → ẩn.
- *
- * Kiến trúc: code gốc link `/artist/${e.artistId}` (route không tồn tại
- * trong project) → em render dưới dạng `<div>` thay vì `<a>` để KHÔNG
- * navigate đến route 404. Khi nào có /artist/:id → chuyển sang `<a>`.
- *
- * Exports:
- *   - renderTopArtistsSection(title, artists) → HTML section
- *   - renderTopArtist(artist)                 → 1 item HTML
- *   - renderTrendArrow(trend)                → ▲/▼ span
- *   - chunkArray(arr, size)                  → split arr thành N phần
- *
- * Consumed by:
- *   - `@/pages/charts/charts.render.js` (Top Artists tab)
- */
+// ======================================================
+// TOP ARTIST — Rank + trend arrow component (Phase 14.2)
+// ======================================================
+//
+// Port từ `code chức năng gốc/base.js` function `$n()` dòng 4059 + helpers:
+//   - `Zn()`   dòng 4050 — chunked 4 items per col
+//   - `Qn()`   dòng 4054 — format views tiếng Việt (>=1e9 → "T", >=1e6 → "Tr", >=1e3 → "N")
+//
+// USAGE:
+//   import { renderTopArtistsSection } from "@/components/top-artist.js";
+//   const html = renderTopArtistsSection("Nghệ sĩ hàng đầu", topArtists);
+//
+// Note kiến trúc:
+//   - `basePath` không dùng — code gốc link `/artist/${e.artistId}` (route
+//     không tồn tại trong project) → em render dưới dạng `<div>` thay vì `<a>`
+//     để KHÔNG navigate đến route 404. Khi nào có /artist/:id → chuyển sang `<a>`.
+//   - `renderItem(artist)` exposed nếu muốn custom từng item sau này.
+//
+// Lưu ý render:
+//   - 4 cols × 4 items (chunked via `chunkArray(artists, 4)`).
+//   - Layout mỗi item: rank + trend (flex row) | name + views (col) — 1 row per artist.
+//   - Trend arrow: `up` → "▲" green, `down` → "▼" red, khác → ẩn.
+//
+// ======================================================
 
 import { escapeHtml, formatViewsVN } from "@/utils/format.js";
+
+// ======================================================
+// HELPERS
+// ======================================================
 
 /**
  * Chunk array thành N phần tử mỗi nhóm (port từ `Zn()` base.js dòng 4050).
@@ -34,9 +36,9 @@ import { escapeHtml, formatViewsVN } from "@/utils/format.js";
  * chunkArray([1,2,3,4,5,6,7,8,9], 4) // [[1,2,3,4], [5,6,7,8], [9]]
  *
  * @template T
- * @param {T[]} arr
- * @param {number} size
- * @returns {T[][]}
+ * @param {T[]} arr - Mảng gốc
+ * @param {number} size - Kích thước mỗi chunk
+ * @returns {T[][]} Mảng 2D
  */
 function chunkArray(arr, size = 4) {
     if (!Array.isArray(arr) || arr.length === 0) return [];
@@ -48,7 +50,7 @@ function chunkArray(arr, size = 4) {
 }
 
 /**
- * Render trend arrow (port từ inner `n()` trong `$n()` base.js dòng 4061).
+ * Render trend arrow (port từ inner `n()` function trong `$n()` base.js dòng 4061).
  *   - "up"   → green ▲
  *   - "down" → red ▼
  *   - khác   → ẩn
@@ -65,6 +67,10 @@ function renderTrendArrow(trend) {
     }
     return "";
 }
+
+// ======================================================
+// ITEM RENDER
+// ======================================================
 
 /**
  * Render 1 top-artist row.
@@ -95,8 +101,15 @@ export function renderTopArtist(artist) {
     `;
 }
 
+// ======================================================
+// SECTION RENDER — 4 cols × 4 items grid
+// ======================================================
+
 /**
  * Render section "Nghệ sĩ hàng đầu" (port từ `$n()` base.js dòng 4059).
+ *
+ * Layout: section wrapper (re-use component `section.js`)
+ *         → body = nhiều col (flex row), mỗi col = 4 artists (flex col).
  *
  * @param {string} title - Tiêu đề section (vd: "Nghệ sĩ hàng đầu")
  * @param {Array<object>} artists - Top artists từ API
@@ -135,6 +148,10 @@ export function renderTopArtistsSection(title, artists) {
         </section>
     `;
 }
+
+// ======================================================
+// EXPORTS
+// ======================================================
 
 export { renderTrendArrow, chunkArray };
 export default renderTopArtistsSection;

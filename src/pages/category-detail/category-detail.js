@@ -1,24 +1,24 @@
-/**
- * pages/category-detail/category-detail.js — Category Detail page handler
- *
- * Flow:
- *   1. Render skeleton ngay
- *   2. Fetch `categoriesService.getCategory(slug)`
- *   3. Render HTML từ `category-detail.render.js` (empty state nếu không có subcategories)
- *   4. Inject + re-init sliders
- *
- * Port từ `code chức năng gốc/base.js` route handler dòng 5779-5781:
- *   "/categories/:slug": async ({data: e}) => {
- *       let t = await G.Categories.getCategory(e.slug);
- *       await Q( () => fr(t))
- *   }
- *
- * Exports:
- *   - categoryDetailPage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/categories/:slug")
- */
+// ======================================================
+// CATEGORY DETAIL PAGE — Init + render
+// ======================================================
+//
+// Flow:
+//   1. Render skeleton ngay (UX: user thấy structure trước khi data về)
+//   2. Fetch `categoriesService.getCategory(slug)`
+//   3. Render HTML từ `category-detail.render.js`
+//   4. Inject + re-init sliders
+//
+// Port từ `code chức năng gốc/base.js` route handler dòng 5779-5781:
+//   "/categories/:slug": async ({data: e}) => {
+//       let t = await G.Categories.getCategory(e.slug);
+//       await Q( () => fr(t))
+//   }
+//
+// Lưu ý:
+//   - Fetch fail → render placeholder + toast.
+//   - Sau render PHẢI gọi `initSliders()` vì slider lib scan DOM
+//     một lần ở app init, không tự detect DOM mới.
+//
 
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import {
@@ -32,7 +32,7 @@ import { toast } from "@/libs/toast.js";
 
 /**
  * Render skeleton placeholder cho Category Detail.
- * Match layout: H1 + N sections.
+ * Match layout: H1 + N sections (1 section skeleton đại diện).
  * @returns {string} HTML
  */
 function SKELETON_CATEGORY_DETAIL() {
@@ -49,9 +49,14 @@ function SKELETON_CATEGORY_DETAIL() {
     `;
 }
 
+// ======================================================
+// MAIN RENDER
+// ======================================================
+
 /**
  * Render Category Detail page.
- * @param {{params: {slug: string}}} route
+ *
+ * @param {{ params: { slug: string } }} route - Router params
  */
 export async function categoryDetailPage(route = {}) {
     // Defensive: nếu route không truyền slug (lỗi routing)
@@ -63,7 +68,7 @@ export async function categoryDetailPage(route = {}) {
         return;
     }
 
-    // 0. Render skeleton ngay
+    // 0. Render skeleton ngay (UX tốt hơn spinner overlay)
     renderPage(SKELETON_CATEGORY_DETAIL());
 
     try {

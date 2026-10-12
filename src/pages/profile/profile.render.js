@@ -1,24 +1,16 @@
-/**
- * pages/profile/profile.render.js — Profile page render
- *
- * Cấu trúc:
- *   - Header card: avatar lớn + tên + email + joinedAt
- *   - Form #update-profile-form: name + email
- *   - Link "Đổi mật khẩu" → /auth/change-password
- *   - Button "Đăng xuất" (data-logout)
- *
- * UI structure port từ base.js `wr()` dòng 5572-5609.
- * Style dùng class `.auth` (modal centered + background image) +
- * `.form` (input + error) — đã có sẵn trong SCSS 7-1.
- *
- * Exports:
- *   - renderProfilePage(user) → HTML string
- *
- * Consumed by:
- *   - `@/pages/profile/profile.js`
- */
+// ======================================================
+// PROFILE PAGE — Render HTML
+// ======================================================
+//
 
-import { escapeHtml, escapeAttr } from "@/utils/format.js";
+//   - Header card: avatar lớn + tên + email + joinedAt
+//   - Form #update-profile-form: name + email
+//   - Link "Đổi mật khẩu" → /auth/change-password
+//
+// UI structure port từ base.js `wr()` dòng 5572-5609.
+// Style dùng class `.auth` (modal centered + background image) +
+// `.form` (input + error) — đã có sẵn trong SCSS 7-1.
+//
 
 /**
  * Render trang profile.
@@ -118,6 +110,10 @@ export function renderProfilePage(user = {}) {
     `;
 }
 
+// ======================================================
+// HELPERS
+// ======================================================
+
 /**
  * Format ISO date string → "DD/MM/YYYY" (tiếng Việt).
  * Trả về "" nếu input không hợp lệ.
@@ -129,4 +125,18 @@ function formatJoinedDate(iso) {
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
     return `${day}/${month}/${d.getFullYear()}`;
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+    }[c]));
+}
+
+function escapeAttr(s) {
+    return escapeHtml(s);
 }

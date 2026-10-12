@@ -1,38 +1,29 @@
-/**
- * pages/home/home.render.js — Home page render
- *
- * Tách riêng markup khỏi logic ở `home.js` để dễ đọc + test.
- *
- * Sections của Home page:
- *   1. Greeting (nếu logged-in)
- *   2. Mood chips (Năng lượng, Thư giãn, ...)
- *   3. Quick Picks (slider ngang, items xếp cột 4 item/cột)
- *   4. Album gợi ý cho bạn (slider ngang, cart-item)
- *   5. Today's Hits (slider ngang, cart-item)
- *   6. Nhạc Việt (slider ngang, cart-item)
- *
- * Mỗi section có:
- *   - `<div class="home__row">` chứa heading + control buttons (crt__prev/crt__next)
- *   - `<div class="...-list" data-slider>` chứa items
- *
- * Slider lib (libs/slider.js) auto-detect `data-slider` + tìm `.crt__prev/next`
- * trong section chứa list (xem `closest('.home__container') || parentElement`).
- *
- * Exports:
- *   - renderHome(data)              → full page HTML
- *   - renderGreeting(user)          → greeting block
- *   - renderMoodChips(moods)        → mood chip strip
- *   - renderQuickPicksSection(...)  → 1 col × 4 items slider
- *   - renderSliderSection(...)      → cart-item slider
- *   - getCountrySectionTitle(code)  → country name lookup
- *
- * Consumed by:
- *   - `@/pages/home/home.js`
- */
+// ======================================================
+// HOME PAGE — Render functions (Phase 7)
+// ======================================================
+//
+// Tách riêng markup khỏi logic ở `home.js` để dễ đọc + test.
+//
+// Sections của Home page (theo templates/index-logined-backup.html):
+//   1. Greeting (nếu logged-in)
+//   2. Mood chips (Năng lượng, Thư giãn, ...)
+//   3. Quick Picks (slider ngang, items xếp cột 4 item/cột)
+//   4. Album gợi ý cho bạn (slider ngang, cart-item)
+//   5. Today's Hits (slider ngang, cart-item)
+//   6. Nhạc Việt (slider ngang, cart-item)
+//
+// Mỗi section có:
+//   - `<div class="home__row">` chứa heading + control buttons (crt__prev/crt__next)
+//   - `<div class="...-list" data-slider>` chứa items
+//
+// Slider lib (libs/slider.js) auto-detect `data-slider` + tìm `.crt__prev/next`
+// trong section chứa list (xem `closest('.home__container') || parentElement`).
+//
 
-import { escapeHtml } from "@/utils/format.js";
+import { escapeHtml, formatViews } from "@/utils/format.js";
 import { DEFAULT_COUNTRY } from "@/utils/constants.js";
 import {
+    renderCard,
     renderCards,
     normalizeCardItem,
 } from "@/components/card-item.js";
@@ -42,6 +33,10 @@ import {
     renderSliderSection as renderSliderSectionComponent,
 } from "@/components/section.js";
 import { renderQuickPickItem } from "@/components/quick-picks-item.js";
+
+// ======================================================
+// GREETING — chỉ hiện khi logged-in
+// ======================================================
 
 /**
  * Render greeting section.
@@ -60,14 +55,14 @@ export function renderGreeting(user) {
     `;
 }
 
+// ======================================================
+// MOOD CHIPS — click → navigate /moods/:slug
+// ======================================================
+
 /**
  * Render mood chips (Năng lượng, Thư giãn, ...).
  * Dùng `mood-chip` component cho mỗi chip bên trong.
  * Dùng `section` component cho layout container.
- *
- * Modifier `home__container--flush-top`: bỏ margin-top 80px (default container)
- * + 40px (first-child) → mood chips áp sát header "Music".
- *
  * @param {Array<{_id:string, slug:string, name:string}>} moods
  * @returns {string} HTML
  */
@@ -77,11 +72,17 @@ export function renderMoodChips(moods) {
     return renderSectionComponent({
         bodyHtml: renderMoodChipsComponent(moods),
         listClass: "home__cate",
+        // Modifier: bỏ margin-top 80px (default container) + 40px (first-child)
+        // → mood chips áp sát header "Music". File `_section-modifier.scss`.
         modifierClass: "home__container--flush-top",
         showControls: true,
         slider: true,
     });
 }
+
+// ======================================================
+// QUICK PICKS — slider ngang, items xếp cột 4 item/cột
+// ======================================================
 
 /**
  * Render quick picks section.
@@ -104,6 +105,9 @@ export function renderMoodChips(moods) {
  * Lưu ý: KHÔNG dùng grid system (.row.row-cols-3) vì gutter padding gây
  * thừa width khi slider ngang. Dùng flex gap đơn giản, mỗi column
  * là 1 slide.
+ *
+ * Phase 18.5: refactor để dùng `renderSection` → nhận prev/next + body
+ * qua option. Trước đây hard-code markup.
  *
  * @param {string} title - Tiêu đề section (VD "Nghe gần đây", "Quick Picks")
  * @param {Array} items
@@ -139,9 +143,17 @@ export function renderQuickPicksSection(title, items, basePath = "/songs/details
     });
 }
 
+// ======================================================
+// ALBUM/PLAYLIST CARD — slider ngang đơn giản
+// ======================================================
+
 /**
  * Render nhiều cart-item từ raw API items.
  * Wrapper quanh `renderCards()` component để normalize data.
+ *
+ * @param {Array<object>} items - Raw items từ API
+ * @param {string} basePath - VD "/albums/details"
+ * @returns {string} HTML
  */
 function renderCartItemList(items, basePath) {
     if (!Array.isArray(items)) return "";
@@ -152,7 +164,6 @@ function renderCartItemList(items, basePath) {
 /**
  * Render 1 section slider (heading + control + list).
  * Dùng `section` component.
- *
  * @param {string} title
  * @param {Array} items
  * @param {string} basePath - VD "/albums/details"
@@ -166,6 +177,10 @@ export function renderSliderSection(title, items, basePath) {
         listClass: "album__list home-album__list",
     });
 }
+
+// ======================================================
+// FULL HOME — Compose all sections
+// ======================================================
 
 /**
  * Render toàn bộ Home page.
@@ -212,8 +227,13 @@ export function renderHome(data) {
     `;
 }
 
+// ======================================================
+// HELPERS — page title cho country section
+// ======================================================
+
 /**
  * Lấy tên country từ code (VD VN → "Nhạc Việt").
+ * Phase 7 giữ đơn giản, Phase 8+ có thể lấy từ COUNTRY_CODES constant.
  * @param {string} code
  * @returns {string}
  */
@@ -229,4 +249,5 @@ export function getCountrySectionTitle(code) {
     return map[code] || `Top ${code}`;
 }
 
+// Re-export default country cho caller dễ sử dụng
 export { DEFAULT_COUNTRY };

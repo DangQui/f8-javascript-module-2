@@ -1,19 +1,35 @@
-/**
- * pages/_top-artist.scss — Charts / New Releases page styles
- *
- * Gồm 3 wrapper classes:
- *   - `.top-artist`        — 4 cols × 4 items grid cho Top Artists section
- *   - `.country-select`    — country dropdown cho Charts page
- *   - `.charts-page`       — wrapper Charts page (padding + heading)
- *   - `.new-releases-page` — wrapper New Releases page (padding + heading)
- *
- * Markup render:
- *   - Top artist: từ `@/components/top-artist.js`
- *   - Country select + Charts page: từ `@/pages/charts/charts.render.js`
- *   - New Releases page: từ `@/pages/new-releases/new-releases.render.js`
- *
- * Load SAU `_home.scss` → cùng specificity (0,1,0) nhưng thắng cascade.
- */
+// ======================================================
+// TOP ARTIST — Style cho top-artist grid (Phase 14.2)
+// ======================================================
+//
+// Style cho 4 cols × 4 items grid hiển thị ở page /charts.
+// Mỗi item là 1 row: rank + trend (left, bold) | name + views (right, col).
+//
+// Cấu trúc HTML (render từ src/components/top-artist.js):
+//   <section class="home__container top-artist">
+//       <div class="home__row">
+//           <h2 class="home__title">Nghệ sĩ hàng đầu</h2>
+//           <div class="crt">...</div>
+//       </div>
+//       <div class="home__body top-artist__list" data-slider>
+//           <div class="top-artist__col" data-slider-item>
+//               <div class="top-artist__item" data-slider-item>
+//                   <div class="top-artist__rank">1 ▲</div>
+//                   <div class="top-artist__info">
+//                       <h3 class="top-artist__name">Artist Name</h3>
+//                       <p class="top-artist__views">1.5M lượt xem</p>
+//                   </div>
+//               </div>
+//               ...
+//           </div>
+//           ...
+//       </div>
+//   </section>
+//
+// File này load SAU `_home.scss` (nhờ vị trí ở _index.scss sau cùng)
+// → có cùng specificity với `.home__container` (0,1,0) nhưng đứng sau
+// → thắng cascade theo CSS load order.
+// ======================================================
 
 .top-artist {
     &__list {
@@ -118,11 +134,23 @@
     }
 }
 
-/**
- * Country select dropdown (Charts page).
- * Port từ base.js `lr()` dòng 4435:
- *   - bg-[#1d1d1d] border + rounded-full + custom arrow ▼
- */
+// ======================================================
+// COUNTRY SELECT — Style cho dropdown chọn quốc gia ở /charts (Phase 14.3)
+// ======================================================
+//
+// Cấu trúc HTML (render từ src/pages/charts/charts.render.js):
+//   <div class="country-select">
+//       <select id="country-select" class="country-select__field">
+//           <option value="VN">Việt Nam</option>
+//           ...
+//       </select>
+//       <span class="country-select__arrow">▼</span>
+//   </div>
+//
+// Style port từ base.js `lr()` dòng 4435:
+//   - bg-[#1d1d1d] border + rounded-full + custom arrow ▼
+// ======================================================
+
 .country-select {
     position: relative;
     width: 113px;
@@ -166,15 +194,21 @@
     }
 }
 
-/**
- * Charts page wrapper (padding + heading).
- * Port từ base.js `lr()` dòng 4429: `text-[45px] mb-10 font-bold`.
- */
+// ======================================================
+// CHARTS PAGE — Style riêng cho page wrapper
+// ======================================================
+//
+// Page /charts cần wrapper với padding để H1 + country select + sections
+// khớp với các page detail khác (vd: discover, new-releases).
+// Dùng class `.charts-page` để wrap toàn bộ content.
+// ======================================================
+
 .charts-page {
     padding: 16px;
     color: #fff;
 
     &__heading {
+        // Port từ base.js `lr()` dòng 4429: `text-[45px] mb-10 font-bold`
         font-size: 4.5rem;
         font-weight: 700;
         line-height: 1.5;
@@ -182,16 +216,17 @@
     }
 }
 
-/**
- * New Releases page wrapper (padding + heading).
- * Port từ base.js `cr()` dòng 4419: `text-[45px] -mb-10 font-bold`
- * → margin-bottom: -40px (kéo slider lên gần H1).
- */
+// ======================================================
+// NEW-RELEASES PAGE — Style riêng cho page wrapper
+// ======================================================
+
 .new-releases-page {
     padding: 16px;
     color: #fff;
 
     &__heading {
+        // Port từ base.js `cr()` dòng 4419: `text-[45px] -mb-10 font-bold`
+        // -mb-10 ≈ margin-bottom: -40px (kéo slider lên gần H1)
         font-size: 4.5rem;
         font-weight: 700;
         line-height: 1.5;

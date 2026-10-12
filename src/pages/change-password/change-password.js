@@ -1,41 +1,36 @@
-/**
- * pages/change-password/change-password.js — Change Password page handler
- *
- * Form đổi mật khẩu + API call PATCH /auth/change-password.
- *
- * Auth guard: chưa login → navigate /auth/login + toast.
- *
- * Body shape (theo docs F8):
- *   { oldPassword, password, confirmPassword }
- *   Dùng `password` (không phải `newPassword`) cho khớp backend.
- *
- * AppError codes:
- *   - OLD_PASSWORD_WRONG → backend trả khi oldPassword sai
- *   - VALIDATION         → backend trả 400 với errors object
- *   - UNAUTHORIZED       → token hết hạn, interceptor force logout
- *   - NETWORK/TIMEOUT/...→ lỗi mạng
- *
- * Exports:
- *   - changePasswordPage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/auth/change-password")
- */
+// ======================================================
+// CHANGE PASSWORD PAGE — Form đổi mật khẩu + API call
+// ======================================================
+//
+// Phase 10.1: dùng MESSAGES + form-helpers + mapApiError.
+// Stub "MAINTENANCE" code handle ở catch.
+//
 
 import { renderPage, loading } from "@/pages/_shared.js";
 import { renderChangePasswordPage } from "@/pages/change-password/change-password.render.js";
+
 import { requireAuth, onAuthChange } from "@/state/authState.js";
 import { changePassword } from "@/services/authService.js";
-import { getPasswordError } from "@/utils/validators.js";
+import {
+    getPasswordError,
+} from "@/utils/validators.js";
 import { MESSAGES } from "@/utils/messages.js";
 import { showFormError, clearFormErrors } from "@/utils/form-helpers.js";
 import { $ } from "@/utils/dom-helpers.js";
 import { toast } from "@/libs/toast.js";
 import { navigate } from "@/libs/router.js";
 
-/** Render Change Password page (/auth/change-password). */
+/**
+ * Render Change Password page (/auth/change-password).
+ *
+ * Auth guard: port từ base.js:5831 — `await Ar() && await Q(Tr, Gn)`
+ * → Nếu getProfile throw → render form login `Gn` thay vì change-password.
+ * → Trong dự án dùng requireAuth() (đọc localStorage, navigate + toast nếu fail).
+ */
 export async function changePasswordPage(route = {}) {
     void route;
+
+    // Guard trước, nếu chưa login thì return — KHÔNG render page (kể cả skeleton).
     loading.show();
     try {
         // 1. Guard
@@ -51,6 +46,10 @@ export async function changePasswordPage(route = {}) {
     }
 }
 
+// ======================================================
+// BIND EVENTS
+// ======================================================
+
 function bindChangePasswordPage() {
     const form = $("#change-password-form");
     if (form) form.addEventListener("submit", handleChangePasswordSubmit);
@@ -59,6 +58,10 @@ function bindChangePasswordPage() {
         if (!data.isLoggedIn) navigate("/auth/login");
     });
 }
+
+// ======================================================
+// CHANGE PASSWORD HANDLER
+// ======================================================
 
 async function handleChangePasswordSubmit(e) {
     e.preventDefault();
@@ -93,12 +96,20 @@ async function handleChangePasswordSubmit(e) {
     clearFormErrors(form);
     loading.show();
     try {
+        // Theo docs F8: PATCH /auth/change-password
+        //   body: { oldPassword, password, confirmPassword }
+        // → dùng `password` (không phải `newPassword`) cho khớp backend.
         await changePassword({ oldPassword, password, confirmPassword });
         toast.success(MESSAGES.AUTH.CHANGE_PASSWORD_SUCCESS);
 
         form.reset();
         navigate("/auth/profile");
     } catch (err) {
+        // AppError từ authService (mapApiError):
+        // - code "OLD_PASSWORD_WRONG" → backend trả khi oldPassword sai
+        // - code "VALIDATION"          → backend trả 400 với errors object
+        // - code "UNAUTHORIZED"        → token hết hạn, interceptor force logout
+        // - code "NETWORK/TIMEOUT/..." → lỗi mạng
         const field = err.field || "password";
         showFormError(form, field, err.message);
         toast.error(err.message);

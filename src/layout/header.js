@@ -1,4 +1,4 @@
-﻿/**
+/**
  * layout/header.js — Render header partial (logged-in vs logged-out)
  *
  * SSOT (Single Source of Truth): header HTML chỉ tồn tại trong file partial,

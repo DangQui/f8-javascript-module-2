@@ -1,23 +1,20 @@
-/**
- * services/playlistsService.js — User playlist API (best-effort)
- *
- * Endpoints:
- *   GET  /me/playlists                  — playlist của user hiện tại
- *   POST /playlists/:slug/videos        — thêm 1 video vào playlist
- *
- * LƯU Ý: API `/me/playlists` chưa stable (Phase L-2.1 verified 09/10/2026 → 404).
- * Tạm thời chỉ có 2 methods cho video-overlay menu "Thêm vào playlist".
- * Khi backend sẵn sàng, mở rộng thêm endpoints.
- *
- * Exports:
- *   - playlistsService.getMyPlaylists()              → list user playlists
- *   - playlistsService.addVideoToPlaylist(slug, id)  → thêm video vào playlist
- *
- * Consumed by:
- *   - `@/components/video-overlay.js` (menu 3 chấm)
- *
- * Fallback: Khi API 404, page dùng `state/userPlaylists.js` (localStorage).
- */
+// ======================================================
+// PLAYLISTS SERVICE — api.Playlists.* (Phase 4 port từ base.js G.Playlists)
+// ======================================================
+//
+// Endpoints (TODO Phase 8.6 confirm):
+//   GET    /me/playlists                       — playlist của user hiện tại
+//   POST   /playlists/:slug/videos             — thêm 1 video vào playlist
+//   POST   /playlists/:slug/songs              — thêm 1 song vào playlist
+//
+// API chưa stable — Phase 8.6 sẽ port đầy đủ. Tạm thời service chỉ có
+// 2 methods dùng cho video-overlay menu 3 chấm:
+//   - getMyPlaylists()
+//   - addVideoToPlaylist(playlistSlug, videoId)
+//
+// Phase 20: Wrap mapApiError để throw AppError {code, message, field, status}
+// → video-overlay menu hiển thị đúng message backend.
+//
 
 import { api } from "@/libs/api.js";
 import { mapApiError } from "@/libs/api-error.js";
@@ -25,7 +22,7 @@ import { MESSAGES } from "@/utils/messages.js";
 
 export const playlistsService = {
     /**
-     * Lấy danh sách playlist của user hiện tại.
+     * Lấy danh sách playlist của user hiện tại (dùng cho menu "Thêm vào playlist").
      * @returns {Promise<Array<{slug: string, title: string, thumbnail?: string}>>}
      */
     async getMyPlaylists() {
@@ -39,7 +36,7 @@ export const playlistsService = {
     /**
      * Thêm 1 video vào playlist.
      * @param {string} playlistSlug
-     * @param {string} videoId - MongoDB id của video (KHÔNG phải YouTube videoId)
+     * @param {string} videoId  — MongoDB id của video (KHÔNG phải YouTube videoId)
      * @returns {Promise<object>} response từ API
      */
     async addVideoToPlaylist(playlistSlug, videoId) {

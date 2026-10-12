@@ -42,6 +42,11 @@ async function fetchPartial(url) {
         return "";
     }
 }
+
+// ======================================================
+// HELPERS
+// ======================================================
+
 /** Format seconds → "m:ss" / "h:mm:ss". */
 function fmtTime(seconds) {
     const total = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -270,6 +275,11 @@ function bindPlayerProgressDrag() {
         emit(percent);
     });
 }
+
+// ======================================================
+// EVENT BINDINGS (one-time setup)
+// ======================================================
+
 let bound = false;
 
 /**
@@ -461,6 +471,11 @@ function bindPlayerEvents() {
         });
     }
 }
+
+// ======================================================
+// PUBLIC API
+// ======================================================
+
 /**
  * Render player vào container + bind events.
  * Bind events bất kể fetch thành công hay không (HTML build-time cũng có markup).

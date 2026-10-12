@@ -1,31 +1,27 @@
-/**
- * pages/mood-detail/mood-detail.js — Mood Detail page handler
- *
- * Flow:
- *   1. Render skeleton ngay
- *   2. Fetch parallel: getMoodDetails(slug) + getQuickPicksByMood(slug)
- *   3. Render HTML từ `mood-detail.render.js`
- *   4. Inject + re-init sliders
- *
- * Port từ `code chức năng gốc/base.js` route handler dòng 5767-5771:
- *   "/moods/:slug": async ({data: e}) => {
- *       let t = await G.Home.getMoodDetails(e.slug)
- *         , n = await G.Home.getQuickPicksByMood(e.slug);
- *       await Q( () => dr(t, n, e))
- *   }
- *
- * Lưu ý:
- *   - `quickPicks` rỗng cho 1 số mood → render empty state.
- *   - Mỗi fetch fail → fallback `{}` / `[]` để page vẫn render.
- *   - Sau render PHẢI gọi `initSliders()` vì slider lib scan DOM
- *     một lần ở app init, không tự detect DOM mới.
- *
- * Exports:
- *   - moodDetailPage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/moods/:slug")
- */
+// ======================================================
+// MOOD DETAIL PAGE — Init + render
+// ======================================================
+//
+// Flow:
+//   1. Show loading overlay (router before hook tự lo)
+//   2. Render skeleton ngay (UX tốt hơn spinner overlay)
+//   3. Fetch parallel: getMoodDetails(slug) + getQuickPicksByMood(slug)
+//   4. Render HTML từ `mood-detail.render.js`
+//   5. Inject vào #main + re-init sliders
+//
+// Port từ `code chức năng gốc/base.js` route handler dòng 5767-5771:
+//   "/moods/:slug": async ({data: e}) => {
+//       let t = await G.Home.getMoodDetails(e.slug)
+//         , n = await G.Home.getQuickPicksByMood(e.slug);
+//       await Q( () => dr(t, n, e))
+//   }
+//
+// Lưu ý:
+//   - `quickPicks` rỗng cho 1 số mood → render empty state.
+//   - Mỗi fetch fail → fallback `{}` / `[]` để page vẫn render.
+//   - Sau render PHẢI gọi `initSliders()` vì slider lib scan DOM
+//     một lần ở app init, không tự detect DOM mới.
+//
 
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import { renderMoodDetail } from "@/pages/mood-detail/mood-detail.render.js";
@@ -52,9 +48,14 @@ function SKELETON_MOOD_DETAIL() {
     `;
 }
 
+// ======================================================
+// MAIN RENDER
+// ======================================================
+
 /**
  * Render Mood Detail page.
- * @param {{params: {slug: string}}} route
+ *
+ * @param {{ data: { slug: string } }} params - Navigo route params
  */
 export async function moodDetailPage(route = {}) {
     // Defensive: nếu route không truyền slug (lỗi routing)
@@ -66,15 +67,16 @@ export async function moodDetailPage(route = {}) {
         return;
     }
 
-    // 0. Render skeleton ngay
+    // 0. Render skeleton ngay (UX: user thấy structure trước khi data về)
     renderPage(SKELETON_MOOD_DETAIL());
 
     try {
-        // 1. Fetch parallel: mood details + quick-picks (port base.js 5768-5769)
+        // 1. Fetch parallel: mood details + quick-picks
+        //    (port base.js dòng 5768-5769)
         const [mood, quickPicks] = await Promise.all([
             homeService.getMoodDetails(slug),
             homeService.getQuickPicksByMood(slug).catch((err) => {
-                // Một số mood không có quick-picks → []
+                // Một số mood không có quick-picks (vd slug "nang-luong" test) → []
                 console.warn(`[mood-detail] quickPicks for "${slug}" failed:`, err.message);
                 return [];
             }),
@@ -96,7 +98,7 @@ export async function moodDetailPage(route = {}) {
         // 3. Inject
         renderPage(html);
 
-        // 4. Re-init sliders
+        // 4. Re-init sliders (chip tabs + dynamic sections có data-slider)
         initSliders();
     } catch (err) {
         console.error("[mood-detail] Critical error:", err);

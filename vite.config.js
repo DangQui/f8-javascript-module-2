@@ -7,11 +7,13 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const base = process.env.GHPAGES_BASE || "/";
-
 export default defineConfig({
-    base: "/",
     plugins: [
+        // vite-plugin-html: cho phép dùng EJS <%- include('partials/...') %>
+        // trong index.html để inject header/sidebar/player partials.
+        // - pages[0].injectOptions.ejsOptions: truyền `views` + `filename` để
+        //   EJS resolve `<%- include('partials/header.html') %>` từ root project.
+        // - async: true — match với mặc định của vite-plugin-html.
         createHtmlPlugin({
             pages: [
                 {
@@ -45,10 +47,12 @@ export default defineConfig({
     },
 
     // Cấu hình Sass modern API + tắt deprecation warnings
+    // (warnings hiện tại là do code dùng if() syntax cũ - không phải lỗi)
     css: {
         preprocessorOptions: {
             scss: {
                 api: "modern-compiler",
+                // Tắt warnings để build output sạch (legacy syntax không fix ngay)
                 silenceDeprecations: [
                     "if-function",
                     "import",

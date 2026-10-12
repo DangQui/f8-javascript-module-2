@@ -1,35 +1,31 @@
-/**
- * pages/line-detail/line-detail.js — Line Detail page handler
- *
- * Flow:
- *   1. Render skeleton ngay
- *   2. Fetch parallel: 4 endpoints (songs, playlists, videos, albums)
- *   3. Render HTML từ `line-detail.render.js` (empty state nếu cả 4 rỗng)
- *   4. Inject + re-init sliders
- *
- * Port từ `code chức năng gốc/base.js` route handler dòng 5784-5787:
- *   "/lines/:slug": async ({data: e}) => {
- *       let[t,n,r,i] = await Promise.all([
- *           G.Lines.getLineSongs(e.slug),
- *           G.Lines.getLinePlaylists(e.slug),
- *           G.Lines.getLineVideos(e.slug),
- *           G.Lines.getLineAlbums(e.slug)
- *       ]);
- *       await Q( () => pr(t, n, r, i))
- *   }
- *
- * Lưu ý:
- *   - Mỗi fetch fail → fallback `[]` để page vẫn render 3 sections còn lại.
- *   - Cả 4 rỗng → render empty state.
- *   - KHÔNG auto-play (Phase 17 chỉ render theo yêu cầu).
- *   - KHÔNG `recordPlay` event (line detail chưa có event type "line" ở backend).
- *
- * Exports:
- *   - lineDetailPage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/lines/:slug")
- */
+// ======================================================
+// LINE DETAIL PAGE — Init + render
+// ======================================================
+//
+// Flow:
+//   1. Render skeleton ngay (UX: user thấy structure trước khi data về)
+//   2. Fetch parallel: 4 endpoints (songs, playlists, videos, albums)
+//   3. Render HTML từ `line-detail.render.js`
+//   4. Inject + re-init sliders
+//
+// Port từ `code chức năng gốc/base.js` route handler dòng 5784-5787:
+//   "/lines/:slug": async ({data: e}) => {
+//       let[t,n,r,i] = await Promise.all([
+//           G.Lines.getLineSongs(e.slug),
+//           G.Lines.getLinePlaylists(e.slug),
+//           G.Lines.getLineVideos(e.slug),
+//           G.Lines.getLineAlbums(e.slug)
+//       ]);
+//       await Q( () => pr(t, n, r, i))
+//   }
+//
+// Lưu ý:
+//   - Mỗi fetch fail → fallback `[]` để page vẫn render 3 sections còn lại.
+//   - Cả 4 rỗng → render empty state.
+//   - Sau render PHẢI gọi `initSliders()`.
+//   - KHÔNG auto-play (Phase 17 chỉ render theo yêu cầu của anh).
+//   - KHÔNG `recordPlay` event (line detail chưa có event type "line" ở backend).
+//
 
 import { renderPage, renderPlaceholder } from "@/pages/_shared.js";
 import {
@@ -43,7 +39,8 @@ import { toast } from "@/libs/toast.js";
 
 /**
  * Render skeleton placeholder cho Line Detail.
- * Match Phase 18: 1 quick-picks section (4 cols × 4 items) + 3 slider sections.
+ * Match cấu trúc Phase 18: 1 quick-picks section (4 cols × 4 items) +
+ * 3 slider sections bình thường.
  * @returns {string} HTML
  */
 function SKELETON_LINE_DETAIL() {
@@ -79,9 +76,14 @@ function SKELETON_LINE_DETAIL() {
     `;
 }
 
+// ======================================================
+// MAIN RENDER
+// ======================================================
+
 /**
  * Render Line Detail page.
- * @param {{params: {slug: string}}} route
+ *
+ * @param {{ params: { slug: string } }} route - Router params
  */
 export async function lineDetailPage(route = {}) {
     // Defensive: nếu route không truyền slug (lỗi routing)

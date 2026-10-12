@@ -1,40 +1,37 @@
-/**
- * pages/video-detail/video-detail.render.js — Video Detail page render
- *
- * Layout (2 columns) — port từ `Cr()` trong base.js (dòng 5527):
- *
- *   ┌──────────────────────┬─────────────────────────┐
- *   │   .info-detail       │     .video-list         │
- *   │   (YouTube iframe    │     (scrollable list    │
- *   │    + title + meta)   │      of related videos)  │
- *   └──────────────────────┴─────────────────────────┘
- *
- * Data flow (port từ `Cr()` base.js dòng 5527 + `Sr()` dòng 5509 + `xr()` dòng 5477):
- *   - API trả `video` ở root + `related[]` ~20 items (đã bao gồm video hiện tại ở cuối).
- *   - `n = [video, ...related]` dedupe by `id` (giữ thứ tự đầu tiên) → render related list.
- *   - Info-detail:
- *       * YouTube iframe embed (16:9, autoplay=1, no controls stop nav)
- *       * title
- *       * "Đang phát" label
- *       * duration → format "X giờ Y phút" (port `hr()` base.js dòng 4558)
- *       * popularity → "X lượt xem"
- *   - Mỗi video trong related list click → navigate `/videos/details/:id` (Navigo).
- *
- * Lưu ý:
- *   - Tạm thời dùng YouTube iframe embed thuần (không dùng class `Z` phức tạp của base.js).
- *   - Click related → navigate trang → iframe reset với video mới.
- *   - `videoId` là YouTube ID 11-char (vd "Rb0UmrCXxVA").
- *
- * Exports:
- *   - renderInfoDetail(video)    → left column HTML
- *   - renderVideoList(videos)    → right column HTML
- *   - renderVideoDetail(video)   → full page HTML
- *
- * Consumed by:
- *   - `@/pages/video-detail/video-detail.js`
- */
+// ======================================================
+// VIDEO DETAIL PAGE — Render functions
+// ======================================================
+//
+// Layout (2 columns) — port từ `Cr()` trong base.js (dòng 5527):
+//
+//   ┌──────────────────────┬─────────────────────────┐
+//   │   .info-detail       │     .video-list         │
+//   │   (YouTube iframe    │     (scrollable list    │
+//   │    + title + meta)   │      of related videos)  │
+//   └──────────────────────┴─────────────────────────┘
+//
+// Data flow (port từ `Cr()` base.js dòng 5527 + `Sr()` dòng 5509 + `xr()` dòng 5477):
+//   - API trả `video` ở root + `related[]` ~20 items (đã bao gồm video hiện tại ở cuối).
+//   - `n = [video, ...related]` dedupe by `id` (giữ thứ tự đầu tiên) → render related list.
+//   - Info-detail:
+//       * YouTube iframe embed (16:9, autoplay=1, no controls stop nav).
+//       * title
+//       * "Đang phát" label
+//       * duration → format "X giờ Y phút" (port `hr()` base.js dòng 4558)
+//       * popularity → "X lượt xem"
+//   - Mỗi video trong related list click → navigate `/videos/details/:id` (Navigo).
+//
+// Lưu ý (theo PLAN.md Task 8.6 — VideoPlayer sẽ làm sau):
+//   - Tạm thời dùng YouTube iframe embed thuần (không dùng class `Z` phức tạp của base.js).
+//   - Click related → navigate trang → iframe reset với video mới.
+//   - `videoId` là YouTube ID 11-char (vd "Rb0UmrCXxVA").
+//
 
 import { escapeHtml, formatViews } from "@/utils/format.js";
+
+// ======================================================
+// HELPERS
+// ======================================================
 
 /**
  * Format duration (giây) → "X giờ Y phút" / "Y phút Z giây" / "Z giây"
@@ -61,15 +58,22 @@ function formatLongDuration(seconds) {
 function buildYouTubeEmbedUrl(videoId) {
     const params = new URLSearchParams({
         autoplay: "1",
-        rel: "0",        // Không show related videos từ kênh khác
+        rel: "0", // Không show related videos từ kênh khác
         modestbranding: "1",
     });
     return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?${params.toString()}`;
 }
 
+// ======================================================
+// INFO DETAIL — left column (label + title + meta)
+// ======================================================
+
 /**
  * Render info-detail box (left column) cho video.
- * Gồm: Label "Đang phát" + Title (h1) + Meta: duration + popularity.
+ * Gồm:
+ *   - Label "Đang phát"
+ *   - Title (h1)
+ *   - Meta: duration + popularity
  *
  * KHÔNG render iframe ở đây (player được mount bởi video-overlay component).
  */
@@ -108,8 +112,15 @@ export function renderInfoDetail(video) {
     `;
 }
 
+// ======================================================
+// RELATED LIST — right column
+// ======================================================
+
 /**
  * Render một video item trong related list.
+ * @param {object} video - { id, title, thumbnails, duration, videoId, popularity }
+ * @param {number} index - Index (0-based)
+ * @returns {string} HTML
  */
 function renderVideoItem(video, index) {
     const thumb = video.thumbnails?.[0] || "/images/quick-picks-01.jpg";
@@ -156,6 +167,10 @@ export function renderVideoList(videos) {
         </div>
     `;
 }
+
+// ======================================================
+// FULL PAGE RENDER
+// ======================================================
 
 /**
  * Render toàn bộ Video Detail page (info-detail + related list).

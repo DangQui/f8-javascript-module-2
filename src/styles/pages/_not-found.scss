@@ -1,16 +1,14 @@
-/**
- * pages/_not-found.scss — 404 page styles
- *
- * Style riêng cho trang 404. Khác với `.page-placeholder`:
- *   - Icon lớn với gradient (visual impact)
- *   - Echo lại path user đã gõ
- *   - 2 CTA buttons "Về trang chủ" + "Xem thư viện"
- *
- * Tone nhẹ nhàng, không dùng `.auth` modal.
- *
- * Consumed by:
- *   - `@/pages/not-found/not-found.render.js`
- */
+// ======================================================
+// NOT FOUND PAGE — 404
+// ======================================================
+//
+// Style riêng cho trang 404. Khác với `.page-placeholder`:
+//   - Icon lớn với gradient (visual impact)
+//   - Echo lại path user đã gõ
+//   - 2 CTA buttons "Về trang chủ" + "Xem thư viện"
+//
+// Tone nhẹ nhàng, không dùng `.auth` modal. Đặt giữa content area.
+//
 
 .not-found {
     display: flex;

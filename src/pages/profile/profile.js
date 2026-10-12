@@ -1,23 +1,15 @@
-/**
- * pages/profile/profile.js — Profile page handler
- *
- * Thông tin user + đổi mật khẩu + logout.
- *
- * Auth guard: chưa login → navigate /auth/login + toast (return sớm,
- * không render page kể cả skeleton).
- *
- * Form: dùng MESSAGES + form-helpers + mapApiError (giống auth.js) → giảm
- * duplicate, error mapping chuẩn hoá.
- *
- * Exports:
- *   - profilePage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/auth/profile")
- */
+// ======================================================
+// PROFILE PAGE — Thông tin user + đổi mật khẩu + logout
+// ======================================================
+//
+// Phase 10.1: dùng MESSAGES + form-helpers + mapApiError (giống auth.js)
+// → giảm duplicate, error mapping chuẩn hoá.
+//
 
 import { renderPage, loading } from "@/pages/_shared.js";
 import { renderProfilePage } from "@/pages/profile/profile.render.js";
+
+// Guard trước, nếu chưa login → return, không cần skeleton.
 import { requireAuth, getAuth, onAuthChange } from "@/state/authState.js";
 import { updateProfile, logoutRequest } from "@/services/authService.js";
 import { getEmailError, getNameError } from "@/utils/validators.js";
@@ -28,17 +20,24 @@ import { toast } from "@/libs/toast.js";
 import { navigate } from "@/libs/router.js";
 
 /**
- * Render Profile page.
- * @param {{params: object, query: object, url: string}} route
+ * Render Profile page (/auth/profile).
+ *
+ * Auth guard: port từ base.js:5826 — `let e = await Ar(); e && await Q(wr(e), Wn)`
+ * → Nếu getProfile throw (chưa login) → render form login `Wn` thay vì profile.
+ * → Trong dự án dùng requireAuth() (đọc localStorage, navigate + toast nếu fail).
  */
 export async function profilePage(route = {}) {
     void route;
+
+    // Guard trước, nếu chưa login thì return — KHÔNG render page (kể cả skeleton).
     loading.show();
     try {
+        // 1. Guard (chưa login → toast + navigate /auth/login)
         if (!requireAuth("/auth/login", MESSAGES.AUTH.PROFILE_GUARD)) {
             return;
         }
 
+        // 2. Render form profile
         const { user } = getAuth();
         renderPage(renderProfilePage(user));
         bindProfilePage();
@@ -47,23 +46,34 @@ export async function profilePage(route = {}) {
     }
 }
 
+// ======================================================
+// BIND EVENTS
+// ======================================================
+
 function bindProfilePage() {
+    // 1. Update form
     const updateForm = $("#update-profile-form");
     if (updateForm) {
         updateForm.addEventListener("submit", handleUpdateProfileSubmit);
     }
 
+    // 2. Logout button
     const logoutBtn = $("[data-logout]");
     if (logoutBtn) {
         logoutBtn.addEventListener("click", handleLogout);
     }
 
+    // 3. Auth change → navigate về login
     onAuthChange((data) => {
         if (!data.isLoggedIn) {
             navigate("/auth/login");
         }
     });
 }
+
+// ======================================================
+// UPDATE PROFILE HANDLER
+// ======================================================
 
 async function handleUpdateProfileSubmit(e) {
     e.preventDefault();
@@ -73,12 +83,14 @@ async function handleUpdateProfileSubmit(e) {
     const name = nameInput?.value.trim();
     const email = emailInput?.value.trim();
 
+    // Validation
     const nameErr = getNameError(name);
     if (nameErr) return showFormError(form, "name", nameErr);
 
     const emailErr = getEmailError(email);
     if (emailErr) return showFormError(form, "email", emailErr);
 
+    // Submit
     clearFormErrors(form);
     loading.show();
     try {
@@ -102,6 +114,10 @@ async function handleUpdateProfileSubmit(e) {
         loading.hide();
     }
 }
+
+// ======================================================
+// LOGOUT HANDLER
+// ======================================================
 
 async function handleLogout() {
     loading.show();

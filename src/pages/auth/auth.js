@@ -1,38 +1,33 @@
-/**
- * pages/auth/auth.js — Login + Register page handlers
- *
- * Flow:
- *   1. Show loading overlay (mask page transition ngắn)
- *   2. Render form HTML từ auth.render.js
- *   3. Re-init js-toggle (vì page render xong cần bind cho button mới)
- *   4. Bind submit handler cho form tương ứng
- *   5. On success: navigate("/") (SPA, không reload)
- *   6. On error: hiển thị .form__error inline + toast
- *
- * Refactor Phase 10.1:
- *   - Mọi text lấy từ `@/utils/messages.js` (không hardcode)
- *   - Form helpers từ `@/utils/form-helpers.js` (xoá duplicate)
- *   - Error mapping qua `mapApiError()` → switch theo `err.code`
- *   - Validators dùng `getXxxError()` → trả về string|null
- *
- * Lưu ý: Cả 2 form (#login-form + #register-form) đều tồn tại trong DOM cùng
- * lúc — chỉ toggle class "hide" qua js-toggle. User ở /auth/login có thể
- * click "Đăng ký" link → form đăng ký hiện ra → submit form đăng ký MÀ KHÔNG
- * navigate tới /auth/register. Vì vậy phải bind CẢ 2 handler ngay từ đầu.
- *
- * Exports:
- *   - loginPage(route)
- *   - registerPage(route)
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/auth/login" + "/auth/register")
- */
+// ======================================================
+// AUTH PAGE — Login + Register
+// ======================================================
+//
+// Flow:
+//   1. Show loading overlay (router hook before)
+//   2. Render form HTML từ auth.render.js
+//   3. Re-init js-toggle (vì page render xong cần bind cho button mới)
+//   4. Bind submit handler cho form tương ứng
+//   5. On success: navigate("/") thay vì reload page (SPA)
+//   6. On error: hiển thị .form__error inline + toast
+//
+// Phase 10.1 refactor:
+//   - Mọi text lấy từ `@/utils/messages.js` (không hardcode)
+//   - Form helpers từ `@/utils/form-helpers.js` (xoá duplicate)
+//   - Error mapping qua `mapApiError()` → switch theo `err.code`
+//   - Validators dùng `getXxxError()` → trả về string|null
+//
 
 import { renderPage, loading } from "@/pages/_shared.js";
 import { renderAuthPage } from "@/pages/auth/auth.render.js";
+
+// Xóa import SKELETON_AUTH.
 import { initJsToggle } from "@/libs/toggle.js";
 import { loginRequest, registerRequest } from "@/services/authService.js";
 import {
+    isValidEmail,
+    isValidPassword,
+    isValidName,
+    isValidConfirmPassword,
     getEmailError,
     getPasswordError,
     getNameError,
@@ -44,38 +39,64 @@ import { $ } from "@/utils/dom-helpers.js";
 import { toast } from "@/libs/toast.js";
 import { navigate } from "@/libs/router.js";
 
-/** Render Login page (/auth/login). */
+// ======================================================
+// PAGE HANDLERS
+// ======================================================
+
+/**
+ * Render Login page (/auth/login).
+ */
 export async function loginPage(route = {}) {
     void route;
+
+    // Chỉ dùng loading.show() để mask page transition ngắn, không cần render skeleton.
     loading.show();
     try {
         renderPage(renderAuthPage("login"));
-        bindAuthPage();
-    } finally {
-        loading.hide();
-    }
-}
-
-/** Render Register page (/auth/register). */
-export async function registerPage(route = {}) {
-    void route;
-    loading.show();
-    try {
-        renderPage(renderAuthPage("register"));
-        bindAuthPage();
+        bindAuthPage({ mode: "login" });
     } finally {
         loading.hide();
     }
 }
 
 /**
- * Wire toggle + submit handler cho page hiện tại.
- * Bind CẢ 2 form (vì cả 2 đều tồn tại trong DOM — chỉ toggle class "hide").
- * Flag `data-submit-bound` tránh bind trùng nếu re-render.
+ * Render Register page (/auth/register).
  */
-function bindAuthPage() {
+export async function registerPage(route = {}) {
+    void route;
+
+    // (hack cũ từ Phase 7 gây flicker: render skeleton → delay 50ms → render form thật).
+    loading.show();
+    try {
+        renderPage(renderAuthPage("register"));
+        bindAuthPage({ mode: "register" });
+    } finally {
+        loading.hide();
+    }
+}
+
+// ======================================================
+// BIND EVENTS
+// ======================================================
+
+/**
+ * Wire toggle + submit handler cho page hiện tại.
+ *
+ * QUAN TRỌNG: Cả 2 form (#login-form + #register-form) đều tồn tại trong
+ * DOM cùng lúc — chỉ toggle class "hide" qua js-toggle. User ở /auth/login
+ * có thể click "Đăng ký" link → form đăng ký hiện ra → submit form đăng ký
+ * MÀ KHÔNG navigate tới /auth/register. Vì vậy phải bind CẢ 2 handler ngay
+ * từ đầu (không phụ thuộc mode).
+ *
+ * Defensive: flag `data-submit-bound` tránh bind trùng nếu bindAuthPage()
+ * bị gọi nhiều lần (re-render).
+ */
+function bindAuthPage({ mode }) {
+    void mode; // mode không còn dùng — bind cả 2
+    // Re-init toggle cho button mới trong page (link Đăng ký ↔ Đăng nhập)
     initJsToggle();
 
+    // Bind submit cho CẢ 2 form (vì cả 2 đều tồn tại trong DOM)
     const loginForm = $("#login-form");
     if (loginForm && !loginForm.dataset.submitBound) {
         loginForm.addEventListener("submit", handleLoginSubmit);
@@ -89,6 +110,10 @@ function bindAuthPage() {
     }
 }
 
+// ======================================================
+// LOGIN HANDLER
+// ======================================================
+
 async function handleLoginSubmit(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -98,12 +123,14 @@ async function handleLoginSubmit(e) {
     const email = emailInput?.value.trim();
     const password = passwordInput?.value;
 
+    // Validation
     const emailErr = getEmailError(email);
     if (emailErr) return showFormError(form, "email", emailErr);
 
     const passwordErr = getPasswordError(password);
     if (passwordErr) return showFormError(form, "password", passwordErr);
 
+    // Submit
     clearFormErrors(form);
     loading.show();
     try {
@@ -120,6 +147,10 @@ async function handleLoginSubmit(e) {
     }
 }
 
+// ======================================================
+// REGISTER HANDLER
+// ======================================================
+
 async function handleRegisterSubmit(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -134,6 +165,7 @@ async function handleRegisterSubmit(e) {
     const password = passwordInput?.value;
     const confirmPassword = confirmInput?.value;
 
+    // Validation
     const emailErr = getEmailError(email);
     if (emailErr) return showFormError(form, "email", emailErr);
 
@@ -146,6 +178,7 @@ async function handleRegisterSubmit(e) {
     const confirmErr = getConfirmPasswordError(password, confirmPassword);
     if (confirmErr) return showFormError(form, "confirm-password", confirmErr);
 
+    // Submit
     clearFormErrors(form);
     loading.show();
     try {
@@ -153,10 +186,10 @@ async function handleRegisterSubmit(e) {
         toast.success(MESSAGES.AUTH.REGISTER_SUCCESS);
         navigate("/");
     } catch (err) {
-        // AppError có `field` từ mapApiError:
-        //   - EMAIL_TAKEN → field "email"
-        //   - PASSWORD_MISMATCH → field "confirm-password"
-        //   - VALIDATION → field từ errors object
+        // AppError đã có `field` + `message` từ mapApiError
+        // - EMAIL_TAKEN → field "email"
+        // - PASSWORD_MISMATCH → field "confirm-password"
+        // - VALIDATION → field từ errors object
         const field = err.field || "email";
         showFormError(form, field, err.message);
         toast.error(err.message);

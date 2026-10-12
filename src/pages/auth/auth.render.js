@@ -1,31 +1,21 @@
-/**
- * pages/auth/auth.render.js — Auth page render (login + register)
- *
- * Form structure:
- *   - <div class="auth"> wrapper (background image, position: fixed)
- *   - <div class="auth__inner"> modal centered
- *   - 2 form:
- *       * #login-form    (email + password)
- *       * #register-form (email + name + password + confirmPassword)
- *
- * Toggle link dùng data-attribute `toggle-target` / `toggle-show` để
- * `libs/toggle.js` swap giữa 2 inner blocks.
- *
- * Lưu ý: Khác với code gốc là KHÔNG bọc `<main class="auth">` —
- * SPA router đã có `<main id="main" class="main-layout">` rồi,
- * page chỉ render inner. CSS `.auth` vẫn giữ `position: fixed` để
- * background phủ toàn viewport.
- *
- * Exports:
- *   - renderAuthPage(mode)  → HTML string
- *
- * Consumed by:
- *   - `@/pages/auth/auth.js`
- */
+// ======================================================
+// AUTH PAGE — Render HTML cho login + register
+// ======================================================
+//
+// Form structure:
+//   - <div class="auth"> wrapper (background image + fixed)
+//   - <div class="auth__inner"> modal centered
+//   - 2 form: #login-form (email + password) + #register-form
+//     (email + name + password + confirmPassword)
+//
+// Lưu ý: Phải khác với gốc là KHÔNG bọc <main class="auth"> — SPA router
+// đã có <main id="main" class="main-layout"> rồi, page chỉ render inner.
+// CSS `.auth` vẫn giữ position: fixed để background phủ toàn viewport.
+//
 
 /**
  * Render form HTML theo route.
- * @param {"login"|"register"} mode - Active form khi mount
+ * @param {"login"|"register"} mode
  * @returns {string} HTML string
  */
 export function renderAuthPage(mode = "login") {

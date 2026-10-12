@@ -1,24 +1,17 @@
-/**
- * pages/not-found/not-found.render.js — 404 page render
- *
- * Cấu trúc:
- *   - Icon lớn "404" với hiệu ứng gradient
- *   - Heading "Không tìm thấy trang"
- *   - Đường dẫn user đã gõ (echo lại)
- *   - 2 CTA buttons: "Về trang chủ" + "Xem thư viện"
- *   - Suggestion text cho user
- *
- * Lưu ý: KHÔNG dùng modal `.auth` (khác vibe), dùng layout content
- * thường để giữ tone nhẹ nhàng.
- *
- * Exports:
- *   - renderNotFoundPage(path) → HTML string
- *
- * Consumed by:
- *   - `@/pages/not-found/not-found.js`
- */
+// ======================================================
+// NOT FOUND PAGE — Render HTML 404
+// ======================================================
+//
 
-import { escapeHtml } from "@/utils/format.js";
+//   - Icon lớn "404" với hiệu ứng gradient
+//   - Heading "Không tìm thấy trang"
+//   - Đường dẫn user đã gõ (echo lại)
+//   - 2 CTA buttons: "Về trang chủ" + "Xem thư viện"
+//   - Suggestion text cho user
+//
+// Lưu ý: KHÔNG dùng modal `.auth` (khác vibe), dùng layout content
+// thường để giữ tone nhẹ nhàng.
+//
 
 /**
  * Render trang 404.
@@ -60,4 +53,14 @@ export function renderNotFoundPage(path = "") {
             </p>
         </section>
     `;
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+    }[c]));
 }

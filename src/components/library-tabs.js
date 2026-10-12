@@ -1,38 +1,24 @@
-/**
- * components/library-tabs.js — Segmented control (Phase L-1)
- *
- * 5 tabs: playlists | songs | albums | artists | recent
- *
- * State persistence (3 tầng):
- *   1. URL hash `#tab=playlists` (shareable link)
- *   2. localStorage `music.library.activeTab` (F5 restore)
- *   3. Default "playlists"
- *
- * Cùng persist viewMode ("grid" | "list") + sortBy ("recent" | "name" | "name-desc").
- *
- * Exports:
- *   Constants:
- *   - LIBRARY_TABS           → list 5 tabs
- *   - DEFAULT_TAB            → "playlists"
- *   - DEFAULT_VIEW_MODE      → "grid"
- *   - DEFAULT_SORT_BY        → "recent"
- *
- *   Render:
- *   - renderTabs({activeTab}) → HTML string
- *
- *   State read/write:
- *   - getTabFromHash() / setTabToHash(tabId)
- *   - getStoredTab() / setStoredTab(tabId)
- *   - getStoredViewMode() / setStoredViewMode(mode)
- *   - getStoredSortBy() / setStoredSortBy(sort)
- *   - getInitialTab()        → ưu tiên hash → storage → default
- *
- *   Events:
- *   - bindTabs({onChange, initialTab}) → attach click + keyboard, returns cleanup
- *
- * Consumed by:
- *   - `@/pages/library/library.js` (Library page)
- */
+// ======================================================
+// LIBRARY TABS — Segmented control component (Phase L-1)
+//
+// API:
+//   renderTabs({ activeTab })            → HTML string cho 5 tabs
+//   bindTabs({ onChange, initialTab })   → attach click + URL hash handlers
+//   getTabFromHash()                     → read active tab from URL hash
+//   setTabToHash(tabId)                  → update URL hash
+//   getStoredTab()                       → read from localStorage
+//
+// TAB DATA:
+//   - "playlists"   → Danh sách phát (default)
+//   - "songs"       → Bài hát đã thích
+//   - "albums"      → Albums đã lưu
+//   - "artists"     → Nghệ sĩ theo dõi
+//   - "recent"      → Nghe gần đây
+//
+// STATE PERSISTENCE:
+//   - URL hash:  `#tab=playlists` (cho shareable link)
+//   - localStorage: `music.library.activeTab` (cho F5 restore)
+// ======================================================
 
 import { escapeHtml } from "@/utils/format.js";
 
@@ -53,6 +39,10 @@ export const DEFAULT_VIEW_MODE = "grid";
 export const DEFAULT_SORT_BY = "recent";
 
 const VALID_TAB_IDS = LIBRARY_TABS.map((t) => t.id);
+
+// ======================================================
+// HTML RENDER
+// ======================================================
 
 /**
  * Render HTML cho 5 tabs.
@@ -88,6 +78,10 @@ export function renderTabs({ activeTab = DEFAULT_TAB } = {}) {
     `;
 }
 
+// ======================================================
+// URL HASH HELPERS
+// ======================================================
+
 /**
  * Đọc active tab từ URL hash (format: #tab=playlists).
  * @returns {string|null}
@@ -113,7 +107,14 @@ export function setTabToHash(tabId) {
     }
 }
 
-/** @returns {string} Active tab từ localStorage (fallback DEFAULT_TAB). */
+// ======================================================
+// LOCALSTORAGE HELPERS
+// ======================================================
+
+/**
+ * Đọc active tab từ localStorage.
+ * @returns {string}
+ */
 export function getStoredTab() {
     try {
         const tab = localStorage.getItem(STORAGE_KEY_ACTIVE_TAB);
@@ -123,7 +124,10 @@ export function getStoredTab() {
     }
 }
 
-/** @param {string} tabId */
+/**
+ * Lưu active tab vào localStorage.
+ * @param {string} tabId
+ */
 export function setStoredTab(tabId) {
     try {
         if (VALID_TAB_IDS.includes(tabId)) {
@@ -134,7 +138,10 @@ export function setStoredTab(tabId) {
     }
 }
 
-/** @returns {string} View mode "grid" | "list" (fallback DEFAULT_VIEW_MODE). */
+/**
+ * Đọc view mode từ localStorage.
+ * @returns {string} "grid" | "list"
+ */
 export function getStoredViewMode() {
     try {
         const mode = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
@@ -144,7 +151,10 @@ export function getStoredViewMode() {
     }
 }
 
-/** @param {string} mode "grid" | "list" */
+/**
+ * Lưu view mode vào localStorage.
+ * @param {string} mode "grid" | "list"
+ */
 export function setStoredViewMode(mode) {
     try {
         if (mode === "grid" || mode === "list") {
@@ -155,7 +165,10 @@ export function setStoredViewMode(mode) {
     }
 }
 
-/** @returns {string} Sort by "recent" | "name" | "name-desc" (fallback DEFAULT_SORT_BY). */
+/**
+ * Đọc sort by từ localStorage.
+ * @returns {string}
+ */
 export function getStoredSortBy() {
     try {
         const sort = localStorage.getItem(STORAGE_KEY_SORT_BY);
@@ -165,7 +178,10 @@ export function getStoredSortBy() {
     }
 }
 
-/** @param {string} sort */
+/**
+ * Lưu sort by vào localStorage.
+ * @param {string} sort
+ */
 export function setStoredSortBy(sort) {
     try {
         if (["recent", "name", "name-desc"].includes(sort)) {
@@ -175,6 +191,10 @@ export function setStoredSortBy(sort) {
         console.warn("[library-tabs] Lỗi khi setStoredSortBy:", err);
     }
 }
+
+// ======================================================
+// RESOLVE INITIAL TAB
+// ======================================================
 
 /**
  * Đọc tab ban đầu theo thứ tự ưu tiên:
@@ -187,18 +207,16 @@ export function getInitialTab() {
     return getTabFromHash() || getStoredTab() || DEFAULT_TAB;
 }
 
+// ======================================================
+// BIND EVENTS
+// ======================================================
+
 /**
- * Attach click + keyboard events cho tabs (ARIA tablist pattern).
- *
- * Keyboard:
- *   - Arrow Right/Down → next tab + activate
- *   - Arrow Left/Up → previous tab + activate
- *   - Home → first tab
- *   - End → last tab
+ * Attach click + keyboard events cho tabs.
  *
  * @param {object} [options]
  * @param {(tabId: string) => void} [options.onChange] - Callback khi đổi tab
- * @param {string} [options.initialTab] - Tab active (skip re-render nếu click lại)
+ * @param {string} [options.initialTab] - Tab đang active (chỉ để skip re-render nếu click lại)
  * @returns {() => void} cleanup function
  */
 export function bindTabs({ onChange, initialTab = DEFAULT_TAB } = {}) {
@@ -224,6 +242,7 @@ export function bindTabs({ onChange, initialTab = DEFAULT_TAB } = {}) {
         setTabToHash(tabId);
         setStoredTab(tabId);
 
+        // Callback
         if (typeof onChange === "function") {
             onChange(tabId);
         }
@@ -268,6 +287,7 @@ export function bindTabs({ onChange, initialTab = DEFAULT_TAB } = {}) {
     root.addEventListener("click", handleClick);
     root.addEventListener("keydown", handleKeydown);
 
+    // Cleanup function
     return () => {
         root.removeEventListener("click", handleClick);
         root.removeEventListener("keydown", handleKeydown);

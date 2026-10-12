@@ -1,29 +1,25 @@
-/**
- * pages/charts/charts.js — Charts page handler
- *
- * Flow (port từ base.js route `/charts` dòng 5762-5765):
- *   1. Render skeleton ngay
- *   2. Parallel fetch `getCountries()` + `getTopVideos('GLOBAL')` + `getTopArtists('GLOBAL')`
- *   3. Render HTML (H1 + country select + 2 sections trong #charts-content)
- *   4. Bind country select change → re-fetch + swap #charts-content.innerHTML
- *
- * Country change handler (port từ base.js `er()` dòng 4123):
- *   - listen `change` trên `#country-select`
- *   - on change → re-fetch `[getTopVideos(country), getTopArtists(country)]`
- *   - re-render CHỈ phần #charts-content (không render lại H1 + country select)
- *   - KHÔNG cần loading spinner ngắn vì content swap nhanh (< 500ms)
- *
- * Data shape (từ API):
- *   - getCountries()        → [{ code, name }]
- *   - getTopVideos(country) → [{ id, slug, title, thumbnails[], artists[] }]
- *   - getTopArtists(country)→ [{ rank, name, totalViews, trend, artistId }]
- *
- * Exports:
- *   - chartsPage(route)  → page handler
- *
- * Consumed by:
- *   - `@/libs/router.js` (route "/charts")
- */
+// ======================================================
+// CHARTS PAGE — Handler
+// ======================================================
+//
+// Flow (port từ base.js route `/charts` dòng 5762-5765):
+//   1. Show skeleton ngay
+//   2. Parallel fetch `getCountries()` + `getTopVideos('GLOBAL')` + `getTopArtists('GLOBAL')`
+//   3. Render HTML (H1 + country select + 2 sections trong #charts-content)
+//   4. Bind country select change → re-fetch + swap #charts-content.innerHTML
+//
+// Country change handler (port từ base.js `er()` dòng 4123):
+//   - listen `change` trên `#country-select`
+//   - on change → re-fetch `[getTopVideos(country), getTopArtists(country)]`
+//   - re-render CHỈ phần #charts-content (không render lại H1 + country select)
+//   - KHÔNG cần loading spinner ngắn vì content swap nhanh (< 500ms)
+//
+// Data shape (từ API):
+//   - getCountries()        → [{ code, name }]
+//   - getTopVideos(country) → [{ id, slug, title, thumbnails[], artists[] }]
+//   - getTopArtists(country)→ [{ rank, name, totalViews, trend, artistId }]
+//
+// ======================================================
 
 import { renderPage } from "@/pages/_shared.js";
 import {
@@ -33,14 +29,21 @@ import {
 import { SKELETON_SECTION } from "@/components/skeleton.js";
 import { exploreService } from "@/services/exploreService.js";
 import { toast } from "@/libs/toast.js";
+
+// ======================================================
+// COUNTRY CHANGE HANDLER (port từ base.js `er()` dòng 4123)
+// ======================================================
+
 /**
  * Bind country select + wire change handler.
  * Chỉ swap innerHTML của `#charts-content` (không render lại cả page).
  *
+ * Note: Hàm này tự lookup DOM `#country-select` + `#charts-content` sau khi page
+ * đã được render. Nếu selector không tồn tại → return silently.
+ *
  * @param {string} [defaultCode="GLOBAL"] - Country mặc định (đã được render selected)
  */
 function bindChartsCountrySelect(defaultCode = "GLOBAL") {
-    void defaultCode;
     const selectEl = document.querySelector("#country-select");
     const contentEl = document.querySelector("#charts-content");
 
@@ -60,6 +63,7 @@ function bindChartsCountrySelect(defaultCode = "GLOBAL") {
             contentEl.innerHTML = renderChartsContent(topVideos, topArtists);
         } catch (err) {
             console.error(`[charts] loadCountry(${country}) failed:`, err);
+            // Ưu tiên err.message (từ AppError mapApiError)
             const fallback = `Không thể tải bảng xếp hạng cho ${country}. Vui lòng thử lại.`;
             toast.error(err.message || fallback);
         }
@@ -69,17 +73,24 @@ function bindChartsCountrySelect(defaultCode = "GLOBAL") {
         const country = e.target.value;
         await loadCountry(country);
     });
+
+    // Initial load với default (nếu defaultCode khác "GLOBAL")
+    // Mặc định page render đã load với "GLOBAL" → không cần loadCountry(defaultCode) lại
 }
+
+// ======================================================
+// MAIN HANDLER
+// ======================================================
+
 /**
  * Render Charts page handler.
  * @param {object} [route]
  */
 export async function chartsPage(route = {}) {
-    void route;
     try {
-        // 0. Render skeleton ngay
-        //    Phần trên (H1 + country select) → render inline skeleton cho heading
-        //    Phần content → 2 SKELETON_SECTION (videos + top-artists)
+        // 0. Render skeleton ngay (UX: user thấy structure trước)
+        // Phần trên (H1 + country select) → render inline skeleton cho heading
+        // Phần content → 2 SKELETON_SECTION (videos + top-artists)
         renderPage(`
             <div class="charts-page">
                 <div class="skeleton skeleton--box" style="width: 280px; height: 45px; margin-bottom: 40px;"></div>
@@ -106,6 +117,7 @@ export async function chartsPage(route = {}) {
         bindChartsCountrySelect("GLOBAL");
     } catch (err) {
         console.error("[charts] Critical error:", err);
+        // Ưu tiên err.message (từ AppError mapApiError) thay vì hardcode
         const fallback = "Không thể tải trang Bảng xếp hạng. Vui lòng thử lại.";
         toast.error(err.message || fallback);
         renderPage(`

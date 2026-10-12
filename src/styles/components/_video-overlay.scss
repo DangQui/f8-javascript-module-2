@@ -1,24 +1,20 @@
-/**
- * components/_video-overlay.scss — Video overlay (mini + full) styles
- *
- * Layout: fixed full-screen dark overlay (#121212), grid 2 cột
- * (player 2/3 + related 1/3).
- *
- * Port vibe từ base.js (dòng 585-680):
- *   - Gradient background (#0f1417 → #0c1f21 → #0a0f10)
- *   - Teal accent (#14b8a6 / #2dd4bf) cho title + hover
- *   - Sticky related list với max-height scrollable
- *   - 16:9 iframe responsive
- *   - Z-index 1000 để đè lên tất cả (header, sidebar, audio player)
- *
- * Lưu ý:
- *   - KHÔNG touch styles gốc (_track-item.scss, _info-detail.scss).
- *   - Hover related item → highlight teal + show play icon.
- *   - Active item → border teal, title teal.
- *
- * Consumed by:
- *   - `@/components/video-overlay.js`
- */
+// ======================================================
+// VIDEO OVERLAY — Styling
+// ======================================================
+//
+// Layout: fixed full-screen dark overlay (#121212), grid 2 cột (player 2/3 + related 1/3).
+// Port vibe từ base.js (dòng 585–680):
+//   - Gradient background (#0f1417 → #0c1f21 → #0a0f10)
+//   - Teal accent (#14b8a6 / #2dd4bf) cho title + hover
+//   - Sticky related list với max-height scrollable
+//   - 16:9 iframe responsive
+//   - Z-index 1000 để đè lên tất cả (header, sidebar, audio player)
+//
+// Lưu ý:
+//   - KHÔNG touch styles gốc (_track-item.scss, _info-detail.scss) — overlay là component mới.
+//   - Hover related item → highlight teal + show play icon.
+//   - Active item → border teal, title teal.
+//
 
 $overlay-z: 1000;
 $overlay-bg: #121212;
@@ -113,6 +109,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
             transform: scale(0.95);
         }
     }
+
+    // ==============================================
+    // OVERLAY STATES
+    // ==============================================
+
     // Khi minimize → overlay vẫn hiện (fixed) nhưng chỉ thấy iframe thu nhỏ ở góc
     // + 2 nút absolute (expand/close). KHÔNG destroy iframe → audio vẫn chạy.
     &.is-minimized {
@@ -216,6 +217,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
             padding: 0 32px 32px;
         }
     }
+
+    // ==============================================
+    // LEFT COLUMN — Player + title + controls
+    // ==============================================
+
     &__player-col {
         display: flex;
         flex-direction: column;
@@ -266,6 +272,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
         font-style: italic;
         margin: 0;
     }
+
+    // ==============================================
+    // CUSTOM CONTROLS
+    // ==============================================
+
     &__controls {
         display: flex;
         align-items: center;
@@ -278,6 +289,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
             gap: 24px;
         }
     }
+
+    // ==============================================
+    // 3 CHẤM MENU (dropdown tuyệt đối)
+    // ==============================================
+
     &__menu-wrap {
         position: relative;
         display: flex;
@@ -337,6 +353,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
         font-size: 11px !important;
         opacity: 0.6;
     }
+
+    // ==============================================
+    // SUBMENU: chọn playlist (nested trong main menu)
+    // ==============================================
+
     &__submenu {
         position: absolute;
         top: 0;
@@ -440,6 +461,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
         color: $text-secondary;
         text-align: center;
     }
+
+    // ==============================================
+    // VOLUME CONTROL (icon + popover với slider dọc + số 1-100)
+    // ==============================================
+
     &__volume {
         position: relative;
         display: flex;
@@ -601,6 +627,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
             }
         }
     }
+
+    // ==============================================
+    // PROGRESS BAR — style giống mẫu Tailwind (đơn giản, accent-red-500)
+    // ==============================================
+
     &__progress {
         width: 100%;
         max-width: 720px;
@@ -624,6 +655,11 @@ $border-subtle: rgba(20, 184, 166, 0.25);
         font-size: 12px;
         color: $text-muted;
     }
+
+    // ==============================================
+    // RIGHT COLUMN — Related videos
+    // ==============================================
+
     &__related {
         display: flex;
         flex-direction: column;
@@ -765,4 +801,8 @@ $border-subtle: rgba(20, 184, 166, 0.25);
         font-size: 14px;
     }
 }
+
+// ======================================================
+// MINI MODE — refactor: dùng chung iframe, không có DOM riêng
+// ======================================================
 // (Block `.video-overlay-mini` cũ đã xóa — xem style `.is-minimized` ở trên)

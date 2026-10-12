@@ -1,29 +1,62 @@
-/**
- * pages/_mood-page.scss — Mood Detail page styles
- *
- * Port từ base.js `dr()` dòng 4463 + wrapper `p-4 text-white` dòng 4489.
- * Convert Tailwind utility classes thành SCSS class riêng (Hard Rule #3).
- *
- * Consumed by:
- *   - `@/pages/mood-detail/mood-detail.render.js`
- */
+// ======================================================
+// MOOD PAGE — Style cho Mood Detail page (Phase 16.5 + Phase 18.5 cleanup)
+// ======================================================
+//
+// Hard Rule #3: KHÔNG dùng Tailwind utility classes trong JSX/template.
+// Phải convert Tailwind class trong `base.js` thành SCSS class riêng.
+//
+// Cấu trúc HTML (render từ src/pages/mood-detail/mood-detail.render.js):
+//   <div class="mood-page">
+//       <div class="mood-page__chip-tabs">…renderMoodChips…</div>
+//       <h1 class="mood-page__heading">Năng Lượng</h1>
+//       <p class="mood-page__subtitle">Curated playlists for…</p>
+//       <!-- Quick Picks section — dùng renderQuickPicksSection từ
+//            home.render.js → dùng class .quick-picks / .quick-picks-col
+//            (đã style ở _quick-picks-item.scss + _home.scss). -->
+//       <section class="home__container">
+//           <div class="home__row">
+//               <h2 class="home__title">Quick Picks</h2>
+//               <div class="crt">…prev/next…</div>
+//           </div>
+//           <div class="quick-picks__list hscroll" data-slider>
+//               <div class="hscroll-inner">
+//                   <div class="col quick-picks-col" data-slider-item>…items…</div>
+//                   …
+//               </div>
+//           </div>
+//       </section>
+//       ${renderSliderSection(...)} ← dynamic sections
+//   </div>
+//
+// Port từ base.js `dr()` dòng 4463 + wrapper `p-4 text-white` dòng 4489.
+// Tailwind utility → SCSS:
+//   text-white                              → color: var(--text-color)
+//   text-white/80                          → color: rgba(255,255,255,0.8)
+//   font-bold                            → font-weight: 700
+//   text-[45px]                            → font-size: 4.5rem
+//   p-4                                    → padding: 16px
+// ======================================================
 
 .mood-page {
     padding: 16px;
     color: var(--text-color);
 
+    // ---------- Chip tabs (horizontal scroll) ----------
     &__chip-tabs {
         // Wrap trong `.home__body` (ở `section.js`) nhưng `.home__body` không
-        // có flex mặc định → phải set flex ở đây.
+        // có flex mặc định → phải set flex ở đây. Mỗi page kiểu wrap này
+        // (vd: `home-album__list`) tự set flex theo component riêng.
         display: flex;
         gap: 24px;
         overflow-x: auto;
 
+        // Ẩn scrollbar (rail nằm ngang)
         &::-webkit-scrollbar {
             height: 0;
         }
     }
 
+    // ---------- Hero heading ----------
     &__heading {
         // Port từ base.js `dr()` dòng 4471: `font-bold text-[45px] mb-4 text-white`
         font-size: 4.5rem;

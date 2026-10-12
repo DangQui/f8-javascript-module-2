@@ -1,34 +1,35 @@
-/**
- * pages/album-detail/album-detail.render.js — Album Detail page render
- *
- * Layout (2 columns) — port từ `_r()` trong base.js (dòng 4593):
- *
- *   ┌──────────────────────┬─────────────────────────┐
- *   │   .info-detail       │     .track-list         │
- *   │   (img + title       │     (scrollable list    │
- *   │    + meta)           │      of album tracks)   │
- *   └──────────────────────┴─────────────────────────┘
- *
- * Data flow (port từ `mr()` dòng 4498 + `_r()` dòng 4593):
- *   - Info-detail dùng `mr(album)` logic:
- *       * albumType present → show "Loại album" + "Phát hành"
- *       * songCount > 0    → show "X bài hát"
- *       * duration > 0     → show "X giờ Y phút"
- *       * popularity >= 0  → show "X lượt nghe"
- *   - Track-list: render `album.tracks[]` trực tiếp.
- *   - Mỗi track link → /songs/details/:id (Navigo).
- *
- * Exports:
- *   - renderInfoDetail(album)  → left column HTML
- *   - renderTrackList(tracks)  → right column HTML
- *   - renderAlbumDetail(album) → full page HTML
- *
- * Consumed by:
- *   - `@/pages/album-detail/album-detail.js`
- */
+// ======================================================
+// ALBUM DETAIL PAGE — Render functions
+// ======================================================
+//
+// Layout (2 columns) — port từ `_r()` trong base.js (dòng 4593):
+//
+//   ┌──────────────────────┬─────────────────────────┐
+//   │   .info-detail       │     .track-list         │
+//   │   (img + title       │     (scrollable list    │
+//   │    + meta)           │      of album tracks)  │
+//   └──────────────────────┴─────────────────────────┘
+//
+// Data flow (port từ `mr()` dòng 4498 + `_r()` dòng 4593):
+//   - Info-detail dùng `mr(album)` logic:
+//       * albumType present → show "Loại album" + "Phát hành"
+//       * songCount > 0 → show "X bài hát"
+//       * duration > 0 → show "X giờ Y phút"
+//       * popularity >= 0 → show "X lượt nghe"
+//   - Track-list: render `album.tracks[]` trực tiếp.
+//   - Mỗi track link → /songs/details/:id (Navigo).
+//
+// Lưu ý:
+//   - Tracks có `artists[]` rỗng → fallback "Không rõ nghệ sĩ".
+//   - Track item dùng `<a href="/songs/details/...">` (giống song-detail).
+//
 
-import { escapeHtml, formatViews } from "@/utils/format.js";
+import { escapeHtml, formatDuration, formatViews } from "@/utils/format.js";
 import { renderTrackList as renderTrackItemComponent } from "@/components/track-item.js";
+
+// ======================================================
+// INFO DETAIL — left column
+// ======================================================
 
 /**
  * Render info-detail box (left column) cho album.
@@ -54,6 +55,7 @@ export function renderInfoDetail(album) {
         ? album.artists.map((a) => escapeHtml(a)).join(", ")
         : null;
 
+    // Tính giờ/phút nếu có totalDuration
     const hours = totalDuration > 0 ? Math.floor(totalDuration / 3600) : null;
     const minutes = totalDuration > 0 ? Math.floor((totalDuration % 3600) / 60) : null;
 
@@ -118,8 +120,19 @@ export function renderInfoDetail(album) {
     `;
 }
 
+// ======================================================
+// TRACK LIST — right column
+// ======================================================
+
 /**
- * Render track-list box (right column) bằng `track-item` component.
+ * Render một track item trong list.
+ * @param {object} track - { id, title, thumbnails, duration, artists }
+ * @param {number} index - Index (0-based) để hiển thị số thứ tự
+ * @returns {string} HTML
+ */
+/**
+ * Render track-list box (right column).
+ * Dùng `track-item` component.
  * @param {object[]} tracks - Album.tracks[]
  * @returns {string} HTML
  */
@@ -128,6 +141,10 @@ export function renderTrackList(tracks) {
         emptyMessage: "Album này chưa có bài hát.",
     });
 }
+
+// ======================================================
+// FULL PAGE RENDER
+// ======================================================
 
 /**
  * Render toàn bộ Album Detail page (info-detail + track-list).

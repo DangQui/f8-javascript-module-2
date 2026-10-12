@@ -10,7 +10,7 @@
     - data-user-name    = "User"
     - data-user-email   = "user@example.com"
 
-
+  Phase 13: Thêm 9 IDs cho Search engine (giống header-logged-out.html).
 -->
 <nav class="nav-bar">
     <div class="top-bar">
@@ -23,20 +23,17 @@
 
         <!-- Logo -->
         <a href="/" class="logo top-bar__logo" data-home-link data-navigo>
-            <img src="/images/logo.png" alt="Youtube Music" class="logo__img" />
+            <img
+                src="/images/logo.png"
+                alt="Youtube Music"
+                class="logo__img" />
             <h1 class="logo__title">Music</h1>
         </a>
 
         <div class="top-bar__right">
             <!-- Form Search (Desktop) — Phase 13: id="navbar-search-input" + dropdown + clear -->
-            <form
-                action=""
-                class="form form__search"
-                id="navbar-search-form"
-                onsubmit="return false;">
-                <button
-                    class="btn btn--text form__search--submit icon"
-                    type="submit">
+            <form action="" class="form form__search" id="navbar-search-form" onsubmit="return false">
+                <button class="btn btn--text form__search--submit icon" type="submit">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
                 <input
@@ -91,8 +88,14 @@
                         data-dropdown-menu
                         data-show-when="logged-in">
                         <div class="dropdown__header">
-                            <p class="dropdown__name" data-user-name>User</p>
-                            <p class="dropdown__email" data-user-email>
+                            <p
+                                class="dropdown__name"
+                                data-user-name>
+                                User
+                            </p>
+                            <p
+                                class="dropdown__email"
+                                data-user-email>
                                 user@example.com
                             </p>
                         </div>

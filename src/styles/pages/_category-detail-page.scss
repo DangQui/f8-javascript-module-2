@@ -1,15 +1,19 @@
-/**
- * pages/_category-detail-page.scss — Category Detail page styles
- *
- * Port 1:1 từ base.js function `fr()` dòng 4480-4486:
- *   - H1 `font-bold text-[45px] mb-10` → `&__heading`
- *   - Wrapper `p-4 text-white`        → `.category-detail-page`
- *
- * Consumed by:
- *   - `@/pages/category-detail/category-detail.render.js`
- */
+// ======================================================
+// CATEGORY DETAIL PAGE — BEM styles
+// ======================================================
+//
+// Port 1:1 từ `code chức năng gốc/base.js` function `fr()` dòng 4480-4486:
+//   - H1 `font-bold text-[45px] mb-10` → `&__heading`
+//   - Wrapper `p-4 text-white`        → `.category-detail-page`
+//
+// Lý do NEW file: Page wrapper `.category-detail-page` không có trong
+// codebase hiện tại (theo Hard Rule #1 — KHÔNG edit SCSS có sẵn).
+// Reference pattern đúng: `.charts-page` ở `_top-artist.scss`.
+//
 
 .category-detail-page {
+    // Wrapper (port base.js `p-4 text-white` dòng 4481)
+
     &__heading {
         // port base.js `font-bold text-[45px] mb-10` dòng 4482
         font-size: 4.5rem; // 45px

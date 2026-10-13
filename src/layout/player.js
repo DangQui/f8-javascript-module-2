@@ -137,8 +137,25 @@ function applyAudioState(state) {
     if (typeof state.shuffle === "boolean") {
         setPlayerToggle(".player__action--shuffle", state.shuffle);
     }
-    if (typeof state.repeat === "boolean") {
-        setPlayerToggle(".player__action--repeat", state.repeat);
+    if (typeof state.repeat === "string") {
+        // repeatMode mới: "off" | "all" | "one"
+        // Back-compat: nếu state.repeat là boolean cũ → map sang "all"/"off"
+        let repeatMode = "off";
+        if (typeof state.repeat === "string") {
+            repeatMode = ["off", "all", "one"].includes(state.repeat)
+                ? state.repeat
+                : "off";
+        } else if (typeof state.repeat === "boolean") {
+            repeatMode = state.repeat ? "all" : "off";
+        }
+        const repeatBtn = document.querySelector(".player__action--repeat");
+        if (repeatBtn) {
+            repeatBtn.classList.toggle("is-active", repeatMode !== "off");
+            repeatBtn.classList.toggle(
+                "is-repeat-one",
+                repeatMode === "one",
+            );
+        }
     }
 
     // 3. Volume icon + slider

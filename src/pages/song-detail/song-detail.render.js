@@ -53,7 +53,7 @@ export function renderInfoDetail(song) {
 }
 
 // ======================================================
-// TRACK LIST — right column (scrollable list of related tracks)
+// TRACK LIST
 // ======================================================
 
 /**

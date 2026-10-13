@@ -1,9 +1,7 @@
 import { MESSAGES } from "@/utils/messages.js";
 
-// RFC 5321: local-part 64 + "@" + domain 255 = 254 max.
 const EMAIL_MAX_LENGTH = 254;
 
-// Email regex đơn giản: `xxx@xxx.xxx` không có khoảng trắng.
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const PASSWORD_MIN_LENGTH = 6;

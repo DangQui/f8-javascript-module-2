@@ -30,8 +30,17 @@ class AudioPlayer {
         this.audio = new Audio();
         this.audio.preload = "auto";
 
+        // Shuffle: dùng "deck" pattern — shuffle queue 1 lần, duyệt theo deck.
+        // Khi đến cuối deck → tự re-shuffle (cho phép lặp lại bài cũ).
         this.isShuffle = false;
-        this.isRepeat = false;
+        this._shuffledOrder = []; // [songId, ...] — thứ tự phát khi shuffle ON
+
+        // Repeat: 3 trạng thái độc lập với shuffle.
+        // - "off": không lặp
+        // - "all": hết queue thì quay lại bài đầu
+        // - "one": lặp bài hiện tại
+        this.repeatMode = "off";
+
         this.isLoading = false;
         this.isMuted = false;
         this.lastVolume = 100;
@@ -45,6 +54,10 @@ class AudioPlayer {
 
         this._onAudioPlay = () => this._emitState();
         this._onAudioPause = () => this._emitState();
+
+        // Race-condition guard: true khi đang restore từ localStorage
+        // → setQueue + playSongById sẽ skip để tránh ghi đè state restore.
+        this._isRestoring = false;
 
         this.audio.addEventListener("timeupdate", this._onTimeUpdate);
         this.audio.addEventListener("ended", this._onAudioEnded);
@@ -101,7 +114,10 @@ class AudioPlayer {
                     currentTime: state.currentTime,
                     volume: state.volume,
                     shuffle: state.shuffle,
-                    repeat: state.repeat,
+                    repeat: state.repeat, // string: "off" | "all" | "one"
+                    queue: state.queue,
+                    shuffledOrder: state.shuffledOrder || [],
+                    currentIndex: state.currentIndex || 0,
                 },
             });
         } else {
@@ -116,9 +132,11 @@ class AudioPlayer {
             duration: this.audio.duration || 0,
             volume: Math.round((this.audio.volume || 0) * 100),
             shuffle: this.isShuffle,
-            repeat: this.isRepeat,
+            repeat: this.repeatMode, // "off" | "all" | "one" (back-compat: !== "off")
             currentSong: this.currentSong,
             queue: this.queue,
+            shuffledOrder: this._shuffledOrder,
+            currentIndex: this.currentIndex,
         };
     }
 
@@ -128,11 +146,31 @@ class AudioPlayer {
 
     /**
      * Set queue (danh sách bài hát).
+     * Nếu shuffle đang ON → re-build deck mới từ queue mới (giữ currentSong ở đầu nếu có).
+     * Nếu shuffle OFF → reset _shuffledOrder.
+     *
+     * Skip nếu đang restore (tránh race với restoreFromState).
      * @param {Array<object>} songs
      */
     setQueue(songs) {
+        // Fix race: nếu đang restore từ localStorage, KHÔNG setQueue.
+        // Vì restoreFromState sẽ tự set queue từ persisted state.
+        // Nếu page khác cũng gọi setQueue ngay khi F5 → sẽ ghi đè queue restore.
+        if (this._isRestoring) {
+            log("setQueue: skip vì đang restore");
+            return;
+        }
+
         this.queue = Array.isArray(songs) ? songs : [];
         this.currentIndex = 0;
+
+        if (this.isShuffle) {
+            // Re-build deck: giữ currentSong (nếu có) ở vị trí đầu
+            this._buildShuffleDeck();
+        } else {
+            this._shuffledOrder = [];
+        }
+
         log("queue set:", this.queue.length, "songs");
         this._emitState();
     }
@@ -176,7 +214,23 @@ class AudioPlayer {
             }
 
             this.currentSong = song;
-            this.currentIndex = this.queue.findIndex((s) => s.id === song.id);
+            // currentIndex ưu tiên tìm trong shuffledOrder (nếu shuffle ON)
+            // → fallback queue
+            if (
+                this.isShuffle &&
+                Array.isArray(this._shuffledOrder) &&
+                this._shuffledOrder.length > 0
+            ) {
+                const idxInDeck = this._shuffledOrder.findIndex(
+                    (s) => s.id === song.id,
+                );
+                this.currentIndex = idxInDeck >= 0 ? idxInDeck : 0;
+            } else {
+                this.currentIndex = this.queue.findIndex(
+                    (s) => s.id === song.id,
+                );
+                if (this.currentIndex < 0) this.currentIndex = 0;
+            }
             this.audio.src = song.audioUrl || "";
             this.audio.load();
 
@@ -357,16 +411,51 @@ class AudioPlayer {
 
         log("restoreFromState()", persisted);
 
-        // 1. Set queue + currentSong (state ban đầu — chưa có audioUrl)
+        // Đánh dấu đang restore để playSongById biết mà skip auto-play race.
+        // Fix bug race: F5 + click track ngay → setQueue của song-detail
+        // bị conflict với restore. Khi restore xong → reset flag.
+        this._isRestoring = true;
+
+        // 1. Set queue + currentSong + currentIndex (state ban đầu — chưa có audioUrl)
         this.currentSong = persisted.currentSong;
-        this.queue = [persisted.currentSong];
-        this.currentIndex = 0;
+        // Ưu tiên persisted.queue (mới) → fallback [currentSong] (back-compat)
+        this.queue = Array.isArray(persisted.queue) && persisted.queue.length > 0
+            ? persisted.queue
+            : [persisted.currentSong];
+        // currentIndex từ persisted; nếu không hợp lệ → tìm index của currentSong
+        if (
+            Number.isInteger(persisted.currentIndex) &&
+            persisted.currentIndex >= 0 &&
+            persisted.currentIndex < this.queue.length
+        ) {
+            this.currentIndex = persisted.currentIndex;
+        } else {
+            this.currentIndex = Math.max(
+                0,
+                this.queue.findIndex((s) => s.id === persisted.currentSong.id),
+            );
+        }
+
+        // 1b. Restore shuffledOrder nếu có (và shuffle ON)
+        this._shuffledOrder =
+            Array.isArray(persisted.shuffledOrder) &&
+            persisted.shuffledOrder.length > 0
+                ? persisted.shuffledOrder
+                : [];
 
         // 2. Set volume + shuffle + repeat TRƯỚC (UI update ngay lập tức)
         const vol = Math.max(0, Math.min(100, Number(persisted.volume) || 100));
         this.audio.volume = vol / 100;
         this.isShuffle = !!persisted.shuffle;
-        this.isRepeat = !!persisted.repeat;
+        // Back-compat: persisted cũ có `repeat: boolean` → map sang "all" | "off"
+        if (typeof persisted.repeatMode === "string") {
+            const r = persisted.repeatMode;
+            this.repeatMode = ["off", "all", "one"].includes(r) ? r : "off";
+        } else if (typeof persisted.repeat === "boolean") {
+            this.repeatMode = persisted.repeat ? "all" : "off";
+        } else {
+            this.repeatMode = "off";
+        }
 
         // 3. Update toggle UI (shuffle/repeat buttons)
         this._updateToggleUI();
@@ -405,7 +494,24 @@ class AudioPlayer {
                 audioUrl: fetched.audioUrl,
             };
             this.currentSong = songWithUrl;
-            this.queue = [songWithUrl];
+
+            // Cập nhật currentSong trong queue + shuffledOrder (giữ nguyên thứ tự)
+            const idxInQueue = this.queue.findIndex(
+                (s) => s.id === songWithUrl.id,
+            );
+            if (idxInQueue >= 0) {
+                this.queue[idxInQueue] = songWithUrl;
+            } else {
+                this.queue.push(songWithUrl);
+            }
+            if (this._shuffledOrder.length > 0) {
+                const idxInShuffle = this._shuffledOrder.findIndex(
+                    (s) => s.id === songWithUrl.id,
+                );
+                if (idxInShuffle >= 0) {
+                    this._shuffledOrder[idxInShuffle] = songWithUrl;
+                }
+            }
 
             // 7. Load audio (KHÔNG play) + seek tới currentTime
             this.audio.src = songWithUrl.audioUrl || "";
@@ -437,6 +543,10 @@ class AudioPlayer {
                 err,
             );
             // Không có audioUrl → vẫn show track info cũ, user click play sẽ thấy toast
+        } finally {
+            // Restore xong (thành công hoặc fail) → reset flag
+            // để các method khác (playSongById, setQueue...) chạy bình thường.
+            this._isRestoring = false;
         }
     }
 
@@ -535,31 +645,154 @@ class AudioPlayer {
     // NEXT / PREV / RANDOM
     // ==================================================
 
+    /**
+     * Lấy index tiếp theo (đã tính shuffle deck).
+     * Nếu queue chỉ có 1 bài → luôn trả về 0.
+     */
+    _getNextIndex() {
+        const list = this.isShuffle ? this._shuffledOrder : this.queue;
+        if (list.length === 0) return -1;
+        if (list.length === 1) return 0;
+        return (this.currentIndex + 1) % list.length;
+    }
+
+    /**
+     * Lấy index trước (đã tính shuffle deck).
+     */
+    _getPrevIndex() {
+        const list = this.isShuffle ? this._shuffledOrder : this.queue;
+        if (list.length === 0) return -1;
+        if (list.length === 1) return 0;
+        return (this.currentIndex - 1 + list.length) % list.length;
+    }
+
+    /**
+     * Lấy song tại index hiện tại (tôn trọng shuffle).
+     */
+    _getCurrentSong() {
+        const list = this.isShuffle ? this._shuffledOrder : this.queue;
+        if (list.length === 0) return null;
+        const safeIdx = Math.max(0, Math.min(this.currentIndex, list.length - 1));
+        return list[safeIdx];
+    }
+
+    /**
+     * Tạo deck shuffle mới:
+     * - Giữ nguyên bài đang phát ở vị trí đầu
+     * - Shuffle phần còn lại (Fisher-Yates)
+     * Lưu vào `this._shuffledOrder`.
+     *
+     * Edge case: queue chỉ có 1 bài → deck = [currentSong] (không có gì để shuffle).
+     * Lúc này next() sẽ re-shuffle (vẫn chỉ 1 bài) → nếu repeat = off, sẽ kẹt.
+     * Caller (next/songEnded) cần tự check queue.length > 1 trước khi gọi shuffle.
+     */
+    _buildShuffleDeck() {
+        if (this.queue.length === 0) {
+            this._shuffledOrder = [];
+            return;
+        }
+
+        // Bài hiện tại (hoặc bài đầu nếu chưa có)
+        const currentSong =
+            this.currentSong ||
+            this.queue[this.currentIndex] ||
+            this.queue[0];
+
+        // Phần còn lại: loại bỏ bài hiện tại (theo id)
+        const rest = this.queue.filter((s) => s.id !== currentSong.id);
+
+        // Fisher-Yates shuffle
+        for (let i = rest.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [rest[i], rest[j]] = [rest[j], rest[i]];
+        }
+
+        this._shuffledOrder = [currentSong, ...rest];
+        this.currentIndex = 0;
+        log("shuffle deck built:", this._shuffledOrder.length, "songs");
+    }
+
     async next() {
         if (this.queue.length === 0) return;
-        this.currentIndex = (this.currentIndex + 1) % this.queue.length;
-        const song = this.queue[this.currentIndex];
+
+        // Repeat-one: lặp lại bài hiện tại
+        if (this.repeatMode === "one") {
+            const song = this._getCurrentSong();
+            if (!song) return;
+            this.audio.currentTime = 0;
+            await this.playSong();
+            return;
+        }
+
+        // Edge case: queue chỉ có 1 bài
+        if (this.queue.length === 1) {
+            const song = this._getCurrentSong();
+            if (!song) return;
+            if (this.repeatMode === "all") {
+                this.audio.currentTime = 0;
+                await this.playSong();
+            } else {
+                // repeat=off + 1 bài + không repeat-one → re-play bài hiện tại
+                this.audio.currentTime = 0;
+                await this.playSong();
+            }
+            return;
+        }
+
+        const list = this.isShuffle ? this._shuffledOrder : this.queue;
+        const isLastSong = this.currentIndex >= list.length - 1;
+
+        // Hết bài cuối
+        if (isLastSong) {
+            if (this.repeatMode === "all") {
+                // Repeat all: về đầu queue
+                this.currentIndex = 0;
+            } else if (this.isShuffle) {
+                // Hết deck shuffle: build deck mới (cho phép lặp lại bài cũ)
+                this._buildShuffleDeck();
+            } else {
+                // repeat=off + không shuffle + hết queue → next sẽ wrap về 0
+                this.currentIndex = 0;
+            }
+        } else {
+            this.currentIndex = this._getNextIndex();
+        }
+
+        const song = this._getCurrentSong();
+        if (!song) return;
         await this.loadSongByUser(song);
         await this.playSong();
     }
 
     async prev() {
         if (this.queue.length === 0) return;
-        this.currentIndex =
-            (this.currentIndex - 1 + this.queue.length) % this.queue.length;
-        const song = this.queue[this.currentIndex];
+
+        // Repeat-one: lặp lại bài hiện tại
+        if (this.repeatMode === "one") {
+            const song = this._getCurrentSong();
+            if (!song) return;
+            this.audio.currentTime = 0;
+            await this.playSong();
+            return;
+        }
+
+        this.currentIndex = this._getPrevIndex();
+        const song = this._getCurrentSong();
+        if (!song) return;
         await this.loadSongByUser(song);
         await this.playSong();
     }
 
+    /**
+     * Random 1 bài (dùng khi user click vào nút random riêng, hoặc fallback).
+     * Hiện tại không bind UI cho nút này, giữ method để dùng nội bộ.
+     */
     async playRandom() {
         if (this.queue.length === 0) return;
-        let idx;
-        do {
-            idx = Math.floor(Math.random() * this.queue.length);
-        } while (idx === this.currentIndex && this.queue.length > 1);
-        this.currentIndex = idx;
-        const song = this.queue[idx];
+        this._buildShuffleDeck();
+        const song = this._shuffledOrder[0];
+        if (!song) return;
+        this.currentIndex = 0;
         await this.loadSongByUser(song);
         await this.playSong();
     }
@@ -609,16 +842,40 @@ class AudioPlayer {
     // SHUFFLE / REPEAT
     // ==================================================
 
+    /**
+     * Toggle shuffle. Bật shuffle:
+     *  1. Build deck shuffle mới (giữ bài hiện tại ở vị trí đầu)
+     *  2. Hoạt động độc lập với repeat
+     *  3. Khi user next/prev: dùng deck shuffle
+     *  4. Khi hết deck: tự build deck mới (cho phép lặp lại bài cũ)
+     */
     toggleShuffle() {
         this.isShuffle = !this.isShuffle;
-        if (this.isShuffle) this.isRepeat = false;
+        if (this.isShuffle) {
+            this._buildShuffleDeck();
+        } else {
+            // Tắt shuffle → reset về queue gốc, currentIndex theo currentSong
+            this._shuffledOrder = [];
+            if (this.currentSong) {
+                const idx = this.queue.findIndex(
+                    (s) => s.id === this.currentSong.id,
+                );
+                this.currentIndex = idx >= 0 ? idx : 0;
+            }
+        }
         this._updateToggleUI();
         this._emitState();
     }
 
+    /**
+     * Toggle repeat qua 3 trạng thái: off → all → one → off.
+     * Hoạt động độc lập với shuffle.
+     */
     toggleRepeat() {
-        this.isRepeat = !this.isRepeat;
-        if (this.isRepeat) this.isShuffle = false;
+        const order = ["off", "all", "one"];
+        const idx = order.indexOf(this.repeatMode);
+        this.repeatMode = order[(idx + 1) % order.length];
+        log("repeatMode:", this.repeatMode);
         this._updateToggleUI();
         this._emitState();
     }
@@ -633,13 +890,47 @@ class AudioPlayer {
     }
 
     _handleSongEnd() {
-        if (this.isRepeat) {
+        // Repeat-one: lặp lại bài hiện tại
+        if (this.repeatMode === "one") {
+            this.audio.currentTime = 0;
             this.playSong();
-        } else if (this.isShuffle) {
-            this.playRandom();
-        } else {
-            this.next();
+            return;
         }
+
+        // Edge case: queue chỉ có 1 bài
+        if (this.queue.length === 1) {
+            this.audio.currentTime = 0;
+            this.playSong();
+            return;
+        }
+
+        // Hết bài cuối của deck/queue?
+        const list = this.isShuffle ? this._shuffledOrder : this.queue;
+        const isLastSong = this.currentIndex >= list.length - 1;
+
+        if (isLastSong) {
+            if (this.repeatMode === "all") {
+                // Repeat all: quay về đầu
+                this.currentIndex = 0;
+                const song = list[0];
+                if (song) {
+                    this.loadSongByUser(song).then(() => this.playSong());
+                }
+                return;
+            }
+            if (this.isShuffle) {
+                // Hết deck shuffle: build deck mới (cho phép lặp lại bài cũ)
+                this._buildShuffleDeck();
+                const song = this._shuffledOrder[0];
+                if (song) {
+                    this.loadSongByUser(song).then(() => this.playSong());
+                }
+                return;
+            }
+        }
+
+        // Default: next bài tiếp theo
+        this.next();
     }
 
     // ==================================================
@@ -714,9 +1005,30 @@ class AudioPlayer {
     _updateToggleUI() {
         const shuffleBtn = document.querySelector(".player__action--shuffle");
         const repeatBtn = document.querySelector(".player__action--repeat");
-        if (shuffleBtn)
+        if (shuffleBtn) {
             shuffleBtn.classList.toggle("is-active", this.isShuffle);
-        if (repeatBtn) repeatBtn.classList.toggle("is-active", this.isRepeat);
+        }
+        if (repeatBtn) {
+            // Active khi repeat ≠ "off"
+            repeatBtn.classList.toggle(
+                "is-active",
+                this.repeatMode !== "off",
+            );
+            // Phân biệt repeat-one (lặp 1 bài) để hiển thị số "1"
+            repeatBtn.classList.toggle(
+                "is-repeat-one",
+                this.repeatMode === "one",
+            );
+            // Cập nhật icon theo trạng thái
+            const icon = repeatBtn.querySelector("i");
+            if (icon) {
+                // Repeat-all: fa-repeat (vòng tròn)
+                // Repeat-one: fa-repeat (giống + có ::after "1" ở SCSS)
+                // Tạm thời dùng chung fa-repeat, phân biệt bằng class
+                // is-repeat-one (CSS ::after thêm số "1")
+                icon.className = "fa-solid fa-repeat";
+            }
+        }
     }
 
     _highlightActiveSong(songId) {
@@ -800,6 +1112,15 @@ class AudioPlayer {
      * @param {string} songId
      */
     async playSongById(songId) {
+        // Nếu đang restore từ localStorage → skip playSongById.
+        // Fix race: F5 + click track ngay khi restore chưa xong.
+        // Vì restoreFromState đã set currentSong = persisted.currentSong
+        // → bài sẽ tự phát khi user click play.
+        if (this._isRestoring) {
+            log("playSongById: skip vì đang restore");
+            return;
+        }
+
         // 1. Tìm trong queue trước (đã set sẵn khi vào detail page)
         let song = this.queue.find((s) => s.id === songId);
         if (!song && this.currentSong && this.currentSong.id === songId) {
@@ -823,8 +1144,15 @@ class AudioPlayer {
                     duration: fetched.duration || 0,
                     audioUrl: fetched.audioUrl,
                 };
-                // Thêm vào queue (không thay currentIndex)
+                // Thêm vào queue
                 this.queue.push(song);
+                // Nếu shuffle ON: thêm vào shuffledOrder ở vị trí random
+                // (giữ cảm giác "random" khi user click 1 bài lẻ từ page khác)
+                if (this.isShuffle) {
+                    const insertIdx =
+                        Math.floor(Math.random() * (this._shuffledOrder.length + 1));
+                    this._shuffledOrder.splice(insertIdx, 0, song);
+                }
             } catch (err) {
                 console.warn("[audioPlayer] playSongById fetch failed:", err);
                 return;

@@ -51,8 +51,15 @@ export async function initLayout() {
         if (persisted.audio) {
             audioPlayer.restoreFromState(persisted.audio);
         }
-        if (persisted.video) {
+        // Chỉ restore video khi user CHƯA đóng hẳn trước đó.
+        // Nếu closeFull() trước đó đã set wasActive=false → skip restore
+        // → fix bug "F5 thì có video xuất hiện trong player".
+        if (persisted.video && persisted.video.wasActive !== false) {
             videoOverlay.restoreFromState(persisted.video);
+        } else if (persisted.video && persisted.video.wasActive === false) {
+            console.info(
+                "[initLayout] Skip restore video — user đã đóng trước đó",
+            );
         }
     }
 

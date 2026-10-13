@@ -2,16 +2,13 @@
     padding: 16px;
     color: var(--text-color);
 
-    // ---------- Chip tabs (horizontal scroll) ----------
+    // ---------- Chip tabs  ----------
     &__chip-tabs {
-        // Wrap trong `.home__body` (ở `section.js`) nhưng `.home__body` không
-        // có flex mặc định → phải set flex ở đây. Mỗi page kiểu wrap này
-        // (vd: `home-album__list`) tự set flex theo component riêng.
         display: flex;
         gap: 24px;
         overflow-x: auto;
 
-        // Ẩn scrollbar (rail nằm ngang)
+        // Ẩn scrollbar
         &::-webkit-scrollbar {
             height: 0;
         }
@@ -19,14 +16,12 @@
 
     // ---------- Hero heading ----------
     &__heading {
-        // Port từ base.js `dr()` dòng 4471: `font-bold text-[45px] mb-4 text-white`
         font-size: 4.5rem;
         font-weight: 700;
         line-height: 1.5;
     }
 
     &__subtitle {
-        // Port từ base.js `dr()` dòng 4472: `<p>${i.subtitle}</p>`
         color: rgba(255, 255, 255, 0.8);
     }
 }

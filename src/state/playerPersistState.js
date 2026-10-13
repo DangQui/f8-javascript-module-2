@@ -80,7 +80,43 @@ function _normalizeAudio(audio) {
         currentTime: Math.max(0, Number(audio.currentTime) || 0),
         volume: Math.max(0, Math.min(100, Number(audio.volume) || 100)),
         shuffle: !!audio.shuffle,
-        repeat: !!audio.repeat,
+        // repeatMode mới: "off" | "all" | "one"
+        // Back-compat: nếu audio.repeat là boolean → map sang "all" | "off"
+        repeatMode:
+            typeof audio.repeatMode === "string" &&
+            ["off", "all", "one"].includes(audio.repeatMode)
+                ? audio.repeatMode
+                : typeof audio.repeat === "boolean"
+                  ? audio.repeat
+                      ? "all"
+                      : "off"
+                  : "off",
+        // Lưu full queue + shuffled order để restore đúng
+        // (tránh case restore chỉ có 1 bài → shuffle kẹt ở bài cũ)
+        queue: Array.isArray(audio.queue)
+            ? audio.queue.filter((s) => s && s.id).map((s) => ({
+                  id: s.id,
+                  title: s.title || "",
+                  thumbnails: s.thumbnails || [],
+                  artists: s.artists || [],
+                  duration: s.duration || 0,
+                  audioUrl: s.audioUrl || "",
+              }))
+            : [],
+        shuffledOrder: Array.isArray(audio.shuffledOrder)
+            ? audio.shuffledOrder.filter((s) => s && s.id).map((s) => ({
+                  id: s.id,
+                  title: s.title || "",
+                  thumbnails: s.thumbnails || [],
+                  artists: s.artists || [],
+                  duration: s.duration || 0,
+                  audioUrl: s.audioUrl || "",
+              }))
+            : [],
+        currentIndex:
+            Number.isInteger(audio.currentIndex) && audio.currentIndex >= 0
+                ? audio.currentIndex
+                : 0,
     };
 }
 
@@ -95,6 +131,10 @@ function _normalizeVideo(video) {
         isShuffleOn: !!video.isShuffleOn,
         relatedList: Array.isArray(video.relatedList) ? video.relatedList : [],
         currentIndex: Number(video.currentIndex) || 0,
+        // Flag: true = video overlay đang mở/mini (cần restore khi F5)
+        //      false = user đã đóng hẳn → KHÔNG restore
+        // Mặc định true (back-compat với state cũ — mặc định restore)
+        wasActive: video.wasActive === false ? false : true,
     };
 }
 
@@ -148,18 +188,65 @@ export function loadPlayerState() {
     // Validate audio slot
     let audio = null;
     if (data.audio && data.audio.currentSong && data.audio.currentSong.id) {
+        // Back-compat: nếu persisted cũ có `repeat: boolean` → map sang repeatMode
+        let repeatMode = "off";
+        if (typeof data.audio.repeatMode === "string" &&
+            ["off", "all", "one"].includes(data.audio.repeatMode)) {
+            repeatMode = data.audio.repeatMode;
+        } else if (typeof data.audio.repeat === "boolean") {
+            repeatMode = data.audio.repeat ? "all" : "off";
+        }
+
+        // Back-compat: nếu không có queue/shuffledOrder → fallback queue = [currentSong]
+        const queueRaw = Array.isArray(data.audio.queue)
+            ? data.audio.queue
+            : [data.audio.currentSong];
+        const queue = queueRaw
+            .filter((s) => s && s.id)
+            .map((s) => ({
+                id: s.id,
+                title: s.title || "",
+                thumbnails: s.thumbnails || [],
+                artists: s.artists || [],
+                duration: s.duration || 0,
+                audioUrl: s.audioUrl || "",
+            }));
+
+        const shuffledOrderRaw = Array.isArray(data.audio.shuffledOrder)
+            ? data.audio.shuffledOrder
+            : [];
+        const shuffledOrder = shuffledOrderRaw
+            .filter((s) => s && s.id)
+            .map((s) => ({
+                id: s.id,
+                title: s.title || "",
+                thumbnails: s.thumbnails || [],
+                artists: s.artists || [],
+                duration: s.duration || 0,
+                audioUrl: s.audioUrl || "",
+            }));
+
         audio = {
             currentSong: data.audio.currentSong,
             currentTime: Number(data.audio.currentTime) || 0,
             volume: Number(data.audio.volume) || 100,
             shuffle: !!data.audio.shuffle,
-            repeat: !!data.audio.repeat,
+            repeatMode,
+            queue,
+            shuffledOrder,
+            currentIndex:
+                Number.isInteger(data.audio.currentIndex) &&
+                data.audio.currentIndex >= 0
+                    ? data.audio.currentIndex
+                    : 0,
         };
     }
 
     // Validate video slot
     let video = null;
     if (data.video && data.video.currentVideo && data.video.currentVideo.id) {
+        // Back-compat: nếu persisted cũ không có wasActive → mặc định true (restore)
+        const wasActive = data.video.wasActive === false ? false : true;
         video = {
             currentVideo: data.video.currentVideo,
             currentTime: Number(data.video.currentTime) || 0,
@@ -170,6 +257,7 @@ export function loadPlayerState() {
                 ? data.video.relatedList
                 : [],
             currentIndex: Number(data.video.currentIndex) || 0,
+            wasActive,
         };
     }
 

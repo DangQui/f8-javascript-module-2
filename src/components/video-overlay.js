@@ -478,6 +478,7 @@ function onPlayerStateChange(event) {
                             duration: v.duration,
                         })),
                         currentIndex,
+                        wasActive: true,
                     },
                 });
             }
@@ -594,6 +595,7 @@ function startProgressTimer() {
                         duration: v.duration,
                     })),
                     currentIndex,
+                    wasActive: true,
                 },
             });
         }
@@ -798,6 +800,7 @@ async function loadVideo(video) {
                     duration: v.duration,
                 })),
                 currentIndex,
+                wasActive: true,
             },
         });
     }
@@ -1544,7 +1547,28 @@ export function closeFull() {
     document.querySelector("#player")?.classList.remove("is-visible");
     resetPlayerUIForClose();
 
-    clearPlayerState({ video: true });
+    // Fix bug "F5 thì có video xuất hiện trong player":
+    // Đánh dấu video.wasActive = false trước khi clear, để init.js biết
+    // không nên restore video overlay khi user F5.
+    // Lưu ý: dùng savePlayerState với video.wasActive=false thay vì clear hẳn,
+    // vì cần giữ thông tin để initLayout skip restore đúng cách.
+    if (currentList.length > 0 && currentList[currentIndex >= 0 ? currentIndex : 0]) {
+        const v = currentList[currentIndex >= 0 ? currentIndex : 0];
+        savePlayerState({
+            video: {
+                currentVideo: v,
+                currentTime: 0,
+                volume: getVolume(),
+                isRepeatOn: false,
+                isShuffleOn: false,
+                relatedList: [],
+                currentIndex: 0,
+                wasActive: false, // ← KEY: đánh dấu đã đóng
+            },
+        });
+    } else {
+        clearPlayerState({ video: true });
+    }
 
     // Emit state-changed để #player biết track đã bị destroy → ẩn player
     emitStateChanged();

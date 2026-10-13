@@ -154,6 +154,32 @@
     color: #2dd4bf; // accent-teal-light (giống overlay)
 }
 
+// Repeat-one: thêm badge "1" nhỏ ở góc trên-phải icon repeat
+// (giống YouTube Music — dùng ::after để không cần đổi markup)
+.player__action--repeat.is-repeat-one {
+    position: relative;
+
+    i {
+        position: relative;
+    }
+
+    &::after {
+        content: "1";
+        position: absolute;
+        top: 50%;
+        right: 50%;
+        transform: translate(60%, -85%);
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 1;
+        color: #2dd4bf; // đồng bộ màu active
+        background: #212121; // nền trùng player để "đục lỗ" icon
+        padding: 0 2px;
+        border-radius: 4px;
+        pointer-events: none;
+    }
+}
+
 .player__action--volume.is-muted {
     color: #fff; // đỏ nhạt khi muted
 }

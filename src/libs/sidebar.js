@@ -7,8 +7,12 @@ function getCurrentPath() {
 
 /**
  * Match current path với href sidebar item.
+ *
+ * Logic:
  *   - "/" (root): khớp "/" và các biến thể index.html
- *   - Path khác: khớp CHÍNH XÁC
+ *   - Path khác: khớp CHÍNH XÁC, hoặc "starts with" nếu href là parent
+ *     (đề phòng trailing slash, sub-routes như /auth/login/foo)
+ *
  * @param {string} currentPath @param {string} href @returns {boolean}
  */
 function isPathMatch(currentPath, href) {
@@ -25,7 +29,19 @@ function isPathMatch(currentPath, href) {
         return rootVariants.includes(href);
     }
 
-    return href === currentPath;
+    // Exact match (case thường)
+    if (href === currentPath) return true;
+
+    // Normalize trailing slash: "/auth/login/" === "/auth/login"
+    const normCurrent = currentPath.replace(/\/+$/, "") || "/";
+    const normHref = href.replace(/\/+$/, "") || "/";
+    if (normHref === normCurrent) return true;
+
+    // Sub-route match: href là parent của currentPath
+    // VD: href="/auth/login" + currentPath="/auth/login/abc" → match
+    if (normCurrent.startsWith(normHref + "/")) return true;
+
+    return false;
 }
 
 /** Highlight sidebar item active theo URL hiện tại. */

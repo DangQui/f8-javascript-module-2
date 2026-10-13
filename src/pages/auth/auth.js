@@ -1,5 +1,6 @@
 import { renderPage, loading } from "@/pages/_shared.js";
 import { renderAuthPage } from "@/pages/auth/auth.render.js";
+import { initSidebarActive } from "@/libs/sidebar.js";
 
 // Xóa import SKELETON_AUTH.
 import { initJsToggle } from "@/libs/toggle.js";
@@ -37,6 +38,11 @@ export async function loginPage(route = {}) {
         bindAuthPage({ mode: "login" });
     } finally {
         loading.hide();
+        // Fix bug "sidebar không active khi vào /auth/login":
+        // renderPage đã gọi initSidebarActive() rồi, NHƯNG có thể chạy khi
+        // sidebar chưa load xong (vì renderSidebar cũng async). Defer 1 frame
+        // để chắc chắn sidebar items đã có trong DOM.
+        requestAnimationFrame(() => initSidebarActive());
     }
 }
 
@@ -52,6 +58,9 @@ export async function registerPage(route = {}) {
         bindAuthPage({ mode: "register" });
     } finally {
         loading.hide();
+        // Tương tự loginPage — defer initSidebarActive để đảm bảo
+        // sidebar items đã load xong.
+        requestAnimationFrame(() => initSidebarActive());
     }
 }
 
